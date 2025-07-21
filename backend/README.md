@@ -13,7 +13,7 @@
 | Project | Version | Description  |
 | ------- |---------|--------------|
 | Java    | 17.0.x  | Open JDK LTS |
-| Gradle  | 6.9.3   | Build Tool   |
+| Gradle  | 8.13    | Build Tool   |
 | MySQL   | 8.0.x   |              |
 |         |         |              |
 
