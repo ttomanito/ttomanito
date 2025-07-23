@@ -1,25 +1,60 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-
-// https://vite.dev/config/
+import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
+
 const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
-// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: {
+        name: '또마니또',
+        short_name: '또마니또',
+        description: 'PWA test',
+        theme_color: '#D6DCFF',
+        background_color: '#FFFFFF',
+        display: 'standalone',
+        start_url: '/',
+        icons: [
+          {
+            src: 'icons/android-chrome-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: 'icons/android-chrome-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: 'icons/maskable-icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
+          }
+        ]
+      },
+      devOptions: {
+        enabled: true
+      }
+    })
+  ],
   test: {
     projects: [{
       extends: true,
       plugins: [
-      // The plugin will run tests for the stories defined in your Storybook config
-      // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
-      storybookTest({
-        configDir: path.join(dirname, '.storybook')
-      })],
+        storybookTest({
+          configDir: path.join(dirname, '.storybook')
+        })
+      ],
       test: {
         name: 'storybook',
         browser: {

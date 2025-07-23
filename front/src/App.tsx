@@ -1,69 +1,33 @@
-// src/App.tsx
-// 리액트 + 타입스크립트 예시
+import { useEffect, useState } from 'react';
+import InstallPrompt from './InstallPrompt';
 
-import {
-  Box,
-  Button,
-  Container,
-  Flex,
-  Heading,
-  Icon,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
-import { FaGithub } from "react-icons/fa";
+const App = () => {
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
-const App: React.FC = () => {
+  // 오프라인/온라인 상태 감지
+  useEffect(() => {
+    const handleOffline = () => setIsOffline(true);
+    const handleOnline = () => setIsOffline(false);
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
+
   return (
-    <Box bg="gray.50" minH="100vh">
-      {/* ===== 헤더 ===== */}
-      <Box bg="white" boxShadow="sm">
-        <Container maxW="container.xl" py={4}>
-          <Flex align="center" justify="space-between">
-            <Heading size="md">MyChakraApp</Heading>
-            <Button
-              as="a"
-              href="https://github.com"
-              leftIcon={<Icon as={FaGithub} />}
-              variant="outline"
-              size="sm"
-            >
-              GitHub
-            </Button>
-          </Flex>
-        </Container>
-      </Box>
+    <main style={{ padding: '2rem', fontFamily: 'sans-serif', textAlign: 'center' }}>
+      <h1>🎉 또마니또 PWA</h1>
+      <p>이 앱은 React + Vite + PWA로 만들어졌어요!</p>
 
-      {/* ===== 본문 ===== */}
-      <Container maxW="container.lg" py={16}>
-        <VStack spacing={6} textAlign="center">
-          <Heading size="2xl">Welcome to MyChakraApp</Heading>
-          <Text fontSize="lg" color="gray.600">
-            Chakra UI로 빠르게 반응형 사이트를 만들어 보세요.
-            <br />
-            TypeScript 덕분에 컴포넌트 속성도 안전하게!
-          </Text>
+      {isOffline && (
+        <p style={{ color: 'red' }}>⚠️ 오프라인 상태입니다. 일부 기능이 제한될 수 있어요.</p>
+      )}
 
-          <Flex gap={4} flexDir={{ base: "column", md: "row" }}>
-            <Button color="gray.600" size="lg">
-              시작하기
-            </Button>
-            <Button variant="outline" size="lg">
-              문서 살펴보기
-            </Button>
-          </Flex>
-        </VStack>
-      </Container>
-
-      {/* ===== 푸터 ===== */}
-      <Box bg="gray.800" color="gray.200" py={8} mt="auto">
-        <Container maxW="container.xl" textAlign="center">
-          <Text fontSize="sm">
-            © {new Date().getFullYear()} MyChakraApp. All rights reserved.
-          </Text>
-        </Container>
-      </Box>
-    </Box>
+      {/* 👇 설치 유도 컴포넌트 */}
+      <InstallPrompt />
+    </main>
   );
 };
 
