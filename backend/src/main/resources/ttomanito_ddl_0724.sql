@@ -14,22 +14,22 @@ CREATE TABLE `user` (
 	`user_id`	BIGINT	NOT NULL,
 	`name`	VARCHAR(50)	NOT NULL,
 	`joined_at`	DATETIME	NOT NULL,
-	`status`	ENUM('ACTIVE', 'WITHDRAWN')	NOT NULL
+	`status`	VARCHAR(20)	NOT NULL	COMMENT "ENUM('ACTIVE', 'WITHDRAWN')"
 );
 
 CREATE TABLE `mission` (
 	`mission_id`	BIGINT	NOT NULL,
 	`title`	VARCHAR(100)	NOT NULL,
 	`description`	VARCHAR(255)	NULL,
-	`difficulty`	ENUM('EASY', 'NORMAL', 'HARD', 'VERY_HARD')	NOT NULL,
-	`channels`	ENUM('MEET', 'CHAT', 'CALL')	NOT NULL
+	`difficulty`	VARCHAR(20)	NOT NULL	COMMENT "ENUM('EASY', 'NORMAL', 'HARD', 'VERY_HARD')",
+	`channels`	VARCHAR(20)	NOT NULL	COMMENT "ENUM('MEET', 'CHAT', 'CALL')"
 );
 
 CREATE TABLE `room` (
 	`room_id`	BIGINT	NOT NULL,
 	`creator_id`	BIGINT	NOT NULL,
 	`name`	VARCHAR(50)	NULL,
-	`status`	ENUM('NOT_STARTED','IN_PROGRESS','FINISHED')	NULL,
+	`status`	VARCHAR(20)	NULL	COMMENT "ENUM('NOT_STARTED','IN_PROGRESS','FINISHED')",
 	`start_date`	DATE	NULL,
 	`end_date`	DATE	NULL
 );
@@ -44,7 +44,14 @@ CREATE TABLE `room_user` (
 CREATE TABLE `mission_day` (
 	`mission_day_id`	BIGINT	NOT NULL,
 	`room_id`	BIGINT	NOT NULL,
-	`day`	ENUM('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN')	NOT NULL
+	`day`	VARCHAR(20)	NOT NULL	COMMENT "ENUM('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN')"
+);
+
+CREATE TABLE `chatting_room` (
+	`chatting_room_id`	BIGINT	NOT NULL,
+	`manito_assignment_id`	BIGINT	NOT NULL,
+	`last_message`	VARCHAR(255)	NULL,
+	`last_message_time`	DATETIME	NULL
 );
 
 CREATE TABLE `daily_mission` (
@@ -68,14 +75,6 @@ CREATE TABLE `oauth_identity` (
 	`provider_id`	VARCHAR(255)	NOT NULL
 );
 
-CREATE TABLE `manito_guess` (
-	`manito_guess`	BIGINT	NOT NULL,
-	`guess_user_id`	BIGINT	NOT NULL,
-	`guessed_user_id`	BIGINT	NOT NULL,
-	`guessed_date`	DATE	NOT NULL,
-	`is_correct`	BOOLEAN	NULL
-);
-
 CREATE TABLE `manito_activity` (
 	`room_user_id`	BIGINT	NOT NULL,
 	`chat_count`	INT	NULL,
@@ -84,19 +83,20 @@ CREATE TABLE `manito_activity` (
 	`poke_count`	INT	NULL
 );
 
-CREATE TABLE `chatting_room` (
-	`chatting_room_id`	BIGINT	NOT NULL,
-	`manito_assignment_id`	BIGINT	NOT NULL,
-	`last_message`	VARCHAR(255)	NULL,
-	`last_message_time`	DATETIME	NULL
-);
-
 CREATE TABLE `voice_chat` (
 	`chatting_room_id`	BIGINT	NOT NULL,
 	`caller_id`	BIGINT	NOT NULL,
 	`started_at`	DATETIME	NULL,
 	`ended_at`	DATETIME	NULL,
 	`duration_sec`	INT	NULL
+);
+
+CREATE TABLE `manito_guess` (
+	`manito_guess`	BIGINT	NOT NULL,
+	`guess_user_id`	BIGINT	NOT NULL,
+	`guessed_user_id`	BIGINT	NOT NULL,
+	`guessed_date`	DATE	NOT NULL,
+	`is_correct`	BOOLEAN	NULL
 );
 
 ALTER TABLE `mission_status` ADD CONSTRAINT `PK_MISSION_STATUS` PRIMARY KEY (
@@ -123,6 +123,10 @@ ALTER TABLE `mission_day` ADD CONSTRAINT `PK_MISSION_DAY` PRIMARY KEY (
 	`mission_day_id`
 );
 
+ALTER TABLE `chatting_room` ADD CONSTRAINT `PK_CHATTING_ROOM` PRIMARY KEY (
+	`chatting_room_id`
+);
+
 ALTER TABLE `daily_mission` ADD CONSTRAINT `PK_DAILY_MISSION` PRIMARY KEY (
 	`daily_mission_id`
 );
@@ -135,20 +139,16 @@ ALTER TABLE `oauth_identity` ADD CONSTRAINT `PK_OAUTH_IDENTITY` PRIMARY KEY (
 	`oauth_identity_id`
 );
 
-ALTER TABLE `manito_guess` ADD CONSTRAINT `PK_MANITO_GUESS` PRIMARY KEY (
-	`manito_guess`
-);
-
 ALTER TABLE `manito_activity` ADD CONSTRAINT `PK_MANITO_ACTIVITY` PRIMARY KEY (
 	`room_user_id`
 );
 
-ALTER TABLE `chatting_room` ADD CONSTRAINT `PK_CHATTING_ROOM` PRIMARY KEY (
+ALTER TABLE `voice_chat` ADD CONSTRAINT `PK_VOICE_CHAT` PRIMARY KEY (
 	`chatting_room_id`
 );
 
-ALTER TABLE `voice_chat` ADD CONSTRAINT `PK_VOICE_CHAT` PRIMARY KEY (
-	`chatting_room_id`
+ALTER TABLE `manito_guess` ADD CONSTRAINT `PK_MANITO_GUESS` PRIMARY KEY (
+	`manito_guess`
 );
 
 ALTER TABLE `manito_activity` ADD CONSTRAINT `FK_room_user_TO_manito_activity_1` FOREIGN KEY (
