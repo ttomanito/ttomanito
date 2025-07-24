@@ -1,0 +1,40 @@
+/* 1) 폰트: 최상단에! (400도 매핑) */
+@font-face {
+  font-family: 'SBAggro';
+  src: url('/fonts/SB_Aggro_L.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SBAggro';
+  src: url('/fonts/SB_Aggro_M.ttf') format('truetype');
+  font-weight: 400; /* 400 매핑 */
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SBAggro';
+  src: url('/fonts/SB_Aggro_M.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SBAggro';
+  src: url('/fonts/SB_Aggro_B.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2) 최소 reset */
+html, body, #root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: 'SBAggro', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; /* 있어도 되고, Chakra system.tokens.fonts 가 덮어씁니다 */
+}
+
+/* (선택) 스크린 리더용 유틸 등만 남겨두고 나머지는 Chakra에서 처리 */
