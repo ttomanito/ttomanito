@@ -135,8 +135,8 @@ local.properties
 # .idea/modules.xml
 # .idea/*.iml
 # .idea/modules
-# *.iml
-# *.ipr
+ *.iml
+ *.ipr
 
 # CMake
 cmake-build-*/
@@ -260,5 +260,9 @@ gradle-app.setting
 ### Gradle Patch ###
 # Java heap dump
 *.hprof
+
+# Spring Boot 설정 파일 무시
+application.properties
+application.yml
 
 # End of https://www.toptal.com/developers/gitignore/api/java,eclipse,gradle,git,intellij,database,dotenv
