@@ -1,2 +1,4 @@
-package com.ssafy.ttomanito.config;public class WebCorsConfig {
+package com.ssafy.ttomanito.config;
+
+public class WebCorsConfig {
 }

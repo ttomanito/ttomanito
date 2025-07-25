@@ -1,2 +1,4 @@
-package com.ssafy.ttomanito.config;public class CustomWebSocketHandlerDecorator {
+package com.ssafy.ttomanito.config;
+
+public class CustomWebSocketHandlerDecorator {
 }
