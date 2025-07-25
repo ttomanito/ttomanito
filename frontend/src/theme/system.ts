@@ -1,19 +1,40 @@
-
 // src/theme/system.ts
-import { createSystem, defaultConfig } from '@chakra-ui/react'
+import {
+  createSystem,
+  defaultConfig,
+  defineGlobalStyles,
+} from "@chakra-ui/react"
+
+const globalCss = defineGlobalStyles({
+  /* Firefox */
+  "html, body": {
+    scrollbarWidth: "none",
+  },
+  /* Chrome / Safari / Edge */
+  "::-webkit-scrollbar": {
+    display: "none",
+  },
+})
 
 export const system = createSystem(defaultConfig, {
+  globalCss, // ← 여기!
   theme: {
     tokens: {
       fonts: {
-        heading: { value: 'SBAggro, -apple-system, BlinkMacSystemFont, system-ui, sans-serif' },
-        body:    { value: 'SBAggro, -apple-system, BlinkMacSystemFont, system-ui, sans-serif' },
+        heading: {
+          value:
+            "SBAggro, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+        },
+        body: {
+          value:
+            "SBAggro, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+        },
       },
       fontWeights: {
-        light:  { value: '300' },
-        normal: { value: '400' },   // 400을 Medium으로 매핑했다면 fonts.css에도 400 선언이 있어야 함
-        medium: { value: '500' },
-        bold:   { value: '700' },
+        light: { value: "300" },
+        normal: { value: "400" },
+        medium: { value: "500" },
+        bold: { value: "700" },
       },
     },
   },

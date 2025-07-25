@@ -7,12 +7,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import svgr from "vite-plugin-svgr"
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
     react(),
+    svgr(),
     tsconfigPaths(), // ✅ 추가
     VitePWA({
       registerType: 'autoUpdate',

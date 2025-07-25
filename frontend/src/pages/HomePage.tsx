@@ -5,18 +5,16 @@ import React from "react"
 import {
   Box,
   Text,
-  VStack,
   Stack,
   Icon,
   Progress,
   Flex,
   Image,
   Container,
-  Card,
 } from "@chakra-ui/react"
 import { useNavigate } from "react-router-dom"
-import { FaBell, FaCheckCircle, FaCrown, FaCog } from "react-icons/fa"
-
+import { FaCheckCircle } from "react-icons/fa"
+import FramedCard from "@/components/ui/FramedCard"
 const TOTAL_MISSIONS = 7
 const COMPLETED_MISSIONS = 5
 const color = "#a4b8fbff"
@@ -25,65 +23,36 @@ const HomePage: React.FC = () => {
   const progressValue = (COMPLETED_MISSIONS / TOTAL_MISSIONS) * 100
 
   return (
-    <Box bg ="#EAF4FF" minH="100vh" pb={8} overflowX="hidden">
       <Container maxW="480px" px={4}>
-        {/* Header */}
-        <Flex as="header" align="center" justify="space-between" pt={2} mb={2}>
-          <Image src="/icons/logo.svg" h="50px" alt="logo" />
-
-          <Flex gap={4}>
-            <Icon as={FaBell} boxSize={6} color="black" />
-            <Icon as={FaCog} boxSize={6} color="black" />
-          </Flex>
-        </Flex>
-        {/* Page Title */}
-        <VStack gap={3} textAlign="center" mt={4}>
-          <Icon as={FaCrown} boxSize={6} />
-        </VStack>
 
         {/* Mission Card */}
-        <Card.Root
+        <FramedCard
           mt={3}
           w="full"
-          bg="white"
-          rounded="md"
-          overflow="hidden"
-          border="2px solid"
-          borderColor={color}
-          boxShadow="sm"
-          textAlign="center"
+          accent={color}
+          header="오늘의 미션"
+          footer={
+            <CustomButton w="full" bg = {color} onClick={() => navigate("/")}>
+              미션 완료!
+            </CustomButton>
+          }
         >
-          {/* 컬러 헤더 */}
-          <Card.Header bg={color} color="black" py={0} px={4}>
-          <Text fontSize="3xl" fontWeight="bold" py = {2}>
-            오늘의 미션
+          <Text fontWeight="bold" fontSize="lg" mb={1}>
+            몰래 과자 선물하기!!
           </Text>
-          </Card.Header>
+          <Text fontSize="sm" color="gray.600">
+            내 마니또에게 들키지 않고 선물을 전해주세요
+          </Text>
 
-          {/* 본문 */}
-          <Card.Body p={6}>
-            <Text fontWeight="bold" fontSize="lg" mb={1}>
-              몰래 과자 선물하기!!
-            </Text>
-            <Text fontSize="sm" color="gray.600">
-              내 마니또에게 들키지 않고 선물을 전해주세요
-            </Text>
-
-            <Image
-              src="/assets/bread.svg"
-              alt="bread icon"
-              boxSize="120px"
-              mx="auto"
-              mt={6}
-              mb={2}
-            />
-          </Card.Body>
-
-          {/* 필요하면 */}
-          {/* <Card.Footer p={4}>
-            <CustomButton w="full">미션 완료!</CustomButton>
-          </Card.Footer> */}
-        </Card.Root>
+          <Image
+            src="/assets/bread.svg"
+            alt="bread icon"
+            boxSize="120px"
+            mx="auto"
+            mt={6}
+            mb={2}
+          />
+        </FramedCard>
         
         {/* Mission Card
         
@@ -114,7 +83,7 @@ const HomePage: React.FC = () => {
         
 
         {/* Utility Cards */}
-        <Stack gap={4} mt={6}>
+        <Stack gap={4} mt={6} pb={6}>
           {[
             {
               title: "이전 미션 목록 보기",
@@ -137,12 +106,8 @@ const HomePage: React.FC = () => {
           ))}
         </Stack>
 
-        {/* Mission Complete Button */}
-        <CustomButton mt={8} w="full" onClick={() => navigate("/")}>
-          미션 완료!
-        </CustomButton>
+
       </Container>
-    </Box>
   )
 }
 

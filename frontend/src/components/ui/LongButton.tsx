@@ -31,8 +31,8 @@ const LongButton = forwardRef<HTMLButtonElement, LongButtonProps>(
         w="full"               // 가로 100% (긴 버튼)
         size="lg"              // 큰 사이즈
         borderRadius="full"    // 둥근 pill 형태
-        bg="black"             // 배경은 검정
-        color="white"          // 글자는 흰색
+        bg="white"             // 배경은 검정
+        color="black"          // 글자는 흰색
         _hover={{ bg: "gray.800" }}                      // hover 시 조금 더 밝은 검정
         _disabled={{ opacity: 0.6, cursor: "not-allowed" }} // 비활성화 시 스타일
         {...rest}              // 나머지 props(onClick, isLoading 등)를 그대로 전달
