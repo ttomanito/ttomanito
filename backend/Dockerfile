@@ -1,7 +1,7 @@
 # 1. Gradle 빌드용 Stage
 FROM gradle:8.4.0-jdk17 AS builder
 WORKDIR /app
-COPY backend/ /app
+COPY . /app
 RUN gradle build -x test
 
 # 2. 실행용 Stage
