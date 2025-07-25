@@ -1,6 +1,17 @@
 # 마니또 운영 서비스
 
-## 요구사항 명세서
+## 기술 스택 (Tech Stack)
+ - React 18
+모던 웹 UI 개발을 위한 컴포넌트 기반 라이브러리
 
-https://docs.google.com/spreadsheets/d/1hdH1FhZ4UrtJLmoJLL6BUps2KD5PkNv09FciAjLv6G4/edit?usp=sharing
+- TypeScript
+JavaScript에 정적 타입을 적용한 언어로 코드의 신뢰성과 유지보수성을 높임
 
+- Node.js v22.15.0
+자바스크립트 런타임 환경, 프로젝트 빌드와 개발 서버 실행에 사용
+
+- Storybook
+UI 컴포넌트를 독립적으로 개발·테스트·문서화할 수 있는 툴
+
+- Chakra UI
+직관적이고 접근성이 뛰어난 스타일링 및 UI 컴포넌트 라이브러리
