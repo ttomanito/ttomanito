@@ -2,7 +2,6 @@
 // 리액트 + 타입스크립트 예시
 
 import {
-  Link,
   Box,
   Button,
   Container,
@@ -23,32 +22,21 @@ const App: React.FC = () => {
           <Flex align="center" justify="space-between">
             <Heading size="md">MyChakraApp</Heading>
             <Button
-              as={Link}
-              href="https://github.com"
-              leftIcon={<Icon as={FaGithub} />}
+              as="a"
+              // href="https://github.com"
+              // leftIcon={<Icon as={FaGithub} />}
               variant="outline"
               size="sm"
-              isExternal
             >
               GitHub
             </Button>
-
-            {/* <Button
-              as="a"
-              href="https://github.com"
-              leftIcon={<Icon as={FaGithub} />}
-              variant="outline"
-              size="sm"
-            >
-              GitHub
-            </Button> */}
           </Flex>
         </Container>
       </Box>
 
       {/* ===== 본문 ===== */}
       <Container maxW="container.lg" py={16}>
-        <VStack spacing={6} textAlign="center">
+        {/* <VStack spacing={6} textAlign="center"> */}
           <Heading size="2xl">Welcome to MyChakraApp</Heading>
           <Text fontSize="lg" color="gray.600">
             Chakra UI로 빠르게 반응형 사이트를 만들어 보세요.
@@ -64,7 +52,7 @@ const App: React.FC = () => {
               문서 살펴보기
             </Button>
           </Flex>
-        </VStack>
+        {/* </VStack> */}
       </Container>
 
       {/* ===== 푸터 ===== */}
