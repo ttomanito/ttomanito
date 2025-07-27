@@ -1,13 +1,12 @@
 package com.ssafy.ttomanito.domain.room.controller;
 
 import com.ssafy.ttomanito.domain.room.dto.request.CreateRoomRequest;
-import com.ssafy.ttomanito.domain.room.dto.request.KickUserRequest;
 import com.ssafy.ttomanito.domain.room.dto.request.SetUserMessageRequest;
 import com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse;
 import com.ssafy.ttomanito.domain.room.dto.response.RoomInfoResponse;
 import com.ssafy.ttomanito.domain.room.service.RoomService;
+import com.ssafy.ttomanito.domain.room.service.RoomUserService;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -19,56 +18,45 @@ import java.util.List;
 public class RoomController {
 
     private final RoomService roomService;
+    private final RoomUserService roomUserService;
 
+    // 1. 방 생성
     @PostMapping
-    public RoomInfoResponse create(@RequestBody CreateRoomRequest req, Principal principal) {
-        Long creatorId = uid(principal);
-        return roomService.createRoom(req, creatorId);
+    public RoomInfoResponse create(@RequestBody CreateRoomRequest req,
+                                   @RequestHeader("X-USER-ID") Long userId) {
+        // userId가 곧 방장(creatorId)
+        return roomService.createRoom(req, userId);
     }
-
-    @GetMapping("/{roomId}/participants")
-    public List<ParticipantResponse> participants(@PathVariable Long roomId) {
-        return roomService.getParticipants(roomId);
-    }
-
+    // 2. 방 정보 조회
     @GetMapping("/{roomId}")
     public RoomInfoResponse info(@PathVariable Long roomId) {
         return roomService.getRoomInfo(roomId);
     }
 
-    @DeleteMapping("/{roomId}/participants")
-    public void kick(@PathVariable Long roomId,
-                     @RequestBody KickUserRequest req,
-                     Principal principal) {
-        // TODO: 방장 권한 체크
-        roomService.kick(roomId, req.targetUserId());
+    // 3. 참여자 목록 조회
+    @GetMapping("/{roomId}/participants")
+    public List<ParticipantResponse> participants(@PathVariable Long roomId) {
+        return roomService.getParticipants(roomId);
     }
 
+    // 4. 상태메시지 작성 + 입장 처리
     @PostMapping("/{roomId}/message")
     public void setUserMessage(@PathVariable Long roomId,
-                               @RequestBody SetUserMessageRequest req,
-                               Principal principal) throws BadRequestException {
-        Long userId = uid(principal);
-        roomService.setUserMessage(roomId, userId, req.message());
+                               @RequestHeader("X-USER-ID") Long userId,
+                               @RequestBody SetUserMessageRequest request) {
+        roomUserService.enterWithMessage(roomId, userId, request.message());
     }
-
-    @PostMapping("/{roomId}/start")
-    public void start(@PathVariable Long roomId, Principal principal) {
-        // TODO: 방장 권한 체크
-        roomService.startGame(roomId);
-    }
-
+    // 5. 초대링크 진입 후 “참가하기” 버튼 눌렀을 때 호출
     @PostMapping("/{roomId}/enter")
-    public void enter(@PathVariable Long roomId, Principal principal) {
-        Long userId = uid(principal);
-        roomService.enterByHttp(roomId, userId);
+    public void prepareEnter(@PathVariable Long roomId,
+                             @RequestHeader("X-USER-ID") Long userId) {
+        roomUserService.prepareEnter(roomId, userId);
     }
 
-    @PostMapping("/{roomId}/exit")
-    public void exit(@PathVariable Long roomId, Principal principal) {
-        Long userId = uid(principal);
-        roomService.exitByHttp(roomId, userId);
-    }
+
+
+
+
 
     private Long uid(Principal p) {
         return Long.valueOf(p.getName());

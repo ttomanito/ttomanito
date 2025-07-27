@@ -1,11 +1,11 @@
 package com.ssafy.ttomanito.domain.room.dto.request;
 
+import com.ssafy.ttomanito.domain.room.entity.Weekday;
+import java.time.LocalDate;
+import java.util.List;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter @Setter
-public class CreateRoomRequest {
-    private String name;
-    private String statusMessage; // 초기 상태 메시지
-}
+public record CreateRoomRequest(
+        String name,
+        LocalDate deadline,          // = room.endDate
+        List<Weekday> missionDays
+) {}

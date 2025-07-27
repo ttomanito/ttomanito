@@ -1,8 +1,7 @@
-package com.ssafy.ttomanito.domain.room.model;
+package com.ssafy.ttomanito.domain.room.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Comment;
 
 import java.time.LocalDate;
 
@@ -14,10 +13,8 @@ import java.time.LocalDate;
 @Builder(toBuilder = true)
 public class Room {
 
-
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)   // room_id가 AUTO_INCREMENT면 유지, 아니면 제거
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "room_id")
     private Long id;
 
@@ -32,13 +29,12 @@ public class Room {
     private RoomStatus status;
 
     @Column(name = "start_date")
-    private LocalDate startDate;   // NULL 가능
+    private LocalDate startDate;
 
     @Column(name = "end_date")
-    private LocalDate endDate;     // NULL 가능
+    private LocalDate endDate;
 
-    /* ---------- 팩토리 / 도메인 메서드 ---------- */
-
+    // 정적 팩토리 메서드
     public static Room create(Long creatorId, String name) {
         return Room.builder()
                 .creatorId(creatorId)
@@ -47,14 +43,19 @@ public class Room {
                 .build();
     }
 
-    /** 게임 시작 */
+    // 게임 시작
     public void start(LocalDate when) {
         this.status = RoomStatus.IN_PROGRESS;
         this.startDate = when;
         this.endDate = null;
     }
 
-    /** 게임 종료 */
+    // 마감일 설정 (setter 대신 도메인 메서드로)
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    // 게임 종료
     public void finish(LocalDate when) {
         this.status = RoomStatus.FINISHED;
         this.endDate = when;

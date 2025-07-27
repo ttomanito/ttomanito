@@ -1,7 +1,7 @@
 package com.ssafy.ttomanito.domain.room.repository;
 
 import com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse;
-import com.ssafy.ttomanito.domain.room.model.RoomUser;
+import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

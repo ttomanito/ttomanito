@@ -1,31 +1,34 @@
 package com.ssafy.ttomanito.domain.room.dto.response;
 
-import com.ssafy.ttomanito.domain.room.model.Room;
-import com.ssafy.ttomanito.domain.room.model.RoomStatus;
-import lombok.Builder;
-import lombok.Getter;
+import com.ssafy.ttomanito.domain.room.entity.Room;
+import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
+import com.ssafy.ttomanito.domain.room.entity.Weekday;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 
-@Getter @Builder
-public class RoomInfoResponse {
-    private Long roomId;
-    private Long creatorId;
-    private String name;
-    private RoomStatus status;
-    private LocalDate startDate;
-    private LocalDate endDate;
 
-    public static RoomInfoResponse from(Room r) {
-        return RoomInfoResponse.builder()
-                .roomId(r.getId())
-                .creatorId(r.getCreatorId())
-                .name(r.getName())
-                .status(r.getStatus())
-                .startDate(r.getStartDate())
-                .endDate(r.getEndDate())
-                .build();
+public record RoomInfoResponse(
+        Long roomId,
+        Long creatorId,
+        String name,
+        RoomStatus status,
+        LocalDate startDate,
+        LocalDate endDate,   // 내부 확인용(필요 없으면 제거 가능)
+        LocalDate deadline,  // 프론트에 명확히 노출 (실제로는 endDate)
+        List<Weekday> missionDays
+) {
+    public static RoomInfoResponse from(Room r, List<Weekday> days) {
+        return new RoomInfoResponse(
+                r.getId(),
+                r.getCreatorId(),
+                r.getName(),
+                r.getStatus(),
+                r.getStartDate(),
+                r.getEndDate(),
+                r.getEndDate(),     // deadline = endDate
+                days
+        );
     }
 }
 

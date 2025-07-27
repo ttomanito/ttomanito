@@ -125,17 +125,18 @@ ALTER TABLE `mission` ADD CONSTRAINT `PK_MISSION` PRIMARY KEY (
                                                                `mission_id`
     );
 
-ALTER TABLE `room` ADD CONSTRAINT `PK_ROOM` PRIMARY KEY (
-                                                         `room_id`
-    );
+ALTER TABLE `room`
+    MODIFY COLUMN `room_id` BIGINT NOT NULL AUTO_INCREMENT,
+    ADD PRIMARY KEY (`room_id`);
 
-ALTER TABLE `room_user` ADD CONSTRAINT `PK_ROOM_USER` PRIMARY KEY (
-                                                                   `room_user_id`
-    );
+ALTER TABLE `room_user`
+    MODIFY COLUMN `room_user_id` BIGINT NOT NULL AUTO_INCREMENT,
+    ADD CONSTRAINT `PK_ROOM_USER` PRIMARY KEY (`room_user_id`);
 
-ALTER TABLE `mission_day` ADD CONSTRAINT `PK_MISSION_DAY` PRIMARY KEY (
-                                                                       `mission_day_id`
-    );
+ALTER TABLE `mission_day`
+    MODIFY COLUMN `mission_day_id` BIGINT NOT NULL AUTO_INCREMENT,
+    ADD PRIMARY KEY (`mission_day_id`);
+
 
 ALTER TABLE `chatting_room` ADD CONSTRAINT `PK_CHATTING_ROOM` PRIMARY KEY (
                                                                            `chatting_room_id`
