@@ -7,12 +7,11 @@ import {
   Container,
   Flex,
   Heading,
-  Icon,
   Text,
-  VStack,
 } from "@chakra-ui/react";
-import { FaGithub } from "react-icons/fa";
-
+// import { FaGithub } from "react-icons/fa";
+// ❌ 제거된 import: Icon, VStack
+// ❌ 제거된 import: FaGithub
 const App: React.FC = () => {
   return (
     <Box bg="gray.50" minH="100vh">
