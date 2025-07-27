@@ -12,7 +12,7 @@ RUN npm run build
 FROM nginx:alpine
 
 # 빌드된 결과물을 Nginx 기본 경로로 복사
-COPY --from=builder /app/build /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # (선택) React 라우팅을 위한 기본 nginx 설정 덮어쓰기
 # COPY nginx.conf /etc/nginx/nginx.conf
