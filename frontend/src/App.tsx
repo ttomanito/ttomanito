@@ -2,6 +2,7 @@
 // 리액트 + 타입스크립트 예시
 
 import {
+  Link,
   Box,
   Button,
   Container,
@@ -22,6 +23,17 @@ const App: React.FC = () => {
           <Flex align="center" justify="space-between">
             <Heading size="md">MyChakraApp</Heading>
             <Button
+              as={Link}
+              href="https://github.com"
+              leftIcon={<Icon as={FaGithub} />}
+              variant="outline"
+              size="sm"
+              isExternal
+            >
+              GitHub
+            </Button>
+
+            {/* <Button
               as="a"
               href="https://github.com"
               leftIcon={<Icon as={FaGithub} />}
@@ -29,7 +41,7 @@ const App: React.FC = () => {
               size="sm"
             >
               GitHub
-            </Button>
+            </Button> */}
           </Flex>
         </Container>
       </Box>
