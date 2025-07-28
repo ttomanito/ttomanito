@@ -29,7 +29,7 @@ dependencies {
      */
     //socket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.1'  // 최신 버전으로 설정
+
 }
 
 test {
