@@ -1,5 +1,6 @@
 package com.ssafy.ttomanito.domain.room.service;
 
+import com.ssafy.ttomanito.domain.room.dto.response.WaitingEventMessage;
 import com.ssafy.ttomanito.domain.room.dto.response.WaitingMessage;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
@@ -54,5 +55,15 @@ public class RoomUserService {
     public boolean isUserInRoom(Long roomId, Long userId) {
         // RoomUser 엔티티를 통해 해당 방에 사용자가 존재하는지 확인
         return roomUserRepository.existsByRoomIdAndUserId(roomId, userId);
+    }
+
+    @Transactional
+    public void exit(Long roomId, Long userId) {
+        // room_user 테이블에서 해당 유저 삭제
+        roomUserRepository.deleteByRoomIdAndUserId(roomId, userId);
+
+        // 퇴장 브로드캐스트 (선택)
+        messagingTemplate.convertAndSend("/topic/waiting/" + roomId,
+                new WaitingEventMessage(roomId, userId, "EXIT"));
     }
 }

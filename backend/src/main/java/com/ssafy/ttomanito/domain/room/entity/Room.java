@@ -42,7 +42,10 @@ public class Room {
                 .status(RoomStatus.NOT_STARTED)
                 .build();
     }
-
+    // Room.java 내부에 추가
+    public void markAsNone() {
+        this.status = RoomStatus.NONE;
+    }
     // 게임 시작
     public void start(LocalDate when) {
         this.status = RoomStatus.IN_PROGRESS;

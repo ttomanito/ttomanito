@@ -29,7 +29,7 @@ CREATE TABLE `room` (
                         `room_id`	BIGINT	NOT NULL,
                         `creator_id`	BIGINT	NOT NULL,
                         `name`	VARCHAR(100)	NULL,
-                        `status`	VARCHAR(50)	NULL	COMMENT 'ENUM(`NOT_STARTED`, `IN_PROGRESS`, `FINISHED`)',
+                        `status`	VARCHAR(50)	NULL	COMMENT 'ENUM(`NONE`,`NOT_STARTED`, `IN_PROGRESS`, `FINISHED`)',
                         `start_date`	DATE	NULL,
                         `end_date`	DATE	NULL
 );

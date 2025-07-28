@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,7 +27,7 @@ public class RoomController {
     private final RoomService roomService;
     private final RoomUserService roomUserService;
     private final JwtService jwtService;  // JWT 서비스 (토큰 검증 및 사용자 ID 추출)
-
+    private final SimpMessagingTemplate messagingTemplate;  // ✅ 추가
 
     // 사용자가 대기방 또는 진행 중인 방에 참여 중인지 확인하는 API
     @GetMapping("/check")
@@ -52,6 +53,12 @@ public class RoomController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/exit")
+    public ResponseEntity<?> hostExit(@RequestHeader("userId") Long userId) {
+        // creatorId 기반으로 방 조회 후 종료
+        roomService.closeRoomByCreatorId(userId);
+        return ResponseEntity.ok("Room closed by host.");
+    }
 
     // 2. 방 정보 조회
     @GetMapping("/{roomId}")
@@ -87,5 +94,27 @@ public class RoomController {
 
         // 방에 참여할 준비 수행
         roomUserService.prepareEnter(roomId, userId);
+    }
+
+    @DeleteMapping("/{roomId}/exit")
+    public void exitRoom(@PathVariable Long roomId,
+                         @RequestHeader("userId") Long userId) {
+
+
+
+        // 2. 퇴장 처리
+        roomUserService.exit(roomId, userId);
+    }
+    @DeleteMapping("/{roomId}/participants")
+    public void kickParticipant(@PathVariable Long roomId,
+                                @RequestParam Long targetUserId,
+                                @RequestHeader("userId") Long hostId) {
+        roomService.kick(roomId, hostId, targetUserId);
+    }
+    @PostMapping("/{roomId}/start")
+    public ResponseEntity<?> startGame(@PathVariable Long roomId,
+                                       @RequestHeader("userId") Long userId) {
+        roomService.startGame(roomId, userId);
+        return ResponseEntity.ok().build();
     }
 }
