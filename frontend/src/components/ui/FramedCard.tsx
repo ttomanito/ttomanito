@@ -1,28 +1,28 @@
 // components/ui/FramedCard.tsx
-import { Card, Text } from "@chakra-ui/react"
-import type { ReactNode, ComponentProps } from "react"
+import { Card, Text } from '@chakra-ui/react';
+import type { ReactNode, ComponentProps } from 'react';
 
-type CardRootProps = ComponentProps<typeof Card.Root>
+type CardRootProps = ComponentProps<typeof Card.Root>;
 
-export type FramedCardProps = Omit<CardRootProps, "children"> & {
+export type FramedCardProps = Omit<CardRootProps, 'children'> & {
   /** 헤더/보더에 쓸 포인트 컬러 */
-  accent?: string
+  accent?: string;
   /** 헤더 영역에 렌더할 내용 (텍스트, 아이콘 등) */
-  header?: ReactNode
+  header?: ReactNode;
   /** 본문 */
-  children?: ReactNode
+  children?: ReactNode;
   /** 푸터(버튼 등) */
-  footer?: ReactNode
+  footer?: ReactNode;
   /** 헤더 텍스트 정렬 */
-  headerAlign?: "left" | "center" | "right"
-}
+  headerAlign?: 'left' | 'center' | 'right';
+};
 
 const FramedCard: React.FC<FramedCardProps> = ({
-  accent = "pink.400",
+  accent = 'pink.400',
   header,
   children,
   footer,
-  headerAlign = "center",
+  headerAlign = 'center',
   ...rest
 }) => {
   return (
@@ -39,7 +39,7 @@ const FramedCard: React.FC<FramedCardProps> = ({
       {header && (
         <Card.Header bg={accent} color="black" py={2} px={4} textAlign={headerAlign}>
           {/* header가 단순 문자열이면 굵게 크게 보기 좋게 */}
-          {typeof header === "string" ? (
+          {typeof header === 'string' ? (
             <Text fontSize="xl" fontWeight="bold">
               {header}
             </Text>
@@ -53,7 +53,7 @@ const FramedCard: React.FC<FramedCardProps> = ({
 
       {footer && <Card.Footer p={4}>{footer}</Card.Footer>}
     </Card.Root>
-  )
-}
+  );
+};
 
-export default FramedCard
+export default FramedCard;

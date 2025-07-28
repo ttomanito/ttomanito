@@ -1,35 +1,35 @@
 // src/routes.tsx
-import React from "react"
-import type { LazyExoticComponent, ComponentType, ReactElement } from "react"
-import { Routes, Route } from "react-router-dom"
-import MainLayout from "@/components/layout/MainLayout"
+import React from 'react';
+import type { LazyExoticComponent, ComponentType, ReactElement } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import MainLayout from '@/components/layout/MainLayout';
 
 // === lazy 로딩 타입 보조 함수 ===
 function lazyImport<P = unknown>(
-  factory: () => Promise<{ default: ComponentType<P> }>
+  factory: () => Promise<{ default: ComponentType<P> }>,
 ): LazyExoticComponent<ComponentType<P>> {
-  return React.lazy(factory)
+  return React.lazy(factory);
 }
 
 // === Layouts ===
-const NoBottomLayout = lazyImport(() => import("@/components/layout/NoBottomLayout"))
-const BasicLayout = lazyImport(() => import("@/components/layout/BasicLayout"))
+const NoBottomLayout = lazyImport(() => import('@/components/layout/NoBottomLayout'));
+const BasicLayout = lazyImport(() => import('@/components/layout/BasicLayout'));
 
 // === Pages ===
-const MainPage = lazyImport(() => import("@/pages/MainPage")) // /
-const SignupPage = lazyImport(() => import("@/pages/User/SignupPage")) // /user/login
-const RoomCreatePage = lazyImport(() => import("@/pages/Room/RoomCreatePage")) // /room
-const WaitingRoomPage = lazyImport(() => import("@/pages/Room/WaitingRoomPage")) // /room/:roomId
-const MatchingPage = lazyImport(() => import("@/pages/Room/MatchingPage")) // /manito/:roomId/matching
-const HomePage = lazyImport(() => import("@/pages/HomePage")) // /home
-const ChatListPage = lazyImport(() => import("@/pages/Chat/ChatListPage")) // /chat
-const ChatRoomPage = lazyImport(() => import("@/pages/Chat/ChatRoomPage")) // /chat/:chatRoomId
-const CallPage = lazyImport(() => import("@/pages/Chat/CallPage")) // /chat/:chatRoomId/call
-const GuessPage = lazyImport(() => import("@/pages/Guess/GuessPage")) // /guess
-const RankingPage = lazyImport(() => import("@/pages/RankingPage")) // /rank
-const ProfilePage = lazyImport(() => import("@/pages/User/ProfilePage")) // /user/update
-const ReportListPage = lazyImport(() => import("@/pages/Report/ReportListPage")) // /report/reportlist
-const ReportDetailPage = lazyImport(() => import("@/pages/Report/ReportDetailPage")) // /report/reportdetail/:reportId
+const MainPage = lazyImport(() => import('@/pages/MainPage')); // /
+const SignupPage = lazyImport(() => import('@/pages/User/SignupPage')); // /user/login
+const RoomCreatePage = lazyImport(() => import('@/pages/Room/RoomCreatePage')); // /room
+const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage')); // /room/:roomId
+const MatchingPage = lazyImport(() => import('@/pages/Room/MatchingPage')); // /manito/:roomId/matching
+const HomePage = lazyImport(() => import('@/pages/HomePage')); // /home
+const ChatListPage = lazyImport(() => import('@/pages/Chat/ChatListPage')); // /chat
+const ChatRoomPage = lazyImport(() => import('@/pages/Chat/ChatRoomPage')); // /chat/:chatRoomId
+const CallPage = lazyImport(() => import('@/pages/Chat/CallPage')); // /chat/:chatRoomId/call
+const GuessPage = lazyImport(() => import('@/pages/Guess/GuessPage')); // /guess
+const RankingPage = lazyImport(() => import('@/pages/RankingPage')); // /rank
+const ProfilePage = lazyImport(() => import('@/pages/User/ProfilePage')); // /user/update
+const ReportListPage = lazyImport(() => import('@/pages/Report/ReportListPage')); // /report/reportlist
+const ReportDetailPage = lazyImport(() => import('@/pages/Report/ReportDetailPage')); // /report/reportdetail/:reportId
 
 export default function AppRoutes(): ReactElement {
   return (
@@ -63,5 +63,5 @@ export default function AppRoutes(): ReactElement {
       {/* === 404 Not Found === */}
       <Route path="*" element={<p>페이지를 찾을 수 없습니다.</p>} />
     </Routes>
-  )
+  );
 }
