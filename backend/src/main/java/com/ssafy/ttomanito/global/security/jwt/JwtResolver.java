@@ -1,4 +1,4 @@
-package com.ssafy.ttomanito.global.common.jwt;
+package com.ssafy.ttomanito.global.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

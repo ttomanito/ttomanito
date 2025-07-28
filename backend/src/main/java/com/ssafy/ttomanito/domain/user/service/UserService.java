@@ -44,10 +44,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserDto getProfile(Long userId) {
-        User user = repo.findById(userId)
+    public User getUser(Long userId) {
+        return repo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
-        return toDto(user);
     }
 
     public void delete(Long userId) {

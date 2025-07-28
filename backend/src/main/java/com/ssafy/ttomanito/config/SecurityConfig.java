@@ -6,26 +6,27 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 
-import com.ssafy.ttomanito.global.security.CustomOidcUserService;
-import com.ssafy.ttomanito.global.security.Oauth2AuthenticationSuccessHandler;
+import com.ssafy.ttomanito.global.security.oauth.SocialUserService;
 import com.ssafy.ttomanito.global.security.filter.JwtAuthenticationFilter;
+import com.ssafy.ttomanito.global.security.oauth.OAuth2AuthenticationSuccessHandler;
 
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtFilter;
-    private final CustomOidcUserService oidcUserService;
-    private final Oauth2AuthenticationSuccessHandler successHandler;
+    private final SocialUserService oidcUserService;
+    private final OAuth2AuthenticationSuccessHandler successHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
+        http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

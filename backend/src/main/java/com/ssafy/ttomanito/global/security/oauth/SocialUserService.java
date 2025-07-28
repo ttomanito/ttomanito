@@ -1,4 +1,4 @@
-package com.ssafy.ttomanito.global.security;
+package com.ssafy.ttomanito.global.security.oauth;
 
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
@@ -15,7 +15,7 @@ import com.ssafy.ttomanito.domain.user.entity.User;
 
 @Service
 @RequiredArgsConstructor
-public class CustomOidcUserService extends OidcUserService {
+public class SocialUserService extends OidcUserService {
     private final UserService userService;
     private final OAuthService oAuthService;
 
@@ -31,6 +31,6 @@ public class CustomOidcUserService extends OidcUserService {
             oAuthService.createOAuthIdentity(new OAuthUserDto(user.getUserId(), providerId, provider));
         }
 
-        return new CustomOidcUser(oidcUser, provider);
+        return new SocialUser(oidcUser, provider);
     }
 }
