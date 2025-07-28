@@ -57,10 +57,10 @@ const MainPage: React.FC = () => {
 
       {/* 메인 액션 버튼들 */}
       <Stack gap={3} mt={6} pb={6}>
-        <CustomButton w="full" accent={color} onClick={() => navigate("/group-create")}>
+        <CustomButton w="full" accent={color} onClick={() => navigate("/room")}>
           방 만들기
         </CustomButton>
-        <CustomButton w="full" accent={color} onClick={() => navigate("/report")}>
+        <CustomButton w="full" accent={color} onClick={() => navigate("/report/reportlist")}>
           결과 확인하러가기
         </CustomButton>
       </Stack>

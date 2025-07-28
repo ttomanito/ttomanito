@@ -1,66 +1,68 @@
 // src/routes.tsx
 import React from "react"
+import type { LazyExoticComponent, ComponentType, ReactElement } from "react"
 import { Routes, Route } from "react-router-dom"
 import MainLayout from "@/components/layout/MainLayout"
-// (옵션) 바텀 없는 레이아웃
-const NoBottomLayout = React.lazy(() => import("@/components/layout/NoBottomLayout"))
-const BasicLayout = React.lazy(() => import("@/components/layout/BasicLayout"))
-// ===== lazy pages =====
-const MainPage         = React.lazy(() => import("@/pages/MainPage"))
-const LoginPage        = React.lazy(() => import("@/pages/Auth/LoginPage"))
-const SignupPage       = React.lazy(() => import("@/pages/Auth/SignupPage"))
-const GroupCreatePage  = React.lazy(() => import("@/pages/GroupCreatePage"))
-const WaitingRoomPage  = React.lazy(() => import("@/pages/Group/WaitingRoomPage"))
-const HomePage         = React.lazy(() => import("@/pages/HomePage"))
-const ChatListPage     = React.lazy(() => import("@/pages/Chat/ChatListPage"))
-const ChatRoomPage     = React.lazy(() => import("@/pages/Chat/ChatRoomPage"))
-const CallPage         = React.lazy(() => import("@/pages/Chat/CallPage"))
-const GuessPage        = React.lazy(() => import("@/pages/GuessPage"))
-const RankingPage      = React.lazy(() => import("@/pages/RankingPage"))
-const ProfilePage      = React.lazy(() => import("@/pages/ProfilePage"))
-const ReportListPage   = React.lazy(() => import("@/pages/Report/ReportListPage"))
-const ReportDetailPage = React.lazy(() => import("@/pages/Report/ReportDetailPage"))
 
-export default function AppRoutes() {
+// === lazy 로딩 타입 보조 함수 ===
+function lazyImport<P = unknown>(
+  factory: () => Promise<{ default: ComponentType<P> }>
+): LazyExoticComponent<ComponentType<P>> {
+  return React.lazy(factory)
+}
+
+// === Layouts ===
+const NoBottomLayout = lazyImport(() => import("@/components/layout/NoBottomLayout"))
+const BasicLayout = lazyImport(() => import("@/components/layout/BasicLayout"))
+
+// === Pages ===
+const MainPage = lazyImport(() => import("@/pages/MainPage")) // /
+const LoginPage = lazyImport(() => import("@/pages/Auth/LoginPage")) // /user/login
+const SignupPage = lazyImport(() => import("@/pages/Auth/SignupPage")) // /user/register
+const GroupCreatePage = lazyImport(() => import("@/pages/GroupCreatePage")) // /room
+const WaitingRoomPage = lazyImport(() => import("@/pages/Room/WaitingRoomPage")) // /room/:roomId
+const MatchingPage = lazyImport(() => import("@/pages/MatchingPage")) // /manito/:roomId/matching
+const HomePage = lazyImport(() => import("@/pages/HomePage")) // /home
+const ChatListPage = lazyImport(() => import("@/pages/Chat/ChatListPage")) // /chat
+const ChatRoomPage = lazyImport(() => import("@/pages/Chat/ChatRoomPage")) // /chat/:chatRoomId
+const CallPage = lazyImport(() => import("@/pages/Chat/CallPage")) // /chat/:chatRoomId/call
+const GuessPage = lazyImport(() => import("@/pages/GuessPage")) // /guess
+const RankingPage = lazyImport(() => import("@/pages/RankingPage")) // /rank
+const ProfilePage = lazyImport(() => import("@/pages/ProfilePage")) // /user/update
+const ReportListPage = lazyImport(() => import("@/pages/Report/ReportListPage")) // /report/reportlist
+const ReportDetailPage = lazyImport(() => import("@/pages/Report/ReportDetailPage")) // /report/reportdetail/:reportId
+
+export default function AppRoutes(): ReactElement {
   return (
     <Routes>
-      {/* ===== 위아래 없는 기본 레이아웃 ===== */}
+      {/* === 기본 레이아웃 === */}
       <Route element={<BasicLayout />}>
         <Route path="/" element={<MainPage />} />
-        <Route path="/group-create"   element={<GroupCreatePage />} />
-        <Route path="/auth/login"  element={<LoginPage />} />
-        <Route path="/group/:groupId" element={<WaitingRoomPage />} />
+        <Route path="/room" element={<GroupCreatePage />} />
+        <Route path="/user/login" element={<LoginPage />} />
+        <Route path="/user/register" element={<SignupPage />} />
+        <Route path="/room/:roomId" element={<WaitingRoomPage />} />
+        <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
       </Route>
-      {/* ===== 바텀 없는 인증 레이아웃 ===== */}
+
+      {/* === 바텀 없는 인증/콜 전용 레이아웃 === */}
       <Route element={<NoBottomLayout />}>
-        <Route path="/auth/signup" element={<SignupPage />} />
         <Route path="/chat/:chatRoomId/call" element={<CallPage />} />
       </Route>
 
-      {/* ===== 공통 헤더(메인 레이아웃) ===== */}
+      {/* === 메인 기능 레이아웃 === */}
       <Route element={<MainLayout />}>
-        {/* 홈 */}
-        <Route path="/home"   element={<HomePage />} />
-
-        {/* 그룹(방) */}
-        
-
-
-        {/* 채팅 */}
-        <Route path="/chat"               element={<ChatListPage />} />
-        <Route path="/chat/:chatRoomId"   element={<ChatRoomPage />} />
-
-        {/* 게임 기능 */}
-        <Route path="/guess"   element={<GuessPage />} />
-        <Route path="/ranking" element={<RankingPage />} />
-
-        {/* 프로필 & 리포트 */}
-        <Route path="/profile"          element={<ProfilePage />} />
-        <Route path="/report"           element={<ReportListPage />} />
-        <Route path="/report/:reportId" element={<ReportDetailPage />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/chat" element={<ChatListPage />} />
+        <Route path="/chat/:chatRoomId" element={<ChatRoomPage />} />
+        <Route path="/guess" element={<GuessPage />} />
+        <Route path="/rank" element={<RankingPage />} />
+        <Route path="/user/update" element={<ProfilePage />} />
+        <Route path="/report/reportlist" element={<ReportListPage />} />
+        <Route path="/report/reportdetail/:reportId" element={<ReportDetailPage />} />
       </Route>
 
-      {/* 404 */}
+      {/* === 404 Not Found === */}
       <Route path="*" element={<p>페이지를 찾을 수 없습니다.</p>} />
     </Routes>
   )

@@ -27,7 +27,7 @@ const DEFAULT_ITEMS: NavItem[] = [
   { to: "/home",    label: "홈",   icon: homeIcon },
   { to: "/chat",    label: "채팅", icon: chatIcon },
   { to: "/guess",   label: "추측", icon: guessIcon },
-  { to: "/ranking", label: "랭킹", icon: rankingIcon },
+  { to: "/rank", label: "랭킹", icon: rankingIcon },
 ]
 
 const BottomNav: React.FC<BottomNavProps> = ({

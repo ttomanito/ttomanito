@@ -31,9 +31,9 @@ const GroupCreatePage = () => {
   }
 
   const handleSubmit = () => {
-  const groupId = Math.random().toString(36).substring(2, 8)
-  console.log({ groupName, endDate, selectedDays, groupId })
-  navigate(`/group/${groupId}`)
+  const roomId = Math.random().toString(36).substring(2, 8)
+  console.log({ groupName, endDate, selectedDays, roomId })
+  navigate(`/room/${roomId}`)
   }
 
   return (

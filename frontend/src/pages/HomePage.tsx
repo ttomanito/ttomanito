@@ -53,21 +53,6 @@ const HomePage: React.FC = () => {
             mb={2}
           />
         </FramedCard>
-        
-        {/* Mission Card
-        
-        <Box bg="white" mt={6} borderRadius="md" p={6} textAlign="center" boxShadow="sm" w="full">
-          
-          
-          <Text fontWeight="bold" fontSize="lg" mb={1}>
-            몰래 과자 선물하기!!
-          </Text>
-          <Text fontSize="sm" color="gray.600">
-            내 마니또에게 들키지 않고 선물을 전해주세요
-          </Text>
-
-          <Image src="/assets/bread.svg" alt="bread icon" boxSize="120px" mx="auto" mt={6} mb={2} />
-        </Box> */}
 
         {/* Progress bar */}
         <Box w="full" mt={4}>
