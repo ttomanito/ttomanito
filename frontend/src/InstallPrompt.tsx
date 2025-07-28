@@ -36,7 +36,7 @@ const InstallPrompt = () => {
   const handleInstallClick = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
+      deferredPrompt.userChoice.then(choiceResult => {
         setDebugLog(`➡️ 유저 선택: ${choiceResult.outcome}`); // ✅ 유저 반응 로그
         setShowAndroidPrompt(false);
         setDeferredPrompt(null);
@@ -85,7 +85,10 @@ const InstallPrompt = () => {
           <p>🍎 iPhone 사용 중이신가요?</p>
           <p>
             <strong>공유 버튼</strong>{' '}
-            <span role="img" aria-label="share">🔗</span>을 누르고
+            <span role="img" aria-label="share">
+              🔗
+            </span>
+            을 누르고
             <br />
             <strong>“홈 화면에 추가”</strong>를 선택해주세요!
           </p>

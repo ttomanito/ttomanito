@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import svgr from "vite-plugin-svgr"
+import svgr from 'vite-plugin-svgr';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -31,47 +31,51 @@ export default defineConfig({
             src: 'icons/android-chrome-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any'
+            purpose: 'any',
           },
           {
             src: 'icons/android-chrome-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any'
+            purpose: 'any',
           },
           {
             src: 'icons/maskable-icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'maskable'
-          }
+            purpose: 'maskable',
+          },
         ],
       },
       devOptions: {
-        enabled: true
-      }
-    })
+        enabled: true,
+      },
+    }),
   ],
   test: {
-    projects: [{
-      extends: true,
-      plugins: [
-        storybookTest({
-          configDir: path.join(dirname, '.storybook')
-        })
-      ],
-      test: {
-        name: 'storybook',
-        browser: {
-          enabled: true,
-          headless: true,
-          provider: 'playwright',
-          instances: [{
-            browser: 'chromium'
-          }]
+    projects: [
+      {
+        extends: true,
+        plugins: [
+          storybookTest({
+            configDir: path.join(dirname, '.storybook'),
+          }),
+        ],
+        test: {
+          name: 'storybook',
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: 'playwright',
+            instances: [
+              {
+                browser: 'chromium',
+              },
+            ],
+          },
+          setupFiles: ['.storybook/vitest.setup.ts'],
         },
-        setupFiles: ['.storybook/vitest.setup.ts']
-      }
-    }]
-  }
+      },
+    ],
+  },
 });

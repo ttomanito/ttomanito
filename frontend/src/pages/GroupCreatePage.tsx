@@ -7,37 +7,37 @@ import {
   Text,
   HStack,
   useCheckboxGroup,
-} from "@chakra-ui/react"
-import { Field } from "@chakra-ui/react"
-import { useNavigate } from "react-router-dom"
-import { useState } from "react"
-import FramedCard from "@/components/ui/FramedCard"
-import BackButton from "@/components/ui/BackButton"
+} from '@chakra-ui/react';
+import { Field } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import FramedCard from '@/components/ui/FramedCard';
+import BackButton from '@/components/ui/BackButton';
 
-const days = ["월", "화", "수", "목", "금", "토", "일"]
+const days = ['월', '화', '수', '목', '금', '토', '일'];
 
 const GroupCreatePage = () => {
-  const [groupName, setGroupName] = useState("")
-  const [endDate, setEndDate] = useState("")
-  const { value: selectedDays, setValue: setSelectedDays } = useCheckboxGroup()
-  const navigate = useNavigate()
+  const [groupName, setGroupName] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const { value: selectedDays, setValue: setSelectedDays } = useCheckboxGroup();
+  const navigate = useNavigate();
 
   const toggleDay = (day: string) => {
     const next = selectedDays.includes(day)
-      ? selectedDays.filter((d) => d !== day)
-      : [...selectedDays, day]
+      ? selectedDays.filter(d => d !== day)
+      : [...selectedDays, day];
 
-    setSelectedDays(next)
-  }
+    setSelectedDays(next);
+  };
 
   const handleSubmit = () => {
-  const roomId = Math.random().toString(36).substring(2, 8)
-  console.log({ groupName, endDate, selectedDays, roomId })
-  navigate(`/room/${roomId}`)
-  }
+    const roomId = Math.random().toString(36).substring(2, 8);
+    console.log({ groupName, endDate, selectedDays, roomId });
+    navigate(`/room/${roomId}`);
+  };
 
   return (
-    <Box  minH="100vh">
+    <Box minH="100vh">
       <Container>
         <BackButton />
         <FramedCard
@@ -57,7 +57,7 @@ const GroupCreatePage = () => {
                 <Input
                   placeholder="방 이름을 입력해주세요"
                   value={groupName}
-                  onChange={(e) => setGroupName(e.target.value)}
+                  onChange={e => setGroupName(e.target.value)}
                   maxLength={30}
                 />
                 <Field.HelperText fontSize="sm" color="gray.500">
@@ -87,7 +87,7 @@ const GroupCreatePage = () => {
                   type="date"
                   placeholder="종료일을 선택해주세요"
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                  onChange={e => setEndDate(e.target.value)}
                 />
               </Field.Root>
             </Box>
@@ -101,20 +101,20 @@ const GroupCreatePage = () => {
                 </Field.HelperText>
 
                 <HStack wrap="wrap" gap={2}>
-                  {days.map((day) => {
-                    const isSelected = selectedDays.includes(day)
+                  {days.map(day => {
+                    const isSelected = selectedDays.includes(day);
                     return (
                       <Button
                         key={day}
                         size="sm"
-                        variant={isSelected ? "solid" : "outline"}
+                        variant={isSelected ? 'solid' : 'outline'}
                         colorScheme="gray"
                         rounded="full"
                         onClick={() => toggleDay(day)}
                       >
                         {day}
                       </Button>
-                    )
+                    );
                   })}
                 </HStack>
               </Field.Root>
@@ -123,7 +123,7 @@ const GroupCreatePage = () => {
         </FramedCard>
       </Container>
     </Box>
-  )
-}
+  );
+};
 
-export default GroupCreatePage
+export default GroupCreatePage;

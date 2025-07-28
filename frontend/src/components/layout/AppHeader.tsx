@@ -1,6 +1,6 @@
 // components/layout/AppHeader.tsx
 
-import { Flex, Image } from "@chakra-ui/react"
+import { Flex, Image } from '@chakra-ui/react';
 
 const AppHeader = () => {
   return (
@@ -22,7 +22,7 @@ const AppHeader = () => {
         <Image src="/src/assets/menuicon.svg" boxSize={14} alt="메뉴" />
       </Flex>
     </Flex>
-  )
-}
+  );
+};
 
-export default AppHeader
+export default AppHeader;
