@@ -6,6 +6,11 @@ import { Box, Text, Stack, Icon, Progress, Flex, Image, Container } from '@chakr
 import { useNavigate } from 'react-router-dom';
 import { FaCheckCircle } from 'react-icons/fa';
 import FramedCard from '@/components/ui/FramedCard';
+import BasicListItem from '@/components/MissionListItem';
+import { VStack } from '@chakra-ui/react';
+import ProfileListItem from '@/components/ProfileListItem';
+import GuessHistoryItem from '@/components/GuessHistoryItem';
+
 const TOTAL_MISSIONS = 7;
 const COMPLETED_MISSIONS = 5;
 const color = '#a4b8fbff';
@@ -81,6 +86,24 @@ const HomePage: React.FC = () => {
           </Flex>
         ))}
       </Stack>
+      <Box mb={6}>
+        <Text fontSize="md" fontWeight="bold" mb={2}>
+          오늘의 미션 체크
+        </Text>
+        <BasicListItem date="07.28" label="몰래 과자 선물하기" />
+      </Box>
+      <VStack>
+        <ProfileListItem name="안수진" statusMessage="햄?" />
+        <ProfileListItem name="김철수" statusMessage="오늘도 화이팅🔥" />
+      </VStack>
+      <Text fontSize="md" fontWeight="bold" mb={2}>
+        이전 추측 기록
+      </Text>
+      <VStack>
+        <GuessHistoryItem date="07.25" name="길태윤" />
+        <GuessHistoryItem date="07.24" name="김민지" />
+        <GuessHistoryItem date="07.23" name="박태호" />
+      </VStack>
     </Container>
   );
 };
