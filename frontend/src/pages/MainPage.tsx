@@ -13,7 +13,7 @@ import TutorialCard from "@/components/TutorialCard"
 import type { TutorialSlide } from "@/components/TutorialCard"
 import logo from "@/assets/logo.svg" 
 
-const color = "#a4b8fbff"
+const color = "yellow.300"
 
 const slides: TutorialSlide[] = [
   {

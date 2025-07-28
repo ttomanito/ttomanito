@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom"
 
 export default function MainLayout() {
   return (
-    <Box bg="#EAF4FF" h="100dvh" overflow="hidden">
+    <Box bg="yellow.50" h="100dvh" overflow="hidden">
       {/* 3행(Grid): header / content / bottom-nav */}
       <Container
         maxW="480px"

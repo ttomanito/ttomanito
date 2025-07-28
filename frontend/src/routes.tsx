@@ -17,18 +17,17 @@ const BasicLayout = lazyImport(() => import("@/components/layout/BasicLayout"))
 
 // === Pages ===
 const MainPage = lazyImport(() => import("@/pages/MainPage")) // /
-const LoginPage = lazyImport(() => import("@/pages/Auth/LoginPage")) // /user/login
-const SignupPage = lazyImport(() => import("@/pages/Auth/SignupPage")) // /user/register
-const GroupCreatePage = lazyImport(() => import("@/pages/GroupCreatePage")) // /room
+const SignupPage = lazyImport(() => import("@/pages/User/SignupPage")) // /user/login
+const RoomCreatePage = lazyImport(() => import("@/pages/Room/RoomCreatePage")) // /room
 const WaitingRoomPage = lazyImport(() => import("@/pages/Room/WaitingRoomPage")) // /room/:roomId
-const MatchingPage = lazyImport(() => import("@/pages/MatchingPage")) // /manito/:roomId/matching
+const MatchingPage = lazyImport(() => import("@/pages/Room/MatchingPage")) // /manito/:roomId/matching
 const HomePage = lazyImport(() => import("@/pages/HomePage")) // /home
 const ChatListPage = lazyImport(() => import("@/pages/Chat/ChatListPage")) // /chat
 const ChatRoomPage = lazyImport(() => import("@/pages/Chat/ChatRoomPage")) // /chat/:chatRoomId
 const CallPage = lazyImport(() => import("@/pages/Chat/CallPage")) // /chat/:chatRoomId/call
-const GuessPage = lazyImport(() => import("@/pages/GuessPage")) // /guess
+const GuessPage = lazyImport(() => import("@/pages/Guess/GuessPage")) // /guess
 const RankingPage = lazyImport(() => import("@/pages/RankingPage")) // /rank
-const ProfilePage = lazyImport(() => import("@/pages/ProfilePage")) // /user/update
+const ProfilePage = lazyImport(() => import("@/pages/User/ProfilePage")) // /user/update
 const ReportListPage = lazyImport(() => import("@/pages/Report/ReportListPage")) // /report/reportlist
 const ReportDetailPage = lazyImport(() => import("@/pages/Report/ReportDetailPage")) // /report/reportdetail/:reportId
 
@@ -38,8 +37,7 @@ export default function AppRoutes(): ReactElement {
       {/* === 기본 레이아웃 === */}
       <Route element={<BasicLayout />}>
         <Route path="/" element={<MainPage />} />
-        <Route path="/room" element={<GroupCreatePage />} />
-        <Route path="/user/login" element={<LoginPage />} />
+        <Route path="/room" element={<RoomCreatePage />} />
         <Route path="/user/register" element={<SignupPage />} />
         <Route path="/room/:roomId" element={<WaitingRoomPage />} />
         <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
