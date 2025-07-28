@@ -9,6 +9,7 @@ version = '1.0.0'
 
 repositories {
     mavenCentral()
+
 }
 
 dependencies {
@@ -23,8 +24,12 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    /*
+    우지연
+     */
     //socket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.1'  // 최신 버전으로 설정
 }
 
 test {

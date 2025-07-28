@@ -51,5 +51,8 @@ public class RoomUserService {
         boolean exists = roomUserRepository.existsByRoomIdAndUserId(roomId, userId);
         if (exists) throw new IllegalStateException("이미 이 방에 참여했습니다.");
     }
-
+    public boolean isUserInRoom(Long roomId, Long userId) {
+        // RoomUser 엔티티를 통해 해당 방에 사용자가 존재하는지 확인
+        return roomUserRepository.existsByRoomIdAndUserId(roomId, userId);
+    }
 }
