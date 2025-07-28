@@ -4,11 +4,15 @@ import com.ssafy.ttomanito.domain.room.dto.request.CreateRoomRequest;
 import com.ssafy.ttomanito.domain.room.dto.request.SetUserMessageRequest;
 import com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse;
 import com.ssafy.ttomanito.domain.room.dto.response.RoomInfoResponse;
+import com.ssafy.ttomanito.domain.room.entity.Room;
 import com.ssafy.ttomanito.domain.room.service.RoomService;
 import com.ssafy.ttomanito.domain.room.service.RoomUserService;
-import com.ssafy.ttomanito.security.KakaoService;
+import com.ssafy.ttomanito.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,20 +25,33 @@ public class RoomController {
 
     private final RoomService roomService;
     private final RoomUserService roomUserService;
-    private final KakaoService kakaoService;  // JWT 서비스 (토큰 검증 및 사용자 ID 추출)
+    private final JwtService jwtService;  // JWT 서비스 (토큰 검증 및 사용자 ID 추출)
 
-    // 1. 방 생성
-    @PostMapping
-    public RoomInfoResponse create(@RequestBody CreateRoomRequest req,
-                                   @RequestHeader("Authorization") String accessToken) {
-        // 카카오 Access Token을 통해 사용자 정보 조회
-        String userInfo = kakaoService.getKakaoUserInfo(accessToken);  // Access Token을 사용하여 사용자 정보 얻기
 
-        // 사용자 정보를 파싱하여 userId 추출 (예: JSON 파싱 후 ID 추출)
-        Long userId = kakaoService.parseUserIdFromKakaoResponse(userInfo); // 예시로 사용자의 ID 추출
-        // userId가 곧 방장(creatorId)
-        return roomService.createRoom(req, userId);
+    // 사용자가 대기방 또는 진행 중인 방에 참여 중인지 확인하는 API
+    @GetMapping("/check")
+    public boolean checkUserInRoom(@RequestHeader("userId") Long userId) {
+        // 사용자 ID로 방 참여 상태 확인
+        return roomService.isUserInProgressOrWaiting(userId);  // 참여 중이면 true, 아니면 false 반환
     }
+
+    @PostMapping
+    public ResponseEntity<?> create(@RequestBody CreateRoomRequest req,
+                                    @RequestHeader("userId") Long userId) {
+        // JWT 인증 생략하고 userId 직접 받기
+        System.out.println("✅ userId: " + userId);  // 디버깅 로그
+     /*   // 게임 중인 경우
+        if (roomService.isUserInProgressOrWaiting(userId)) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)  // 409
+                    .body("이미 게임 중이거나 대기방에 있습니다.");
+        }*/
+
+
+        RoomInfoResponse response = roomService.createRoom(req, userId);
+        return ResponseEntity.ok(response);
+    }
+
 
     // 2. 방 정보 조회
     @GetMapping("/{roomId}")
@@ -51,38 +68,24 @@ public class RoomController {
     // 4. 상태메시지 작성 + 입장 처리
     @PostMapping("/{roomId}/message")
     public void setUserMessage(@PathVariable Long roomId,
-                               @RequestHeader("Authorization") String accessToken,
+                               @RequestHeader("userId") Long userId,
                                @RequestBody SetUserMessageRequest request) {
-        // 카카오 Access Token을 통해 사용자 정보 조회
-        String userInfo = kakaoService.getKakaoUserInfo(accessToken);  // Access Token을 사용하여 사용자 정보 얻기
-
-        // 사용자 정보를 파싱하여 userId 추출 (예: JSON 파싱 후 ID 추출)
-        Long userId = kakaoService.parseUserIdFromKakaoResponse(userInfo); // 예시로 사용자의 ID 추출
         roomUserService.enterWithMessage(roomId, userId, request.message());
     }
 
     // 5. 초대링크 진입 후 “참가하기” 버튼 눌렀을 때 호출
     @PostMapping("/{roomId}/enter")
     public void prepareEnter(@PathVariable Long roomId,
-                             @RequestHeader("Authorization") String accessToken) {
-        // 카카오 Access Token을 통해 사용자 정보 조회
-        String userInfo = kakaoService.getKakaoUserInfo(accessToken);  // Access Token을 사용하여 사용자 정보 얻기
+                             @RequestHeader("userId") Long userId) {
 
-        // 사용자 정보를 파싱하여 userId 추출 (예: JSON 파싱 후 ID 추출)
-        Long userId = kakaoService.parseUserIdFromKakaoResponse(userInfo); // 예시로 사용자의 ID 추출
-
-        // 이미 방에 참여한 사용자인지 체크
-        boolean isUserAlreadyInRoom = roomUserService.isUserInRoom(roomId, userId);
-
-        if (isUserAlreadyInRoom) {
-            // 이미 방에 존재하는 사용자라면 아무 동작도 하지 않거나,
-            // 별도의 메시지를 반환할 수 있습니다.
-            log.info("User {} is already in room {}", userId, roomId);
-            return; // 혹은 예외를 던질 수 있음
+        // 1. 방 상태 확인
+        Room room = roomService.findById(roomId);
+        if (!room.getStatus().equals(RoomStatus.NOT_STARTED)) {
+            throw new IllegalStateException("Cannot join. Room is not in NOT_STARTED state.");
         }
 
-        // 방에 참여할 준비를 수행
+
+        // 방에 참여할 준비 수행
         roomUserService.prepareEnter(roomId, userId);
     }
-
 }

@@ -5,10 +5,7 @@ import com.ssafy.ttomanito.domain.room.dto.RoomMessageType;
 import com.ssafy.ttomanito.domain.room.dto.request.CreateRoomRequest;
 import com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse;
 import com.ssafy.ttomanito.domain.room.dto.response.RoomInfoResponse;
-import com.ssafy.ttomanito.domain.room.entity.MissionDay;
-import com.ssafy.ttomanito.domain.room.entity.Room;
-import com.ssafy.ttomanito.domain.room.entity.RoomUser;
-import com.ssafy.ttomanito.domain.room.entity.Weekday;
+import com.ssafy.ttomanito.domain.room.entity.*;
 import com.ssafy.ttomanito.domain.room.repository.MissionDayRepository;
 import com.ssafy.ttomanito.domain.room.repository.RoomRepository;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
@@ -39,6 +36,11 @@ public class RoomService {
 
     @Transactional
     public RoomInfoResponse createRoom(CreateRoomRequest req, Long creatorId) {
+        // 사용자 참여 여부 확인
+        if (isUserInProgressOrWaiting(creatorId)) {
+            throw new RuntimeException("User is already in a game or waiting in a room.");
+        }
+
         if (req == null) throw new IllegalArgumentException("request is null");
         if (req.name() == null || req.name().isBlank())
             throw new IllegalArgumentException("name is required");
@@ -48,7 +50,7 @@ public class RoomService {
         Room room = Room.create(creatorId, req.name());
         room.setEndDate(req.deadline());
         room = roomRepository.save(room);
-        System.out.println("saved room id = " + room.getId());
+
         // ✅ mission_day 저장
         var uniqueDays = new LinkedHashSet<>(req.missionDays());
         for (Weekday day : uniqueDays) {
@@ -79,7 +81,16 @@ public class RoomService {
         broadcast(roomId, RoomMessageType.KICK, targetUserId);
         broadcastState(roomId);
     }*/
+// 사용자가 참여 중인 게임(방)에 참여 중인지 확인하는 메서드
 
+public boolean isUserInProgressOrWaiting(Long userId) {
+// 사용자가 `NOT_STARTED` 또는 `IN_PROGRESS` 상태의 방에 참여 중인지 확인
+    List<RoomStatus> statuses = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
+    List<RoomUser> activeRooms = roomUserRepository.findActiveRoomsForUser(userId, statuses);
+
+    // 상태가 `NOT_STARTED` 또는 `IN_PROGRESS`인 방에 사용자가 참여 중이면 true 반환
+    return !activeRooms.isEmpty();  // 참여 중인 방이 하나라도 있으면 true
+}
     public void setUserMessage(Long roomId, Long userId, String message) throws BadRequestException {
         if (message == null || message.isBlank()) {
             throw new BadRequestException("message must not be blank");
@@ -117,6 +128,16 @@ public class RoomService {
         return roomRepository.findById(roomId)
                 .orElseThrow(() -> new EntityNotFoundException("room not found: " + roomId));
     }
+    // ID로 Room 조회 + 없으면 예외
+    public Room findById(Long roomId) {
+        return roomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 방입니다. roomId: " + roomId));
+    }
 
+    // 필요하면 상태 체크만 따로 메서드로 빼도 됨
+    public boolean isRoomNotStarted(Long roomId) {
+        Room room = findById(roomId);
+        return room.getStatus() == RoomStatus.NOT_STARTED;
+    }
 
 }
