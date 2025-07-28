@@ -115,6 +115,9 @@ cmake-build-*/
 # IntelliJ
 out/
 
+# JIRA plugin
+atlassian-ide-plugin.xml
+
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
 crashlytics.properties
@@ -173,10 +176,5 @@ gradle-app.setting
 ### Gradle Patch ###
 # Java heap dump
 *.hprof
-
-src/main/resources/application.yml
-src/main/resources/application.yaml
-src/main/resources/application.properties
-src/main/resources/application-prod.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/java,eclipse,gradle,git,intellij,database,dotenv
