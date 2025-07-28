@@ -177,5 +177,6 @@ gradle-app.setting
 src/main/resources/application.yml
 src/main/resources/application.yaml
 src/main/resources/application.properties
+src/main/resources/application-prod.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/java,eclipse,gradle,git,intellij,database,dotenv

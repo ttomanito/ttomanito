@@ -2,6 +2,7 @@ package com.ssafy.ttomanito.global.security.oauth;
 
 import java.io.IOException;
 
+import com.ssafy.ttomanito.domain.auth.entity.RefreshToken;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.ssafy.ttomanito.domain.oauth.entity.OAuthIdentity;
 import com.ssafy.ttomanito.domain.oauth.entity.OAuthIdentity.OAuthProvider;
-import com.ssafy.ttomanito.domain.oauth.repository.RefreshTokenRepository;
+import com.ssafy.ttomanito.domain.auth.repository.RefreshTokenRepository;
 import com.ssafy.ttomanito.domain.oauth.service.OAuthService;
 import com.ssafy.ttomanito.domain.user.entity.User;
 import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
@@ -52,12 +53,14 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         JwtToken tokens = jwtProvider.generateTokens(user.getUserId(), user.getName());
 
-        // refresh token 저장
-        refreshTokenRepo.save(
-                user.getUserId().toString(),
+        long ttlSeconds = refreshTokenTtlMs / 1000;
+
+        RefreshToken refreshTokenEntity = new RefreshToken(
                 tokens.getRefreshToken(),
-                refreshTokenTtlMs
+                user.getUserId().toString(),
+                ttlSeconds
         );
+        refreshTokenRepo.save(refreshTokenEntity);
 
         // 쿠키 세팅 (maxAge는 초 단위)
         response.addCookie(buildCookie("accessToken",  tokens.getAccessToken(),  (int)(jwtProvider.getAccessTokenTtlMs() / 1000)));

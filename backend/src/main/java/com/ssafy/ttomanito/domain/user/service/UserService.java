@@ -49,6 +49,12 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
     }
 
+    @Transactional(readOnly = true)
+    public UserDto getProfile(Long userId) {
+        User user = getUser(userId);
+        return toDto(user);
+    }
+
     public void delete(Long userId) {
         User user = repo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
