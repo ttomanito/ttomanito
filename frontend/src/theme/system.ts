@@ -51,15 +51,6 @@ export const system = createSystem(defaultConfig, {
       },
     },
     textStyles: {
-      title_lg: {
-        description: '큰 제목',
-        value: {
-          fontSize: '36px',
-          fontWeight: '700',
-          fontFamily: '{fonts.sbaAggro}',
-          letterSpacing: '0',
-        },
-      },
       title_md: {
         description: '중간 제목',
         value: {
@@ -74,6 +65,24 @@ export const system = createSystem(defaultConfig, {
         value: {
           fontSize: '24px',
           fontWeight: '500',
+          fontFamily: '{fonts.sbaAggro}',
+          letterSpacing: '0',
+        },
+      },
+      title_mlg: {
+        description: '중간-대 제목',
+        value: {
+          fontSize: '30px',
+          fontWeight: '700',
+          fontFamily: '{fonts.sbaAggro}',
+          letterSpacing: '0',
+        },
+      },
+      title_lg: {
+        description: '큰 제목',
+        value: {
+          fontSize: '36px',
+          fontWeight: '700',
           fontFamily: '{fonts.sbaAggro}',
           letterSpacing: '0',
         },
@@ -118,6 +127,15 @@ export const system = createSystem(defaultConfig, {
         description: '캡션 아주 작고 미디엄',
         value: {
           fontSize: '12px',
+          fontWeight: '500',
+          fontFamily: '{fonts.gmarketSans}',
+          letterSpacing: '0',
+        },
+      },
+      caption_sm: {
+        description: '캡션 소',
+        value: {
+          fontSize: '14px',
           fontWeight: '500',
           fontFamily: '{fonts.gmarketSans}',
           letterSpacing: '0',
