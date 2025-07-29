@@ -4,25 +4,28 @@ services:
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile
     container_name: frontend-app
-    ports:
-      - "80:80"
     restart: always
-    depends_on:
-      - backend
+    expose:
+      - "80"
+    environment:
+      - VITE_API_URL=/api  # ✅ nginx 경유로 백엔드 접근
 
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile
     container_name: backend-app
-    ports:
-      - "${SPRING_PORT}:8080"
     restart: always
+    expose:
+      - "8080"
     depends_on:
       - mysql
       - redis
       - mongo
     environment:
+      SPRING_PORT: 8080
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&serverTimezone=Asia/Seoul
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
@@ -32,21 +35,23 @@ services:
   mysql:
     image: mysql:8.0
     container_name: mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-    ports:
-      - "3306:3306"
 
   redis:
     image: redis:latest
     container_name: redis
     ports:
       - "6379:6379"
+    restart: always
 
   mongo:
     image: mongo:latest
@@ -55,6 +60,22 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    restart: always
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+    restart: always
 
 volumes:
   mysql-data:
