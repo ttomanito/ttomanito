@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -46,16 +47,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 && jwtProvider.isTokenValid(token)
                 && !tokenRevocationService.isRevoked(token)) {
 
-            UserDetails userDetails = jwtProvider.loadUserFromToken(token);
-            var authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
+            try {
+                UserDetails ud = jwtProvider.loadUserFromToken(token);
+                var authentication = new UsernamePasswordAuthenticationToken(
+                        ud, null, ud.getAuthorities());
 
-            authentication.setDetails(
-                    new WebAuthenticationDetailsSource().buildDetails(request)
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                authentication.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (UsernameNotFoundException ex) {
+                Cookie empty = new Cookie("accessToken", null);
+                empty.setPath("/"); empty.setMaxAge(0);
+                response.addCookie(empty);
+            }
         }
-
         chain.doFilter(request, response);
     }
 }
