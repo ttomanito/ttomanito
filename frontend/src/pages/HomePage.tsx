@@ -6,10 +6,11 @@ import { Box, Text, Stack, Icon, Progress, Flex, Image, Container } from '@chakr
 import { useNavigate } from 'react-router-dom';
 import { FaCheckCircle } from 'react-icons/fa';
 import FramedCard from '@/components/ui/FramedCard';
-import BasicListItem from '@/components/MissionListItem';
 import { VStack } from '@chakra-ui/react';
-import ProfileListItem from '@/components/ProfileListItem';
-import GuessHistoryItem from '@/components/GuessHistoryItem';
+import ProfileListItem from '@/components/lists/ProfileListItem';
+import GuessListItem from '@/components/lists/GuessListItem';
+import MissionListItem from '@/components/lists/MissionListItem';
+import RankingListItem from '@/components/lists/RankingListItem';
 
 const TOTAL_MISSIONS = 7;
 const COMPLETED_MISSIONS = 5;
@@ -90,7 +91,8 @@ const HomePage: React.FC = () => {
         <Text fontSize="md" fontWeight="bold" mb={2}>
           오늘의 미션 체크
         </Text>
-        <BasicListItem date="07.28" label="몰래 과자 선물하기" />
+        <MissionListItem date="07.28" content="몰래 과자 선물하기" completed={true} />
+        <MissionListItem date="07.28" content="간식주기" completed={false} />
       </Box>
       <VStack>
         <ProfileListItem name="안수진" statusMessage="햄?" />
@@ -100,10 +102,12 @@ const HomePage: React.FC = () => {
         이전 추측 기록
       </Text>
       <VStack>
-        <GuessHistoryItem date="07.25" name="길태윤" />
-        <GuessHistoryItem date="07.24" name="김민지" />
-        <GuessHistoryItem date="07.23" name="박태호" />
+        <GuessListItem date="07.25" name="길태윤" />
+        <GuessListItem date="07.24" name="김민지" />
+        <GuessListItem date="07.23" name="박태호" />
       </VStack>
+      <RankingListItem rank={1} name="안수진" statusMessage="햄" score={7}></RankingListItem>
+      <RankingListItem rank={4} name="안수진" statusMessage="햄부기" score={7}></RankingListItem>
     </Container>
   );
 };

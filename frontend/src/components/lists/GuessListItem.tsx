@@ -1,12 +1,11 @@
-// components/GuessHistoryItem.tsx
 import { Flex, Text } from '@chakra-ui/react';
 
-interface GuessHistoryItemProps {
+interface GuessListItemProps {
   date: string;
   name: string;
 }
 
-const GuessHistoryItem: React.FC<GuessHistoryItemProps> = ({ date, name }) => {
+const GuessListItem: React.FC<GuessListItemProps> = ({ date, name }) => {
   return (
     <Flex justify="space-between" align="center" bg="gray.50" p={2} borderRadius="md" w="full">
       <Text fontSize="sm" color="gray.800">
@@ -19,4 +18,4 @@ const GuessHistoryItem: React.FC<GuessHistoryItemProps> = ({ date, name }) => {
   );
 };
 
-export default GuessHistoryItem;
+export default GuessListItem;
