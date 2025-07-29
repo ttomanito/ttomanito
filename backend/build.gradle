@@ -24,21 +24,28 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    /*
-    우지연
-     */
+
     //socket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
-    //jwt
-    implementation 'io.jsonwebtoken:jjwt:0.9.1'
-    implementation 'com.sun.xml.bind:jaxb-impl:4.0.1'
-    implementation 'com.sun.xml.bind:jaxb-core:4.0.1'
-    implementation 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
-
-    // ✅ Spring Security 추가
+    // Spring Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    // Oauth2
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Thymeleaf
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-thymeleaf"
+
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 test {
