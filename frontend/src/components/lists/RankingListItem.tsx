@@ -1,4 +1,4 @@
-import { Flex, Box, Text, Circle } from '@chakra-ui/react';
+import { Grid, GridItem, Text, Box } from '@chakra-ui/react';
 
 interface RankingItemProps {
   rank: number;
@@ -18,28 +18,54 @@ const RankingListItem: React.FC<RankingItemProps> = ({ rank, name, statusMessage
   const rankStyle = getRankStyle(rank);
 
   return (
-    <Flex align="center" justify="space-between" bg="white" p={3} borderRadius="md" shadow="sm">
-      {/* 순위 뱃지 */}
-      <Flex align="center" gap={3}>
-        <Circle size="8" {...rankStyle} fontWeight="bold">
+    <Grid
+      templateColumns="40px 1fr 1fr 40px"
+      px={4}
+      py={3}
+      alignItems="center"
+      borderBottom="1px solid #E2E8F0"
+      bg="white"
+      borderRadius="xl"
+    >
+      {/* 순위 원형 */}
+      <GridItem>
+        <Box
+          w="24px"
+          h="24px"
+          fontSize="xs"
+          borderRadius="full"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          fontWeight="bold"
+          {...rankStyle}
+        >
           {rank}
-        </Circle>
-        <Box>
-          <Text fontWeight="semibold">{name}</Text>
-          <Text fontSize="xs" color="gray.500">
-            {statusMessage}
-          </Text>
         </Box>
-      </Flex>
+      </GridItem>
 
-      {/* 가운데 화살표 + ??? */}
-      <Text fontWeight="medium" color="gray.700">
-        ← ???
-      </Text>
+      {/* 마니띠 */}
+      <GridItem>
+        <Text fontWeight="semibold" fontSize="sm">
+          {name}
+        </Text>
+        <Text fontSize="xs" color="gray.500">
+          {statusMessage}
+        </Text>
+      </GridItem>
+
+      {/* 마니또 표시 */}
+      <GridItem>
+        <Text fontWeight="medium" fontSize="sm" color="gray.700">
+          ← ???
+        </Text>
+      </GridItem>
 
       {/* 점수 */}
-      <Text fontWeight="bold">{score}</Text>
-    </Flex>
+      <GridItem textAlign="right">
+        <Text fontWeight="bold">{score}</Text>
+      </GridItem>
+    </Grid>
   );
 };
 

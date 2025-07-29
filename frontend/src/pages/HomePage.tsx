@@ -11,6 +11,7 @@ import ProfileListItem from '@/components/lists/ProfileListItem';
 import GuessListItem from '@/components/lists/GuessListItem';
 import MissionListItem from '@/components/lists/MissionListItem';
 import RankingListItem from '@/components/lists/RankingListItem';
+import CommonCard from '@/components/CommonCard';
 
 const TOTAL_MISSIONS = 7;
 const COMPLETED_MISSIONS = 5;
@@ -108,6 +109,11 @@ const HomePage: React.FC = () => {
       </VStack>
       <RankingListItem rank={1} name="안수진" statusMessage="햄" score={7}></RankingListItem>
       <RankingListItem rank={4} name="안수진" statusMessage="햄부기" score={7}></RankingListItem>
+      <CommonCard>
+        <Text fontWeight="bold" fontSize="xl" mb={4}>
+          방 생성하기
+        </Text>
+      </CommonCard>
     </Container>
   );
 };

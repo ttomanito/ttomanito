@@ -5,6 +5,13 @@ const meta: Meta<typeof RankingList> = {
   title: 'Components/RankingList',
   component: RankingList,
   tags: ['autodocs'],
+  decorators: [
+    Story => (
+      <div style={{ width: '800px', background: '#f9f9f9', padding: '16px', borderRadius: '8px' }}>
+        <Story />
+      </div>
+    ),
+  ],
 };
 
 export default meta;
@@ -19,5 +26,11 @@ export const Default: Story = {
       { rank: 4, name: '우지연', statusMessage: '안녕하세요', score: 4 },
       { rank: 5, name: '양준하', statusMessage: '정준하 아니고 양준하', score: 3 },
     ],
+  },
+};
+
+export const Empty: Story = {
+  args: {
+    data: [],
   },
 };

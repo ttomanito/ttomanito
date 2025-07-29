@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import RankingItem from './RankingListItem';
+import RankingListItem from './RankingListItem';
 
-const meta: Meta<typeof RankingItem> = {
-  title: 'Components/RankingItem',
-  component: RankingItem,
+const meta: Meta<typeof RankingListItem> = {
+  title: 'Components/RankingListItem',
+  component: RankingListItem,
   tags: ['autodocs'],
 };
 
 export default meta;
-type Story = StoryObj<typeof RankingItem>;
+type Story = StoryObj<typeof RankingListItem>;
 
 export const FirstPlace: Story = {
   args: {
@@ -28,20 +28,11 @@ export const SecondPlace: Story = {
   },
 };
 
-export const ThirdPlace: Story = {
-  args: {
-    rank: 3,
-    name: '안수진',
-    statusMessage: '맵',
-    score: 7,
-  },
-};
-
 export const OtherRank: Story = {
   args: {
     rank: 5,
-    name: '안수진',
-    statusMessage: '햄',
-    score: 7,
+    name: '양준하',
+    statusMessage: '정준하 아니고 양준하',
+    score: 3,
   },
 };

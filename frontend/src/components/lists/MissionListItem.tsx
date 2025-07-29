@@ -13,7 +13,7 @@ const MissionListItem: React.FC<MissionListItemProps> = ({ date, content, comple
   const IconComponent = completed ? RiCheckboxCircleLine : RiCheckboxBlankCircleLine;
 
   return (
-    <Flex bg="#F7F7F7" borderRadius="md" p={3} align="center" justify="space-between" h="52px">
+    <Flex bg="#F7F7F7" borderRadius="xl" p={3} align="center" justify="space-between" h="52px">
       <Flex direction="row" align="center" gap={4}>
         <Text fontSize="sm" color="gray.700" minW="50px">
           {date}

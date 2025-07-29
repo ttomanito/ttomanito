@@ -11,7 +11,7 @@ const ProfileListItem: React.FC<ProfileListItemProps> = ({ name, statusMessage }
   const initial = name[0];
 
   return (
-    <Flex bg="gray.50" p={3} borderRadius="md" align="center" gap={4} w="full">
+    <Flex bg="gray.50" p={3} borderRadius="xl" align="center" gap={4} w="full">
       {/* Avatar 대신 Box로 원형 프로필 구현 */}
       <Box
         w="32px"

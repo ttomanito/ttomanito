@@ -7,7 +7,7 @@ interface GuessListItemProps {
 
 const GuessListItem: React.FC<GuessListItemProps> = ({ date, name }) => {
   return (
-    <Flex justify="space-between" align="center" bg="gray.50" p={2} borderRadius="md" w="full">
+    <Flex justify="space-between" align="center" bg="gray.50" p={2} borderRadius="xl" w="full">
       <Text fontSize="sm" color="gray.800">
         {date}
       </Text>
