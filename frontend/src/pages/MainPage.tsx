@@ -35,7 +35,7 @@ const MainPage: React.FC = () => {
       <Box textAlign="center" mb={6}>
         <HStack justify="center" align="center" gap={4}>
           <Image src={logo} boxSize="32px" alt="로고" />
-          <Text fontSize="3xl" fontWeight="bold">
+          <Text textStyle="title_lg">
             또마니또
           </Text>
           <Image src={logo} boxSize="32px" alt="로고" />

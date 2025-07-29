@@ -19,17 +19,14 @@ export const system = createSystem(defaultConfig, {
   theme: {
     tokens: {
       fonts: {
-        /** 본문 및 일반 헤딩용: GmarketSans */
-        body: {
-          value: "GmarketSans, SBAggro, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+        gmarketSans: {
+          value: "GmarketSans, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
         },
-        heading: {
-          value: "GmarketSans, SBAggro, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-        },
-        /** 제목 전용 폰트: SBAggro */
-        heading_1: {
+        sbaAggro: {
           value: "SBAggro, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
         },
+        body: { value: "{fonts.gmarketSans}" },
+        heading: { value: "{fonts.gmarketSans}" },
       },
       fontWeights: {
         light: { value: "300" },
@@ -50,6 +47,80 @@ export const system = createSystem(defaultConfig, {
           800: { value: '#4a1772' },
           900: { value: '#2f0553' },
           950: { value: '#1a032e' },
+        },
+      },
+    },
+    textStyles: {
+      title_lg: {
+        description: '큰 제목',
+        value: {
+          fontSize: '36px',
+          fontWeight: '700',
+          fontFamily: '{fonts.sbaAggro}',
+          letterSpacing: '0',
+        },
+      },
+      title_md: {
+        description: '중간 제목',
+        value: {
+          fontSize: '20px',
+          fontWeight: '500',
+          fontFamily: '{fonts.sbaAggro}',
+          letterSpacing: '0',
+        },
+      },
+      title_ml: {
+        description: '중간 큰 제목',
+        value: {
+          fontSize: '24px',
+          fontWeight: '500',
+          fontFamily: '{fonts.sbaAggro}',
+          letterSpacing: '0',
+        },
+      },
+      input_label: {
+        description: '입력 라벨 텍스트',
+        value: {
+          fontSize: '12px',
+          fontWeight: '500',
+          fontFamily: '{fonts.sbaAggro}',
+          letterSpacing: '0.48px', // 4% of 12px
+        },
+      },
+      body_md: {
+        description: '본문 중간',
+        value: {
+          fontSize: '16px',
+          fontWeight: '500',
+          fontFamily: '{fonts.gmarketSans}',
+          letterSpacing: '0',
+        },
+      },
+      body_sm: {
+        description: '본문 소',
+        value: {
+          fontSize: '14px',
+          fontWeight: '500',
+          fontFamily: '{fonts.gmarketSans}',
+          letterSpacing: '0',
+        },
+      },
+      caption_xs_light: {
+        description: '캡션 아주 작고 라이트',
+        value: {
+          fontSize: '12px',
+          fontWeight: '300',
+          fontFamily: '{fonts.gmarketSans}',
+          letterSpacing: '0',
+        },
+      },
+      caption_xs_md: {
+        description: '캡션 아주 작고 미디엄',
+        value: {
+          fontSize: '12px',
+          fontWeight: '500',
+          fontFamily: '{fonts.gmarketSans}',
+          letterSpacing: '0',
         },
       },
     },
