@@ -15,10 +15,10 @@ const MissionListItem: React.FC<MissionListItemProps> = ({ date, content, comple
   return (
     <Flex bg="#F7F7F7" borderRadius="xl" p={3} align="center" justify="space-between" h="52px">
       <Flex direction="row" align="center" gap={4}>
-        <Text fontSize="sm" color="gray.700" minW="50px">
+        <Text  textStyle="body_sm" minW="50px">
           {date}
         </Text>
-        <Text fontSize="sm" fontWeight="medium" color="gray.800">
+        <Text  textStyle="body_sm">
           {content}
         </Text>
       </Flex>

@@ -14,10 +14,10 @@ const TextInput: React.FC<TextInputProps> = ({ value, onChange, placeholder }) =
       placeholder={placeholder}
       w="full"
       h="36px"
-      fontSize="sm"
       bg="white"
-      borderRadius="md"
+      borderRadius="xl"
       borderColor="gray.300"
+      textStyle="caption_xs_light" // ✅ 여기에 적용!
       _placeholder={{ color: 'gray.400' }}
       _focus={{
         borderColor: 'blue.300',
