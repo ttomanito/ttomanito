@@ -1,3 +1,13 @@
+/**
+ * ✅ DoubleButton 사용법:
+ * <DoubleButton
+ *   leftLabel="취소"
+ *   rightLabel="확인"
+ *   onLeftClick={() => console.log('취소')}
+ *   onRightClick={() => console.log('확인')}
+ * />
+ */
+
 import { forwardRef } from 'react';
 import { HStack, Button } from '@chakra-ui/react';
 import type { StackProps, ButtonProps } from '@chakra-ui/react';

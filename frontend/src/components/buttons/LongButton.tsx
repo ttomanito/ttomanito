@@ -1,5 +1,21 @@
 // LongButton.tsx
 
+/**
+ * ✅ LongButton 사용법:
+ *
+ * <LongButton onClick={() => console.log('확인')}>
+ *   확인
+ * </LongButton>
+ *
+ * - 버튼은 기본적으로 w="full", size="lg", borderRadius="full" 스타일이 적용됩니다.
+ * - 텍스트는 body_sm 텍스트 스타일이 사용됩니다.
+ * - 필요시 isLoading, isDisabled 등 Chakra Button props도 사용 가능합니다.
+ *
+ * 예:
+ * <LongButton isLoading loadingText="처리 중...">제출</LongButton>
+ */
+
+
 // forwardRef: 부모가 이 버튼의 실제 DOM(ref)을 잡아야 할 때를 대비해 사용합니다.
 // 예) 포커스 주기, 스크롤 위치 맞추기 등
 import { forwardRef } from 'react';
