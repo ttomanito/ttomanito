@@ -20,7 +20,7 @@ services:
     depends_on:
       - frontend
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/default.conf:/etc/nginx/default.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /etc/ssl/certs:/etc/ssl/certs:ro
     restart: always
