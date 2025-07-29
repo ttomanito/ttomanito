@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ttomanito.iml" filepath="$PROJECT_DIR$/.idea/modules/ttomanito.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ttomanito.main.iml" filepath="$PROJECT_DIR$/.idea/modules/ttomanito.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ttomanito.test.iml" filepath="$PROJECT_DIR$/.idea/modules/ttomanito.test.iml" />
     </modules>
   </component>

@@ -7,11 +7,10 @@ import com.ssafy.ttomanito.domain.room.dto.response.RoomInfoResponse;
 import com.ssafy.ttomanito.domain.room.entity.Room;
 import com.ssafy.ttomanito.domain.room.service.RoomService;
 import com.ssafy.ttomanito.domain.room.service.RoomUserService;
-import com.ssafy.ttomanito.security.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -26,16 +25,16 @@ public class RoomController {
 
     private final RoomService roomService;
     private final RoomUserService roomUserService;
-    private final JwtService jwtService;  // JWT 서비스 (토큰 검증 및 사용자 ID 추출)
+
     private final SimpMessagingTemplate messagingTemplate;  // ✅ 추가
 
     // 사용자가 대기방 또는 진행 중인 방에 참여 중인지 확인하는 API
     @GetMapping("/check")
-    public boolean checkUserInRoom(@RequestHeader("userId") Long userId) {
-        // 사용자 ID로 방 참여 상태 확인
-        return roomService.isUserInProgressOrWaiting(userId);  // 참여 중이면 true, 아니면 false 반환
+    public boolean checkUserInRoom(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId"); // ✅ 여기서 직접 꺼냄
+        log.info("🔍 Controller에서 추출한 userId: {}", userId);
+        return roomService.isUserInProgressOrWaiting(userId);
     }
-
     @PostMapping
     public ResponseEntity<?> create(@RequestBody CreateRoomRequest req,
                                     @RequestHeader("userId") Long userId) {

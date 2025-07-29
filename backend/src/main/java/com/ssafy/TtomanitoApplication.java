@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 @SpringBootApplication
 public class TtomanitoApplication {
 	public static void main(String[] args) {
+
+
         SpringApplication.run(TtomanitoApplication.class, args);
     }
 
