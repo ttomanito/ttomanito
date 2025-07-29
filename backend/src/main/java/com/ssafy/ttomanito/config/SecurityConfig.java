@@ -21,11 +21,11 @@ import com.ssafy.ttomanito.global.security.oauth.OAuth2AuthenticationSuccessHand
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtFilter;
-    private final SocialUserService oidcUserService;
+    private final SocialUserService socialUserService;
     private final OAuth2AuthenticationSuccessHandler successHandler;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, SocialUserService socialUserService) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -34,7 +34,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
-                        .userInfoEndpoint(u -> u.oidcUserService(oidcUserService))
+                        .userInfoEndpoint(u -> u.oidcUserService(socialUserService))
                         .successHandler(successHandler)
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -64,10 +64,9 @@ public class UserService {
         repo.save(withdrawn);
     }
 
-    public User createByOAuth(String providerId, OAuthProvider provider) {
-        String generatedName = provider.name().toLowerCase() + "_" + providerId;
+    public User createByOAuth(String providerId, OAuthProvider provider, String nickname) {
         User user = User.builder()
-                .name(generatedName)
+                .name(nickname)
                 .joinedAt(LocalDateTime.now())
                 .status(UserStatus.ACTIVE)
                 .build();

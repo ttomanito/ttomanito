@@ -13,6 +13,8 @@ import com.ssafy.ttomanito.domain.oauth.service.OAuthService;
 import com.ssafy.ttomanito.domain.user.service.UserService;
 import com.ssafy.ttomanito.domain.user.entity.User;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class SocialUserService extends OidcUserService {
@@ -25,9 +27,23 @@ public class SocialUserService extends OidcUserService {
 
         OAuthProvider provider = OAuthProvider.from(userRequest.getClientRegistration().getRegistrationId());
         String providerId = oidcUser.getSubject();
+        System.out.println( oidcUser.getAttributes() );
+        String nickname = oidcUser.getClaim("nickname");
+
+        if (nickname == null) {
+            Map<String,Object> kakaoAccount = oidcUser.getClaim("kakao_account");
+            if (kakaoAccount != null) {
+                Map<String,Object> profile = (Map<String,Object>) kakaoAccount.get("profile");
+                nickname = (String) profile.get("nickname");
+            }
+        }
+
+        if (nickname == null || nickname.isBlank()) {
+            nickname = provider.name().toLowerCase() + "_" + providerId;
+        }
 
         if (oAuthService.findWithUserByProviderIdAndProvider(providerId, provider).isEmpty()) {
-            User user = userService.createByOAuth(providerId, provider);
+            User user = userService.createByOAuth(providerId, provider, nickname);
             oAuthService.createOAuthIdentity(new OAuthUserDto(user.getUserId(), providerId, provider));
         }
 
