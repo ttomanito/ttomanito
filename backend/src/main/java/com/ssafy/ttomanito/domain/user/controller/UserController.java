@@ -10,32 +10,26 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
-    private final UserService svc;
-
-//    @PostMapping("/login")
-//    public ResponseEntity<UserDto> login(@RequestBody UserLoginRequestDto dto) {
-//        return ResponseEntity.ok(svc.login(dto));
-//    }
+    private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@RequestBody UserRegisterRequestDto dto) {
-        return ResponseEntity.ok(svc.register(dto));
+    public ResponseEntity<UserDto> register(@RequestParam String name) {
+        return ResponseEntity.ok(userService.register(name));
     }
 
     @PostMapping("/update")
-    public ResponseEntity<UserDto> update(@RequestBody UserUpdateRequestDto dto) {
-        return ResponseEntity.ok(svc.update(dto));
+    public ResponseEntity<UserDto> update(@RequestBody UserUpdateRequest dto) {
+        return ResponseEntity.ok(userService.update(dto));
     }
 
-    @GetMapping("/profile/{userId}")
+    @GetMapping("/mypage{userId}")
     public ResponseEntity<UserDto> profile(@PathVariable Long userId) {
-        return ResponseEntity.ok(svc.getProfile(userId));
+        return ResponseEntity.ok(userService.getMyPage(userId));
     }
-
 
     @PostMapping("/delete")
     public ResponseEntity<Void> delete(@RequestParam Long userId) {
-        svc.delete(userId);
+        userService.delete(userId);
         return ResponseEntity.noContent().build();
     }
 }

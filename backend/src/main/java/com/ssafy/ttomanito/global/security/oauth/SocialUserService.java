@@ -1,5 +1,6 @@
 package com.ssafy.ttomanito.global.security.oauth;
 
+import com.ssafy.ttomanito.domain.user.dto.UserDto;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -11,7 +12,6 @@ import com.ssafy.ttomanito.domain.oauth.entity.OAuthIdentity.OAuthProvider;
 import com.ssafy.ttomanito.domain.oauth.dto.OAuthUserDto;
 import com.ssafy.ttomanito.domain.oauth.service.OAuthService;
 import com.ssafy.ttomanito.domain.user.service.UserService;
-import com.ssafy.ttomanito.domain.user.entity.User;
 
 import java.util.Map;
 
@@ -43,8 +43,8 @@ public class SocialUserService extends OidcUserService {
         }
 
         if (oAuthService.findWithUserByProviderIdAndProvider(providerId, provider).isEmpty()) {
-            User user = userService.createByOAuth(providerId, provider, nickname);
-            oAuthService.createOAuthIdentity(new OAuthUserDto(user.getUserId(), providerId, provider));
+            UserDto dto = userService.register(nickname);
+            oAuthService.createOAuthIdentity(new OAuthUserDto(dto.userId(), providerId, provider));
         }
 
         return new SocialUser(oidcUser, provider);

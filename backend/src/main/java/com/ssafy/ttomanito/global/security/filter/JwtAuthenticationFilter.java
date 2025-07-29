@@ -3,6 +3,7 @@ package com.ssafy.ttomanito.global.security.filter;
 import java.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -18,6 +19,7 @@ import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
 import com.ssafy.ttomanito.global.security.token.TokenRevocationService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.util.WebUtils;
 
 @Component
 @RequiredArgsConstructor
@@ -30,14 +32,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain)
             throws ServletException, IOException {
-        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String jwt = jwtProvider.extractToken(authorization);
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String token = jwtProvider.extractToken(header);
 
-        if (jwt != null
-                && jwtProvider.isTokenValid(jwt)
-                && !tokenRevocationService.isTokenRevoked(jwt)) {
+        if (token == null) {
+            Cookie c = WebUtils.getCookie(request, "accessToken");
+            if (c != null) {
+                token = c.getValue();
+            }
+        }
 
-            UserDetails userDetails = jwtProvider.loadUserFromToken(jwt);
+        if (token != null
+                && jwtProvider.isTokenValid(token)
+                && !tokenRevocationService.isRevoked(token)) {
+
+            UserDetails userDetails = jwtProvider.loadUserFromToken(token);
             var authentication = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());
 

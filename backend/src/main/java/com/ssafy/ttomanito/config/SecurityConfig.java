@@ -21,7 +21,6 @@ import com.ssafy.ttomanito.global.security.oauth.OAuth2AuthenticationSuccessHand
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtFilter;
-    private final SocialUserService socialUserService;
     private final OAuth2AuthenticationSuccessHandler successHandler;
 
     @Bean
@@ -30,14 +29,27 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/**", "/oauth2/**").permitAll()
+                        .requestMatchers(
+                                "/login",                // 커스텀 로그인 뷰
+                                "/oauth2/authorization/**",  // 인가 요청 (ex: /oauth2/authorization/kakao)
+                                "/login/oauth2/code/**",     // 기본 콜백 (ex: /login/oauth2/code/kakao)
+                                "/auth/**"                   // /auth/refresh, /auth/logout
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
+                        .loginPage("/login")
                         .userInfoEndpoint(u -> u.oidcUserService(socialUserService))
                         .successHandler(successHandler)
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        http.logout(logout -> logout
+                .logoutUrl("/auth/logout")                          // POST /auth/logout
+                .logoutSuccessUrl("/login")                         // 로그아웃 후 /login 리다이렉트
+                .deleteCookies("accessToken","refreshToken","JSESSIONID")
+                .permitAll()
+        );
         return http.build();
     }
 

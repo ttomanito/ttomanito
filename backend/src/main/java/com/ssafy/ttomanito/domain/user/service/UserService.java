@@ -1,6 +1,5 @@
 package com.ssafy.ttomanito.domain.user.service;
 
-import com.ssafy.ttomanito.domain.oauth.entity.OAuthIdentity.OAuthProvider;
 import com.ssafy.ttomanito.domain.user.dto.*;
 import com.ssafy.ttomanito.domain.user.entity.User;
 import com.ssafy.ttomanito.domain.user.entity.User.UserStatus;
@@ -8,6 +7,7 @@ import com.ssafy.ttomanito.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDateTime;
 
@@ -17,15 +17,9 @@ import java.time.LocalDateTime;
 public class UserService {
     private final UserRepository repo;
 
-//    public UserDto login(UserLoginRequestDto dto) {
-//        User user = repo.findByName(dto.name())
-//                .orElseThrow(() -> new RuntimeException("사용자 없음"));
-//        return toDto(user);
-//    }
-
-    public UserDto register(UserRegisterRequestDto dto) {
+    public UserDto register(String nickname) {
         User user = User.builder()
-                .name(dto.name())
+                .name(nickname)
                 .joinedAt(LocalDateTime.now())
                 .status(UserStatus.ACTIVE)
                 .build();
@@ -33,7 +27,7 @@ public class UserService {
         return toDto(saved);
     }
 
-    public UserDto update(UserUpdateRequestDto dto) {
+    public UserDto update(UserUpdateRequest dto) {
         User user = repo.findById(dto.userId())
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
         User updated = user.toBuilder()
@@ -44,14 +38,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public User getUser(Long userId) {
-        return repo.findById(userId)
+    public UserDto getMyPage(Long userId) {
+        User user = repo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
-    }
-
-    @Transactional(readOnly = true)
-    public UserDto getProfile(Long userId) {
-        User user = getUser(userId);
         return toDto(user);
     }
 
@@ -62,15 +51,6 @@ public class UserService {
                 .status(UserStatus.WITHDRAWN)
                 .build();
         repo.save(withdrawn);
-    }
-
-    public User createByOAuth(String providerId, OAuthProvider provider, String nickname) {
-        User user = User.builder()
-                .name(nickname)
-                .joinedAt(LocalDateTime.now())
-                .status(UserStatus.ACTIVE)
-                .build();
-        return repo.save(user);
     }
 
     private UserDto toDto(User u) {

@@ -34,7 +34,7 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    public RedisTemplate<String, Boolean> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -44,9 +44,13 @@ public class RedisConfig {
                 JsonTypeInfo.As.PROPERTY
         );
 
+        return getStringBooleanRedisTemplate(redisConnectionFactory, objectMapper);
+    }
+
+    private static RedisTemplate<String, Boolean> getStringBooleanRedisTemplate(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
         GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        RedisTemplate<String, Boolean> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(serializer);
