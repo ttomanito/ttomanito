@@ -105,25 +105,8 @@ local.properties
 # Gradle and Maven with auto-import
 # When using Gradle or Maven with auto-import, you should exclude module files,
 # since they will be recreated, and may cause churn.  Uncomment if using
-<<<<<<< HEAD
-# auto-import.
-# .idea/artifacts
-# .idea/compiler.xml
-# .idea/jarRepositories.xml
-# .idea/modules.xml
-# .idea/*.iml
-# .idea/modules
-<<<<<<< HEAD
-# *.iml
-# *.ipr
-=======
- *.iml
- *.ipr
->>>>>>> 4406484f0f8e31db90fe30a59543745ea0ce9b4a
-=======
 *.iml
 *.ipr
->>>>>>> d22759340800785ebad325dacd386fdc8991d153
 
 # CMake
 cmake-build-*/
