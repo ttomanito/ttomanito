@@ -19,29 +19,29 @@ export type LongButtonProps = Omit<ButtonProps, 'variant' | 'colorScheme'>;
 // forwardRef<HTMLButtonElement, LongButtonProps>
 //  - 이 컴포넌트가 받는 ref의 실제 타입은 HTMLButtonElement 입니다.
 //  - 부모가 ref를 넘겨주면 Button에 그대로 연결(ref forwarding)해 줍니다.
-const LongButton = forwardRef<HTMLButtonElement, LongButtonProps>(({ children, ...rest }, ref) => {
-  // children: <LongButton>안에 적은 내용(텍스트/아이콘 등)
-  // ...rest: onClick, isLoading, mt, w 등 ButtonProps의 나머지 속성들
-  //          (필요한 속성은 자유롭게 덮어씌워 사용할 수 있게 해둡니다)
 
+const LongButton = forwardRef<HTMLButtonElement, LongButtonProps>(({ children = '확인', ...rest }, ref) => {
   return (
     <Button
-      ref={ref} // 부모가 준 ref를 실제 Button DOM에 연결
-      w="full" // 가로 100% (긴 버튼)
-      size="lg" // 큰 사이즈
-      borderRadius="full" // 둥근 pill 형태
-      bg="white" // 배경은 검정
-      color="black" // 글자는 흰색
-      _hover={{ bg: 'gray.800' }} // hover 시 조금 더 밝은 검정
-      _disabled={{ opacity: 0.6, cursor: 'not-allowed' }} // 비활성화 시 스타일
-      {...rest} // 나머지 props(onClick, isLoading 등)를 그대로 전달
+      ref={ref}
+      w="full"
+      size="lg"
+      borderRadius="full"
+      bg="accent.500"
+      color="black"
+      textStyle="body_sm"
+      border="1px solid black"
+      boxShadow="0px 4px 6px rgba(0, 0, 0, 0.2)"
+      _hover={{ bg: 'accent.600' }}
+      _active={{ bg: 'accent.700' }}
+      _disabled={{ opacity: 0.6, cursor: 'not-allowed' }}
+      {...rest}
     >
       {children}
     </Button>
   );
 });
 
-// displayName을 지정해두면 React DevTools에서 컴포넌트 이름이 예쁘게 보입니다.
 LongButton.displayName = 'LongButton';
 
 export default LongButton;
