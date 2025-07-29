@@ -30,6 +30,15 @@ public class OAuthIdentity {
     public enum OAuthProvider {
         KAKAO,
         NAVER,
-        GOOGLE
+        GOOGLE;
+
+        public static OAuthProvider from(String registrationId) {
+            return switch (registrationId.toLowerCase()) {
+                case "kakao"  -> KAKAO;
+                case "naver"  -> NAVER;
+                case "google" -> GOOGLE;
+                default -> throw new IllegalArgumentException("Unknown OAuthProvider: " + registrationId);
+            };
+        }
     }
 }
