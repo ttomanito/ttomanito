@@ -110,6 +110,13 @@ public boolean isUserInProgressOrWaiting(Long userId) {
 
       room.markAsNone(); // 상태 변경
 
+      messagingTemplate.convertAndSend("/topic/waiting/" + room.getId(),
+              WaitingMessage.builder()
+                      .roomId(room.getId())
+                      .type(WaitingMessage.MessageType.CLOSE)
+                      .build()
+      );
+
   }
     /* ---------- private ---------- */
 
@@ -164,6 +171,13 @@ public boolean isUserInProgressOrWaiting(Long userId) {
         if (participantIds.size() < 2) {
             throw new RuntimeException("At least 2 participants required to start.");
         }
+
+        messagingTemplate.convertAndSend("/topic/waiting/" + roomId,
+                WaitingMessage.builder()
+                        .roomId(roomId)
+                        .type(WaitingMessage.MessageType.START)
+                        .build()
+        );
 
         // ✅ 방 상태 변경
         room.start(LocalDate.now());

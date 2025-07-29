@@ -25,6 +25,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, SocialUserService socialUserService) throws Exception {
+
         http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -53,6 +54,9 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/login")                         // 로그아웃 후 /login 리다이렉트
                 .deleteCookies("accessToken","refreshToken","JSESSIONID")
                 .permitAll()
+        );
+        http.exceptionHandling(e ->
+                e.authenticationEntryPoint((req, res, ex) -> res.sendError(401))
         );
         return http.build();
     }
