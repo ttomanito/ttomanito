@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/../../build/generated/sources/annotationProcessor/java/main" isTestSource="false" generated="true" />
     </content>
   </component>
+<<<<<<< HEAD
   <component name="FacetManager">
     <facet type="jpa" name="JPA">
       <configuration>
@@ -16,4 +17,6 @@
       </configuration>
     </facet>
   </component>
+=======
+>>>>>>> 4406484f0f8e31db90fe30a59543745ea0ce9b4a
 </module>
