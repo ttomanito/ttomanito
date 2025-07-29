@@ -80,12 +80,7 @@ public class RoomService {
 
     /* ---------- 비즈니스 ---------- */
 
-/*    public void kick(Long roomId, Long targetUserId) {
-        roomUserRepository.deleteByRoomIdAndUserId(roomId, targetUserId);
-        broadcast(roomId, RoomMessageType.KICK, targetUserId);
-        broadcastState(roomId);
-    }*/
-// 사용자가 참여 중인 게임(방)에 참여 중인지 확인하는 메서드
+
 
 public boolean isUserInProgressOrWaiting(Long userId) {
 // 사용자가 `NOT_STARTED` 또는 `IN_PROGRESS` 상태의 방에 참여 중인지 확인
@@ -105,30 +100,11 @@ public boolean isUserInProgressOrWaiting(Long userId) {
         ru.setStatusMessage(message);
         // 필요시 broadcastState(roomId);
     }
-  /*  public void startGame(Long roomId) {
-        Room room = find(roomId);
-        room.start(LocalDate.now());   // status = IN_PROGRESS, startDate 세팅
-        roomRepository.save(room);
 
-        broadcast(roomId, RoomMessageType.START, null);
-        broadcastState(roomId);
-    }
-
-    public void enterByHttp(Long roomId, Long userId) {
-        roomUserRepository.deleteByRoomIdAndUserId(roomId, userId);
-        broadcast(roomId, RoomMessageType.EXIT, userId);
-        broadcastState(roomId);
-    }
-
-    public void exitByHttp(Long roomId, Long userId) {
-        roomUserRepository.deleteByRoomIdAndUserId(roomId, userId);
-        broadcast(roomId, RoomMessageType.EXIT, userId);
-        broadcastState(roomId);
-    }
-*/
+    // 해당 사용자가 만든 NOT_STARTED 상태 방을 찾아서 종료
   @Transactional
   public void closeRoomByCreatorId(Long creatorId) {
-      // 해당 사용자가 만든 NOT_STARTED 상태 방을 찾아서 종료
+
       Room room = roomRepository.findByCreatorIdAndStatus(creatorId, RoomStatus.NOT_STARTED)
               .orElseThrow(() -> new RuntimeException("진행 중인 대기방이 없습니다."));
 

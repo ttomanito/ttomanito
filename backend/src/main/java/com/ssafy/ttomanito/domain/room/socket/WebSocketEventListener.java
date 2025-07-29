@@ -46,9 +46,7 @@ public class WebSocketEventListener {
 
         log.info("🔵 CONNECT: user {} joined room {}, session: {}", userId, roomId, sessionId);
 
-        // 클라이언트들에게 입장 알림 전송
-        messagingTemplate.convertAndSend("/topic/waiting/" + roomId,
-                new WaitingEventMessage(roomId, userId, "ENTER"));
+
     }
 
     @EventListener
@@ -60,9 +58,9 @@ public class WebSocketEventListener {
 
         log.info("🔴 DISCONNECT: user {} disconnected, session: {}", userId, sessionId);
 
-        // 클라이언트들에게 퇴장 알림 전송
+        // ✅ EXIT 메시지 브로드캐스트는 유지해도 됨 (단, 프론트에서 잘 받아서 제거만 하면 됨)
         messagingTemplate.convertAndSend("/topic/waiting/leave",
-                new WaitingEventMessage(null, userId, "EXIT"));
+                new WaitingEventMessage(null, userId, "EXIT")); // ⚠️ 필요 시 roomId 붙이는 것도 가능
     }
 
     // 내부 전송용 메시지 클래스 (프론트에 JSON으로 보낼 객체)
