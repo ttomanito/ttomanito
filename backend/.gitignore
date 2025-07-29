@@ -174,8 +174,5 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
-src/main/resources/application.yml
-src/main/resources/application.yaml
-src/main/resources/application.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/java,eclipse,gradle,git,intellij,database,dotenv
