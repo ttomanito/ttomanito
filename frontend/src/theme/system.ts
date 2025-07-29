@@ -141,6 +141,15 @@ export const system = createSystem(defaultConfig, {
           letterSpacing: '0',
         },
       },
+      modal_title: {
+        description: '모달 제목',
+        value: {
+          fontSize: '20px',
+          fontWeight: '500',
+          fontFamily: '{fonts.sbaAggro}',
+          letterSpacing: '0',
+        },
+      },
     },
   },
 })
