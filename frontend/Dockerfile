@@ -8,7 +8,7 @@ RUN npm install
 COPY . .
 
 # ✅ Chakra UI 타입 생성 (이 부분 추가)
-RUN npx @chakra-ui/cli typegen --outri src/@types/chakra.d.ts src/theme/system.ts || echo "Chakra typegen failed"
+RUN npx @chakra-ui/cli typegen --outdir src/@types/chakra.d.ts src/theme/system.ts || echo "Chakra typegen failed"
 
 RUN npm run build
 
