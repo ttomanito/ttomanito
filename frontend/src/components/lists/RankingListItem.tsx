@@ -46,17 +46,17 @@ const RankingListItem: React.FC<RankingItemProps> = ({ rank, name, statusMessage
 
       {/* 마니띠 */}
       <GridItem>
-        <Text fontWeight="semibold" fontSize="sm">
+        <Text textStyle="body_sm">
           {name}
         </Text>
-        <Text fontSize="xs" color="gray.500">
+        <Text  textStyle="caption_xs_light">
           {statusMessage}
         </Text>
       </GridItem>
 
       {/* 마니또 표시 */}
       <GridItem>
-        <Text fontWeight="medium" fontSize="sm" color="gray.700">
+        <Text textStyle="body_sm">
           ← ???
         </Text>
       </GridItem>

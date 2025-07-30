@@ -19,7 +19,7 @@ const BasicLayout = lazyImport(() => import('@/components/layout/BasicLayout'));
 const MainPage = lazyImport(() => import('@/pages/MainPage')); // /
 const SignupPage = lazyImport(() => import('@/pages/User/SignupPage')); // /user/login
 const RoomCreatePage = lazyImport(() => import('@/pages/Room/RoomCreatePage')); // /room
-const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage')); // /room/:roomId
+// const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage')); // /room/:roomId
 const MatchingPage = lazyImport(() => import('@/pages/Room/MatchingPage')); // /manito/:roomId/matching
 const HomePage = lazyImport(() => import('@/pages/HomePage')); // /home
 const ChatListPage = lazyImport(() => import('@/pages/Chat/ChatListPage')); // /chat
@@ -39,7 +39,7 @@ export default function AppRoutes(): ReactElement {
         <Route path="/" element={<MainPage />} />
         <Route path="/room" element={<RoomCreatePage />} />
         <Route path="/user/register" element={<SignupPage />} />
-        <Route path="/room/:roomId" element={<WaitingRoomPage />} />
+        {/* <Route path="/room/:roomId" element={<WaitingRoomPage />} /> */}
         <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
       </Route>
 
