@@ -31,6 +31,8 @@ const ProfilePage = lazyImport(() => import('@/pages/User/ProfilePage')); // /us
 const ReportListPage = lazyImport(() => import('@/pages/Report/ReportListPage')); // /report/reportlist
 const ReportDetailPage = lazyImport(() => import('@/pages/Report/ReportDetailPage')); // /report/reportdetail/:reportId
 
+const TestPage = lazyImport(() => import('@/pages/TestPage')); // /report/reportdetail/:reportId
+
 export default function AppRoutes(): ReactElement {
   return (
     <Routes>
@@ -58,6 +60,7 @@ export default function AppRoutes(): ReactElement {
         <Route path="/user/update" element={<ProfilePage />} />
         <Route path="/report/reportlist" element={<ReportListPage />} />
         <Route path="/report/reportdetail/:reportId" element={<ReportDetailPage />} />
+        <Route path="/test" element={<TestPage />} />
       </Route>
 
       {/* === 404 Not Found === */}
