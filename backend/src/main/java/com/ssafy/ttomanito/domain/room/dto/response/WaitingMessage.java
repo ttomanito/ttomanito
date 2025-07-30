@@ -13,6 +13,6 @@ public class WaitingMessage {
     private MessageType type;
 
     public enum MessageType {
-        ENTER, EXIT,CLOSE
+        ENTER, EXIT,CLOSE,START
     }
 }
