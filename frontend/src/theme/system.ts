@@ -17,7 +17,12 @@ const globalCss = defineGlobalStyles({
 export const system = createSystem(defaultConfig, {
   globalCss,
   theme: {
+    breakpoints: {
+      xs: "375px",
+      mobile: "520px",
+    },
     tokens: {
+
       fonts: {
         gmarketSans: {
           value: "GmarketSans, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",

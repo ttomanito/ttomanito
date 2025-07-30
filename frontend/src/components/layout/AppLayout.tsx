@@ -4,7 +4,7 @@ import {
   Grid,
   GridItem,
   Text,
-  Flex
+  Flex,
 } from "@chakra-ui/react"
 import { Outlet, useLocation, matchPath } from "react-router-dom"
 import AppHeader from "./AppHeader"
@@ -15,8 +15,8 @@ import bgImage from "@/assets/imgs/profile_bg.png"
 const PcMent = () => (
   <Flex
     h="100dvh"
-    align="center"       // ← 수직 중앙
-    justify="flex-start" // ← 수평은 왼쪽 정렬 유지
+    align="center"
+    justify="flex-start"
     pl={20}
     pr={8}
     color="black"
@@ -39,7 +39,13 @@ const PcMent = () => (
 export default function AppLayout() {
   const { pathname } = useLocation()
 
-  const noHeaderPatterns = ["/chat/:chatRoomId/call", "/", "/room", "/user/register", "/manito/:roomId/matching"]
+  const noHeaderPatterns = [
+    "/chat/:chatRoomId/call",
+    "/",
+    "/room",
+    "/user/register",
+    "/manito/:roomId/matching",
+  ]
   const noBottomPatterns = [...noHeaderPatterns]
 
   const hideHeader = noHeaderPatterns.some((pattern) =>
@@ -49,8 +55,6 @@ export default function AppLayout() {
     matchPath({ path: pattern, end: true }, pathname)
   )
 
-//   const isDesktop = useBreakpointValue({ base: false, lg: true })
-
   return (
     <Box
       bgImage={`url(${bgImage})`}
@@ -58,23 +62,83 @@ export default function AppLayout() {
       bgSize="auto"
       minH="100dvh"
     >
+      {/* md 이상: 좌우 2단 레이아웃 */}
       <Grid
-        templateColumns={{ base: "1fr", lg: "1fr 1fr" }}
+        templateColumns={{ base: "1fr", md: "1fr 1fr" }}
         w="100%"
         h="100dvh"
       >
-        {/* 왼쪽 텍스트 영역 */}
-        <GridItem display={{ base: "none", lg: "flex" }}>
+        {/* 왼쪽 설명 영역: md 이상만 표시 */}
+        <GridItem display={{ base: "none", md: "flex" }}>
           <PcMent />
         </GridItem>
 
-        {/* 오른쪽 앱 화면 영역 */}
-        <GridItem display="flex" justifyContent="flex-start">
+        {/* 오른쪽 앱 화면 */}
+        <GridItem
+          position="relative"
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+        >
+          {/* xs~mobile: 전체 너비 */}
           <Box
-            w="560px"
+            display={{ base: "block", mobile: "none", md: "none" }}
+            w="100%"
             h="100dvh"
             bg="rgba(255,255,255,0.6)"
             backdropFilter="blur(4px)"
+          >
+            <Container
+              maxW="560px"
+              w="full"
+              px={4}
+              display="grid"
+              gridTemplateRows="auto 1fr auto"
+              h="100dvh"
+              overflow="hidden"
+            >
+              {!hideHeader && <AppHeader />}
+              <Box as="main" overflowY="auto">
+                <Outlet />
+              </Box>
+              {!hideBottom && <BottomNav />}
+            </Container>
+          </Box>
+
+          {/* mobile~md: 중앙 고정폭 520px */}
+          <Box
+            display={{ base: "none", mobile: "block", md: "none" }}
+            w="520px"
+            h="100dvh"
+            bg="rgba(255,255,255,0.6)"
+            backdropFilter="blur(4px)"
+          >
+            <Container
+              maxW="560px"
+              w="full"
+              px={4}
+              display="grid"
+              gridTemplateRows="auto 1fr auto"
+              h="100dvh"
+              overflow="hidden"
+            >
+              {!hideHeader && <AppHeader />}
+              <Box as="main" overflowY="auto">
+                <Outlet />
+              </Box>
+              {!hideBottom && <BottomNav />}
+            </Container>
+          </Box>
+
+          {/* md 이상: 왼쪽 정렬된 앱 화면 (왼쪽 경계가 중앙) */}
+          <Box
+            position="absolute"
+            left="0"
+            w="520px"
+            h="100dvh"
+            bg="rgba(255,255,255,0.6)"
+            backdropFilter="blur(4px)"
+            display={{ base: "none", md: "block" }}
           >
             <Container
               maxW="560px"
