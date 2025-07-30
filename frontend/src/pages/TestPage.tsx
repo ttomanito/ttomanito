@@ -1,6 +1,6 @@
 // src/pages/TestPage.tsx
 import { useEffect, useState } from 'react';
-import { getRequest, patchRequest } from '@/api/requests';
+import { patchRequest } from '@/api/requests';
 
 type Todo = {
   id: number;
@@ -13,7 +13,7 @@ type Todo2 = {
 };
 
 const TestPage = () => {
-  const [todo, setTodo] = useState<Todo | null>(null);
+  const [todo] = useState<Todo | null>(null);
 
   useEffect(() => {
     patchRequest<Todo2>('/posts/1', { title: 'foo' }).catch(console.error);
