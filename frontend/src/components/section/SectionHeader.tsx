@@ -1,12 +1,11 @@
-// components/ManitoReportHeader.tsx
 import { Box, Text } from '@chakra-ui/react';
 
-interface ManitoReportHeaderProps {
+interface SectionHeaderProps {
   title: string;
   sub: string;
 }
 
-const ManitoReportHeader: React.FC<ManitoReportHeaderProps> = ({ title, sub }) => {
+const SectionHeader: React.FC<SectionHeaderProps> = ({ title, sub }) => {
   return (
     <Box pt={4} pb={4} minHeight="124px">
       <Text textStyle="title_mlg">{title}</Text>
@@ -17,4 +16,4 @@ const ManitoReportHeader: React.FC<ManitoReportHeaderProps> = ({ title, sub }) =
   );
 };
 
-export default ManitoReportHeader;
+export default SectionHeader;
