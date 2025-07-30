@@ -39,6 +39,7 @@ public class SwaggerConfig {
                                         .bearerFormat("JWT")))
                 .addSecurityItem(new SecurityRequirement().addList("bearer-key"))
                 .servers(List.of(
+                        new Server().url("http://localhost:8080").description("로컬 서버"),
                         new Server().url(baseUrl).description("배포 서버")
                 ))
                 .info(new Info()
