@@ -8,6 +8,7 @@ import com.ssafy.ttomanito.domain.room.entity.Room;
 import com.ssafy.ttomanito.domain.room.service.RoomService;
 import com.ssafy.ttomanito.domain.room.service.RoomUserService;
 import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
+import com.ssafy.ttomanito.global.security.userdetails.JwtUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -22,6 +23,7 @@ import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
@@ -62,9 +64,9 @@ public class RoomController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/check")
-    public boolean checkUserInRoom(@Parameter(hidden = true) HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
-
+    public boolean checkUserInRoom(@Parameter(hidden = true) HttpServletRequest request,
+                                   @AuthenticationPrincipal JwtUserDetails principal) {
+        Long userId = principal.getUserId();
         return roomService.isUserInProgressOrWaiting(userId);
     }
 
@@ -80,12 +82,12 @@ public class RoomController {
     })
   @PostMapping
   public ResponseEntity<?> create(@RequestBody CreateRoomRequest req,
-                                  HttpServletRequest request) {
-      Long userId = (Long) request.getAttribute("userId");
-      System.out.println("✅ userId: " + userId);
+                                  HttpServletRequest request,
+                                  @AuthenticationPrincipal JwtUserDetails principal) {
+        Long userId = principal.getUserId();
 
-      RoomInfoResponse response = roomService.createRoom(req, userId);
-      return ResponseEntity.ok(response);
+        RoomInfoResponse response = roomService.createRoom(req, userId);
+        return ResponseEntity.ok(response);
   }
 
     @Operation(
@@ -100,10 +102,12 @@ public class RoomController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
  @PostMapping("/exit")
- public ResponseEntity<?> hostExit(HttpServletRequest request) {
-     Long userId = (Long) request.getAttribute("userId");
-     roomService.closeRoomByCreatorId(userId);
-     return ResponseEntity.ok("Room closed by host.");
+ public ResponseEntity<?> hostExit(HttpServletRequest request,
+                                   @AuthenticationPrincipal JwtUserDetails principal) {
+        Long userId = principal.getUserId();
+
+        roomService.closeRoomByCreatorId(userId);
+        return ResponseEntity.ok("Room closed by host.");
  }
 
     @Operation(
@@ -151,8 +155,9 @@ public class RoomController {
     @PostMapping("/{roomId}/message")
     public void setUserMessage(@PathVariable Long roomId,
                                HttpServletRequest request,
-                               @RequestBody SetUserMessageRequest req) {
-        Long userId = (Long) request.getAttribute("userId");
+                               @RequestBody SetUserMessageRequest req,
+                               @AuthenticationPrincipal JwtUserDetails principal) {
+        Long userId = principal.getUserId();
         roomUserService.enterWithMessage(roomId, userId, req.message());
     }
 
@@ -171,8 +176,9 @@ public class RoomController {
     })
     @PostMapping("/{roomId}/enter")
     public void prepareEnter(@PathVariable Long roomId,
-                             HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
+                             HttpServletRequest request,
+                             @AuthenticationPrincipal JwtUserDetails principal) {
+        Long userId = principal.getUserId();
 
         // 1. 방 상태 확인
         Room room = roomService.findById(roomId);
@@ -198,8 +204,9 @@ public class RoomController {
     })
     @DeleteMapping("/{roomId}/exit")
     public void exitRoom(@PathVariable Long roomId,
-                         HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
+                         HttpServletRequest request,
+                         @AuthenticationPrincipal JwtUserDetails principal) {
+        Long userId = principal.getUserId();
         roomUserService.exit(roomId, userId);
     }
 
@@ -219,8 +226,8 @@ public class RoomController {
     @DeleteMapping("/{roomId}/participants")
     public void kickParticipant(@PathVariable Long roomId,
                                 @RequestParam Long targetUserId,
-                                HttpServletRequest request) {
-        Long hostId = (Long) request.getAttribute("userId");
+                                @AuthenticationPrincipal JwtUserDetails principal) {
+        Long hostId = principal.getUserId();
         roomService.kick(roomId, hostId, targetUserId);
     }
 
@@ -238,8 +245,8 @@ public class RoomController {
     })
     @PostMapping("/{roomId}/start")
     public ResponseEntity<?> startGame(@PathVariable Long roomId,
-                                       HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
+                                       @AuthenticationPrincipal JwtUserDetails principal) {
+        Long userId = principal.getUserId();
         roomService.startGame(roomId, userId);
         return ResponseEntity.ok().build();
     }
