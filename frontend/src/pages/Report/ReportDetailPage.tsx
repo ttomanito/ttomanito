@@ -1,22 +1,7 @@
-// import { createStubPage } from '../_stub';
-// const ReportDetailPage = createStubPage('ReportDetailPage');
-// components/ManitoReport.tsx
-
-import {
-  Box,
-  Text,
-  Heading,
-  Flex,
-  AvatarGroup,
-  Avatar,
-  VStack,
-  //   Divider,
-  Button,
-  Icon,
-} from '@chakra-ui/react';
-import { FaShare } from 'react-icons/fa';
+import { Box, Text, Flex, Button } from '@chakra-ui/react';
 import ProfileCard from '@/components/profile/ProfileCard';
 import ReportList from '@/components/lists/ReportList';
+import SectionHeaderProps from '@/components/section/SectionHeader';
 
 const ReportDetailPage = () => {
   return (
@@ -31,25 +16,14 @@ const ReportDetailPage = () => {
       boxShadow="md"
     >
       {/* 제목 */}
-      <Flex justify="space-between" align="center" mb={4}>
-        <Box pt={4} pb={4} minHeight="124px">
-          <Text textStyle="title_mlg">마니또 리포트</Text>
-          <Text textStyle="caption_sm" color="gray.500">
-            너와 나 사이 관계 보고서
-          </Text>
-        </Box>
-        {/* <Button size="sm" variant="outline" colorScheme="purple">
-          <FaShare /> 공유하기
-        </Button> */}
+      <SectionHeaderProps title="마니또 리포트" sub="너와 나 사이 관찰 보고서"></SectionHeaderProps>
+      <Flex mb={2}>
+        <Button size="sm" ml="auto" variant="outline" colorScheme="purple">
+          {/* <FaShare />  */}
+          공유하기
+        </Button>
       </Flex>
 
-      {/* 보고서 타이틀 */}
-      <Text textStyle="title_ml" mb={2}>
-        000000 결과 보고서
-      </Text>
-      <Text textStyle="title_md" mb={4}>
-        마니또와의 기록
-      </Text>
       {/* 마니또 카드 */}
       <ProfileCard
         title="내 마니또"
