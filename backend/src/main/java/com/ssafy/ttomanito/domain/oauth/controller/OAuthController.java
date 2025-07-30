@@ -1,6 +1,5 @@
 package com.ssafy.ttomanito.domain.oauth.controller;
 
-import com.ssafy.ttomanito.domain.oauth.service.OAuthService;
 import com.ssafy.ttomanito.domain.user.dto.UserDto;
 import com.ssafy.ttomanito.domain.user.service.UserService;
 import com.ssafy.ttomanito.global.security.userdetails.JwtUserDetails;
