@@ -6,6 +6,10 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+
+# ✅ Chakra UI 타입 생성 (이 부분 추가)
+RUN npx @chakra-ui/cli typegen --out src/@types/chakra.d.ts src/theme/system.ts || echo "Chakra typegen failed"
+
 RUN npm run build
 
 # 2단계: Nginx로 정적 파일 서빙

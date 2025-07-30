@@ -31,14 +31,20 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
-                                "/", "/index.html",
+                                "/index.html",
                                 "/static/**", "/*.png", "/*.json", "/*.ico"
                         ).permitAll()
                         .requestMatchers(
-                                "/login",                // 커스텀 로그인 뷰
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/index.html**"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/",                // 커스텀 로그인 뷰
                                 "/oauth2/authorization/**",  // 인가 요청 (ex: /oauth2/authorization/kakao)
                                 "/login/oauth2/code/**",     // 기본 콜백 (ex: /login/oauth2/code/kakao)
-                                "/auth/**"                   // /auth/refresh, /auth/logout
+                                "/auth/**","/"// /auth/refresh, /auth/logout
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

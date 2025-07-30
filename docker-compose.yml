@@ -51,12 +51,19 @@ services:
       - redis
       - mongo
     environment:
-      SPRING_PORT: 8081
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&serverTimezone=Asia/Seoul
+      # SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&serverTimezone=Asia/Seoul
+      # SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      # SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      # SPRING_REDIS_HOST: redis
+      # SPRING_MONGO_URI: mongodb://mongo:27017/${MONGO_DATABASE}
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
-      SPRING_REDIS_HOST: redis
-      SPRING_MONGO_URI: mongodb://mongo:27017/${MONGO_DATABASE}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/${MONGO_DATABASE}
+      SPRING_PORT: ${SPRING_PORT}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - app-network
 
