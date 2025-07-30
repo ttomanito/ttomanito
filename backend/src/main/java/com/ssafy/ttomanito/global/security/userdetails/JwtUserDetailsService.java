@@ -1,11 +1,13 @@
 package com.ssafy.ttomanito.global.security.userdetails;
 
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.ssafy.ttomanito.domain.user.entity.User;
+import com.ssafy.ttomanito.domain.user.entity.User.UserStatus;
 import com.ssafy.ttomanito.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -17,7 +19,7 @@ public class JwtUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userIdStr) {
-        Long userId;
+        long userId;
         try {
             userId = Long.parseLong(userIdStr);
         } catch (NumberFormatException ex) {
@@ -29,6 +31,10 @@ public class JwtUserDetailsService implements UserDetailsService {
                         new UsernameNotFoundException("User not found id=" + userId)
                 );
 
-        return new JwtUserDetails(user.getUserId(), user.getName());
+        if (user.getStatus() == UserStatus.WITHDRAWN) {
+            throw new DisabledException("탈퇴된 사용자입니다.");
+        }
+
+        return new JwtUserDetails(user);
     }
 }

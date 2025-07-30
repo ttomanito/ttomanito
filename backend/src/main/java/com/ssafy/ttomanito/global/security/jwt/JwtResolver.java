@@ -21,11 +21,4 @@ public class JwtResolver {
                 .parseClaimsJws(token)
                 .getBody();
     }
-
-    public String resolveToken(String header) {
-        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
-            return header.substring(7);
-        }
-        return null;
-    }
 }

@@ -5,6 +5,10 @@ import com.ssafy.ttomanito.domain.auth.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +20,16 @@ import org.springframework.web.util.WebUtils;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Auth", description = "인증 API")
 public class AuthController {
 
     private final AuthService authService;
 
+    @Operation(summary = "Refresh Access Token", description = "리프레시 토큰으로 액세스 토큰을 재발급합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "토큰 재발급 성공 (AccessTokenResponse 반환)"),
+            @ApiResponse(responseCode = "401", description = "리프레시 토큰 누락 또는 유효하지 않음")
+    })
     @PostMapping("/refresh")
     public ResponseEntity<AccessTokenResponse> refreshAccessToken(HttpServletRequest request,
                                                                   HttpServletResponse response) {
@@ -29,8 +39,7 @@ public class AuthController {
         }
         String refreshToken = cookie.getValue();
 
-        return ResponseEntity.ok(
-                authService.refreshAccessToken(refreshToken)
-        );
+        AccessTokenResponse dto = authService.refreshAccessToken(refreshToken);
+        return ResponseEntity.ok(dto);
     }
 }

@@ -4,24 +4,31 @@ import java.security.Principal;
 import java.util.Collection;
 import java.util.List;
 
+import com.ssafy.ttomanito.domain.user.entity.User;
+import com.ssafy.ttomanito.domain.user.entity.User.UserStatus;
 import lombok.Getter;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Getter
 public class JwtUserDetails implements UserDetails, Principal {
     private final Long userId;
     private final String username;
+    private final UserStatus status;
+    private final Collection<? extends GrantedAuthority> authorities;
 
-    public JwtUserDetails(Long userId, String username) {
-        this.userId   = userId;
-        this.username = username;
+    public JwtUserDetails(User user) {
+        this.userId = user.getUserId();
+        this.username = user.getName();
+        this.status = user.getStatus();
+        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return authorities;
     }
 
     @Override
@@ -44,18 +51,11 @@ public class JwtUserDetails implements UserDetails, Principal {
         return UserDetails.super.isCredentialsNonExpired();
     }
     @Override public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return this.status.equals(UserStatus.ACTIVE);
     }
 
     @Override
     public String getName() {
-        // Principal#getName() → 사용자 식별용 ID 반환
         return userId.toString();
-    }
-
-    @Override
-    public String toString() {
-        return "CustomUserDetails{userId=" + userId
-                + ", username='" + username + "'}";
     }
 }
