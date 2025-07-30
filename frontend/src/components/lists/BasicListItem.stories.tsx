@@ -7,6 +7,7 @@ import BasicListItem from "./BasicListItem";
 const meta: Meta<typeof BasicListItem> = {
   title: "Components/BasicListItem",
   component: BasicListItem,
+  tags: ["autodocs"],
   argTypes: {
     date: { control: "text" },
     content: { control: "text" },
