@@ -8,10 +8,10 @@ export interface ReportListItemProps {
 const ReportListItem: React.FC<ReportListItemProps> = ({ label, value }) => {
   return (
     <Flex justify="space-between" align="center" py="8px" px="16px" w="100%">
-      <Text fontSize="sm" color="gray.700">
+      <Text textStyle="body_sm">
         {label}
       </Text>
-      <Text fontSize="sm" color="gray.900" fontWeight="medium">
+      <Text textStyle="body_sm" fontWeight="medium">
         {value}
       </Text>
     </Flex>

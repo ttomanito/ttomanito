@@ -8,7 +8,7 @@ import { FaCheckCircle } from 'react-icons/fa';
 import FramedCard from '@/components/ui/FramedCard';
 import { VStack } from '@chakra-ui/react';
 import ProfileListItem from '@/components/lists/ProfileListItem';
-import GuessListItem from '@/components/lists/GuessListItem';
+import BasicListItem from '@/components/lists/BasicListItem';
 import MissionListItem from '@/components/lists/MissionListItem';
 import RankingListItem from '@/components/lists/RankingListItem';
 import CommonCard from '@/components/CommonCard';
@@ -103,9 +103,9 @@ const HomePage: React.FC = () => {
         이전 추측 기록
       </Text>
       <VStack>
-        <GuessListItem date="07.25" name="길태윤" />
-        <GuessListItem date="07.24" name="김민지" />
-        <GuessListItem date="07.23" name="박태호" />
+        <BasicListItem date="07.25" content="길태윤" />
+        <BasicListItem date="07.24" content="김민지" />
+        <BasicListItem date="07.23" content="박태호" />
       </VStack>
       <RankingListItem rank={1} name="안수진" statusMessage="햄" score={7}></RankingListItem>
       <RankingListItem rank={4} name="안수진" statusMessage="햄부기" score={7}></RankingListItem>
