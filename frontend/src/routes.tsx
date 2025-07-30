@@ -3,6 +3,7 @@ import React from 'react';
 import type { LazyExoticComponent, ComponentType, ReactElement } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
+import AppLayout from '@/components/layout/AppLayout';
 
 // === lazy 로딩 타입 보조 함수 ===
 function lazyImport<P = unknown>(
@@ -34,9 +35,11 @@ const ReportDetailPage = lazyImport(() => import('@/pages/Report/ReportDetailPag
 export default function AppRoutes(): ReactElement {
   return (
     <Routes>
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<MainPage />} />
+      </Route>
       {/* === 기본 레이아웃 === */}
       <Route element={<BasicLayout />}>
-        <Route path="/" element={<MainPage />} />
         <Route path="/room" element={<RoomCreatePage />} />
         <Route path="/user/register" element={<SignupPage />} />
         {/* <Route path="/room/:roomId" element={<WaitingRoomPage />} /> */}
