@@ -57,7 +57,7 @@ public class SecurityConfig {
 
         http.logout(logout -> logout
                 .logoutUrl("/auth/logout")                          // POST /auth/logout
-                .logoutSuccessUrl("/login")                         // 로그아웃 후 /login 리다이렉트
+                .logoutSuccessUrl("/")                         // 로그아웃 후 /login 리다이렉트
                 .deleteCookies("accessToken","refreshToken","JSESSIONID")
                 .permitAll()
         );
