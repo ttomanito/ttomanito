@@ -7,7 +7,9 @@ import java.util.List;
 
 public interface ManitoAssignmentRepository extends JpaRepository<ManitoAssignment, Long> {
 
-    List<ManitoAssignment> findByRoomId(Long roomId);
+    /** 방 PK로 매니또 할당 조회 */
+    List<ManitoAssignment> findByRoom_RoomId(Long roomId);
 
-    void deleteByRoomId(Long roomId);
+    /** 방 PK로 매니또 할당 일괄 삭제 */
+    void deleteByRoom_RoomId(Long roomId);
 }

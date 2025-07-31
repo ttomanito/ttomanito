@@ -1,5 +1,6 @@
 package com.ssafy.ttomanito.domain.room.entity;
 
+import com.ssafy.ttomanito.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,28 +18,25 @@ public class RoomUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "room_user_id")
-    private Long id;
+    private Long roomUserId;
 
-    @Column(name = "room_id", nullable = false)
-    private Long roomId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "room_id", nullable = false)
+    private Room room;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(name = "status_message")
     private String statusMessage;
 
-    // 정적 팩토리 메서드
-    public static RoomUser of(Long roomId, Long userId) {
+    // 정적 팩토리: Room, User 객체로 생성
+    public static RoomUser of(Room room, User user) {
         return RoomUser.builder()
-                .roomId(roomId)
-                .userId(userId)
-                .statusMessage(null)  // ✅ 명시적으로 null
+                .room(room)
+                .user(user)
+                .statusMessage(null)
                 .build();
-    }
-
-    // 상태메시지 초기화
-    public void resetStatusMessage() {
-        this.statusMessage = null;
     }
 }

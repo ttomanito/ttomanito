@@ -66,7 +66,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         response.addCookie(buildCookie("accessToken",  tokens.getAccessToken(),  (int)(jwtProvider.getAccessTokenTtlMs() / 1000)));
         response.addCookie(buildCookie("refreshToken", tokens.getRefreshToken(), (int)(refreshTokenTtlMs / 1000)));
 
-        response.sendRedirect(frontendRedirectUrl + "/oauth2/callback/kakao");
+        response.sendRedirect(frontendRedirectUrl + "/");
     }
 
     private Cookie buildCookie(String name, String value, int maxAgeSeconds) {

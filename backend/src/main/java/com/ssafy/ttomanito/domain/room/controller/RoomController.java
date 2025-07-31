@@ -181,7 +181,7 @@ public class RoomController {
         Long userId = principal.getUserId();
 
         // 1. 방 상태 확인
-        Room room = roomService.findById(roomId);
+        Room room = roomService.find(roomId);
         if (!room.getStatus().equals(RoomStatus.NOT_STARTED)) {
             throw new IllegalStateException("Cannot join. Room is not in NOT_STARTED state.");
         }
