@@ -20,8 +20,8 @@ public record RoomInfoResponse(
 ) {
     public static RoomInfoResponse from(Room r, List<Weekday> days) {
         return new RoomInfoResponse(
-                r.getId(),
-                r.getCreatorId(),
+                r.getRoomId(),
+                r.getCreator().getUserId(),
                 r.getName(),
                 r.getStatus(),
                 r.getStartDate(),
