@@ -1,64 +1,156 @@
-import React from 'react';
-import { Box, Container, HStack, Image, Stack, Text } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
-import CustomButton from '@/components/ui/CustomButton';
-import TutorialCard from '@/components/TutorialCard';
-import type { TutorialSlide } from '@/components/TutorialCard';
-import logo from '@/assets/logo.svg';
+import React, { useEffect, useState } from 'react'
+import {
+  Box,
+  VStack,
+  Image,
+  Container,
+  IconButton,
+  Spinner,
+  Text,
+  HStack,
+  Icon,
+} from '@chakra-ui/react'
 
-const color = 'accent.500';
+import LongButton from '@/components/buttons/LongButton'
+import { RiKakaoTalkFill } from 'react-icons/ri'
+import { FaQuestionCircle } from 'react-icons/fa'
+import axios from 'axios'
 
-const slides: TutorialSlide[] = [
-  {
-    title: '하루에 한 번, 미션을 수행해요!',
-    desc: '미션은 총 7일 동안 진행돼요.',
-    image: '/assets/tutorial-1.svg',
-  },
-  {
-    title: '마니또에게 들키지 않게!',
-    desc: '몰래 과자 선물하기 같은 재미있는 미션들이 준비돼 있어요.',
-    image: '/assets/tutorial-2.svg',
-  },
-  {
-    title: '완료 후 결과 확인',
-    desc: '마지막 날엔 결과 보고서를 받아요.',
-    image: '/assets/tutorial-3.svg',
-  },
-];
+// 이미지 파일들
+import main_page_logo from '@/assets/main_page_logo.svg'
+import detectiveImg from '@/assets/detective_ttoma.svg'
 
 const MainPage: React.FC = () => {
-  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
 
-  return (
-    <Container maxW="480px" px={4} pt={6}>
-      {/* ===== 앱 로고 & 타이틀 ===== */}
-      <Box textAlign="center" mb={6}>
-        <HStack justify="center" align="center" gap={4}>
-          <Image src={logo} boxSize="32px" alt="로고" />
-          <Text textStyle="title_lg">
-            또마니또
-          </Text>
-          <Image src={logo} boxSize="32px" alt="로고" />
-        </HStack>
-        <Text fontSize="sm" color="gray.500" mt={1}>
-          마니또 보조 어플
-        </Text>
+  useEffect(() => {
+    axios
+      .get('/api/auth/token', { withCredentials: true }) // 로그인 확인용
+      .then((res) => {
+        if (res.data?.accessToken) {
+          setIsLoggedIn(true)
+        } else {
+          setIsLoggedIn(false)
+        }
+      })
+      .catch(() => setIsLoggedIn(false))
+  }, [])
+
+  if (isLoggedIn === null) {
+    return (
+      <Box
+        bg="white"
+        minH="100dvh"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Spinner size="xl" />
       </Box>
+    )
+  }
 
-      {/* Tutorial 카드 */}
-      <TutorialCard accent={color} slides={slides} />
+  if (isLoggedIn) {
+    return (
+      <Box
+        bg="white"
+        minH="100dvh"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+      >
+        {/* ? 아이콘 */}
+        <IconButton
+          aria-label="정보"
+          variant="ghost"
+          position="absolute"
+          top={3}
+          right={3}
+          zIndex="docked"
+          color="accent.500"
+          >
+          <FaQuestionCircle style={{ width: '40px', height: '40px' }} />
+        </IconButton>
 
-      {/* 메인 액션 버튼들 */}
-      <Stack gap={3} mt={6} pb={6}>
-        <CustomButton w="full" accent={color} onClick={() => navigate('/room')}>
-          방 만들기
-        </CustomButton>
-        <CustomButton w="full" accent={color} onClick={() => navigate('/report/reportlist')}>
-          결과 확인하러가기
-        </CustomButton>
-      </Stack>
-    </Container>
-  );
-};
+        <Container
+          maxW="480px"
+          flex="1"
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          px={4}
+          pt={8}
+          pb={12}
+        >
+          <VStack gap={12} w="full" align="center">
+            {/* 탐정 또마니또 이미지 크게 */}
+            <Image
+              src={detectiveImg}
+              alt="탐정 또마니또"
+              w="100%"
+              maxW="100%"
+            />
 
-export default MainPage;
+            {/* 버튼 두 개 */}
+            <VStack gap={4} w="full">
+              <LongButton w="full" bg="accent.500" _hover={{ bg: 'accent.600' }}>
+                그룹 생성하기
+              </LongButton>
+              <LongButton w="full" bg="accent.500" _hover={{ bg: 'accent.600' }}>
+                보고서 보러가기
+              </LongButton>
+            </VStack>
+          </VStack>
+        </Container>
+      </Box>
+    )
+  }
+
+  // 로그인 안 된 경우 (카카오 로그인 버튼)
+  return (
+    <Box
+      bg="white"
+      minH="100dvh"
+      display="flex"
+      flexDirection="column"
+      justifyContent="center"
+      alignItems="center"
+    >
+      {/* ? 아이콘 */}
+        <IconButton
+          aria-label="정보"
+          variant="ghost"
+          position="absolute"
+          top={3}
+          right={3}
+          zIndex="docked"
+          color="accent.500"
+          >
+          <FaQuestionCircle style={{ width: '40px', height: '40px' }} />
+        </IconButton>
+
+      <VStack gap={8} align="center">
+        {/* 로고 */}
+        <Image src={main_page_logo} alt="ttomanito logo" pr={4} />
+
+        {/* 카카오 로그인 버튼 */}
+        <LongButton
+          onClick={() => (window.location.href = "https://i13b206.p.ssafy.io/api/oauth2/authorization/kakao")}
+          bg="#FEE500"
+          color="black"
+          _hover={{ bg: '#FFEB33' }}
+          _active={{ bg: '#FAD400' }}
+        >
+          <HStack gap={2} align="center">
+            <Icon as={RiKakaoTalkFill} boxSize={5} />
+            <Text>카카오 로그인</Text>
+          </HStack>
+        </LongButton>
+      </VStack>
+    </Box>
+  )
+}
+
+export default MainPage
