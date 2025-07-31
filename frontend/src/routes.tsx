@@ -39,11 +39,22 @@ export default function AppRoutes(): ReactElement {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<MainPage />} />
+      </Route>
+      {/* === 기본 레이아웃 === */}
+      <Route element={<BasicLayout />}>
         <Route path="/room" element={<RoomCreatePage />} />
         <Route path="/user/register" element={<SignupPage />} />
         {/* <Route path="/room/:roomId" element={<WaitingRoomPage />} /> */}
         <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
+      </Route>
+
+      {/* === 바텀 없는 인증/콜 전용 레이아웃 === */}
+      <Route element={<NoBottomLayout />}>
         <Route path="/chat/:chatRoomId/call" element={<CallPage />} />
+      </Route>
+
+      {/* === 메인 기능 레이아웃 === */}
+      <Route element={<MainLayout />}>
         <Route path="/home" element={<HomePage />} />
         <Route path="/chat" element={<ChatListPage />} />
         <Route path="/chat/:chatRoomId" element={<ChatRoomPage />} />
