@@ -40,7 +40,9 @@
 .read-the-docs {
   color: #888;
 }
-
+.datepicker-full-width {
+  width: 100% !important;
+}
 /* 전체 캘린더 배경 */
 .react-datepicker {
   background-color: white;
@@ -85,14 +87,21 @@
 /* 선택된 날짜 */
 .react-datepicker__day--selected,
 .react-datepicker__day--keyboard-selected {
-  background-color: accent.500;
-  font-weight: 600;
+  background-color: #a855f7;;
+  
   color: white;
+}
+
+.react-datepicker__day--selected {
+  background-color: #a855f7;
+  color: white;
+  font-weight: 600;
+  border-radius: 9999px;
 }
 
 /* 오늘 날짜 강조 */
 .react-datepicker__day--today {
-  border: 1px solid accent.500;
+  border: 1px solid #a855f7;;
   color: accent.500;
   font-weight: 600;
 }
@@ -100,4 +109,17 @@
 /* hover 효과 */
 .react-datepicker__day:hover {
   background-color: #f3e8ff;
+}
+/* 선택 불가능한 날짜: 회색 */
+.react-datepicker__day--disabled {
+  color: #A0AEC0 !important;  /* 회색 텍스트 색상 */
+  background-color: transparent !important;
+  cursor: not-allowed;
+  opacity: 1; /* 기본값은 0.5일 수 있음 */
+}
+
+.react-datepicker__day.highlight-range {
+  background-color: #f3e8ff;  /* 연한 보라색 배경 */
+  color: #a855f7;             /* 텍스트 보라색 */
+  border-radius: 0;           /* 각진 배경 */
 }

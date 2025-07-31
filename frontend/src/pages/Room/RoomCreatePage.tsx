@@ -4,6 +4,7 @@ import {
   VStack,
   HStack,
   Button,
+  Flex,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import DatePicker from 'react-datepicker';
@@ -58,39 +59,41 @@ const RoomCreatePage = () => {
           <Text textStyle="title_md">기간 설정</Text>
 
           <Box w="full" >
-            <Text textStyle="body_sm">
+            <Text textStyle="body_sm" textAlign="start">
               시작일
             </Text>
             <Box bg="gray.100" w="full" borderRadius="xl" px={4} py={2} mt={2}>
-              <Text textStyle="body_md">
+              <Text textStyle="body_md" textAlign="start">
                 {today}
               </Text>
-              <Text textStyle="caption_xs_light">
+              <Text textStyle="caption_xs_light" textAlign="start">
                 방 생성일 당일로 자동 설정됩니다
               </Text>
             </Box>
           </Box>
 
 
-          <Box w="full">
-            <Text textStyle="body_sm">
+          <Box width = "100%" >
+            <Text textStyle="body_sm" textAlign="start" mb={2}>
               종료일
             </Text>
+            <Flex>
             <DatePicker
               selected={endDate}
               onChange={(date: Date | null) => setEndDate(date)}
+              wrapperClassName="datepicker-full-width"
               minDate={new Date()}
               maxDate={addDays(new Date(), 30)}   // 오늘 + 30일까지 선택 가능 
               dateFormat="yyyy-MM-dd"
-              placeholderText="종료일을 선택해주세요" // ✅ 캘린더 내부에서 참조
+              placeholderText="종료일을 선택해주세요" 
               customInput={
-                <DateInput
+                <DateInput 
                   value={endDate ? dayjs(endDate).format('YYYY-MM-DD') : ''}
                   placeholder="종료일을 선택해주세요                 " 
                 />
               }
-            />
-            <Text textStyle="caption_xs_light">
+            /></Flex>
+            <Text textStyle="caption_xs_light" textAlign="start">
               오늘로부터 30일까지 선택 가능
             </Text>
             {/* <TextInput
