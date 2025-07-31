@@ -1,10 +1,10 @@
 # 1단계: Build
-FROM node:18 AS builder
+FROM node:22 AS builder
 
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
-
+COPY package*.json./
+#RUN npm install
+RUN rm -rf node_modules package-lock.json && npm install
 COPY . .
 
 # ✅ Chakra UI 타입 생성 (이 부분 추가)
