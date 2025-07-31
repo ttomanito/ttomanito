@@ -11,7 +11,7 @@ import lombok.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
+@Builder(toBuilder = true)
 public class RoomUser {
 
     @Id
@@ -35,11 +35,6 @@ public class RoomUser {
                 .userId(userId)
                 .statusMessage(null)  // ✅ 명시적으로 null
                 .build();
-    }
-
-    // 상태메시지 설정 (1회 제한 여부는 서비스 로직에서 제어)
-    public void setStatusMessage(String message) {
-        this.statusMessage = message;
     }
 
     // 상태메시지 초기화

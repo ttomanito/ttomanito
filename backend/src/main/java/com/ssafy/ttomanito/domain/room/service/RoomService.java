@@ -10,6 +10,8 @@ import com.ssafy.ttomanito.domain.room.entity.*;
 import com.ssafy.ttomanito.domain.room.repository.MissionDayRepository;
 import com.ssafy.ttomanito.domain.room.repository.RoomRepository;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
+import com.ssafy.ttomanito.domain.user.entity.User;
+import com.ssafy.ttomanito.domain.user.exception.UserNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
@@ -48,8 +50,12 @@ public class RoomService {
             throw new IllegalArgumentException("missionDays must not be empty");
 
         // 2. Room 생성 및 저장
-        Room room = Room.create(creatorId, req.name());
-        room.setEndDate(req.deadline());
+        Room room = Room.create(creatorId, req.name())
+                .toBuilder()
+                .endDate(req.deadline())
+                .build();
+        // 우지연 setter 사용 적발 경고!
+        // room.setEndDate(req.deadline());
         room = roomRepository.save(room);
 
         // 3. 미션 요일 저장 (중복 제거)
@@ -95,9 +101,12 @@ public boolean isUserInProgressOrWaiting(Long userId) {
             throw new BadRequestException("message must not be blank");
         }
         RoomUser ru = roomUserRepository.findByRoomIdAndUserId(roomId, userId)
-                .orElseThrow(() -> new EntityNotFoundException("not joined"));
-
-        ru.setStatusMessage(message);
+                .orElseThrow(() -> new EntityNotFoundException("not joined"))
+                .toBuilder()
+                .statusMessage(message)
+                .build();
+        // 우지연 setter 사용 적발 경고!
+        // ru.setStatusMessage(message);
         // 필요시 broadcastState(roomId);
     }
 

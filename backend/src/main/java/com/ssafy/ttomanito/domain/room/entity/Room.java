@@ -53,11 +53,6 @@ public class Room {
         this.endDate = null;
     }
 
-    // 마감일 설정 (setter 대신 도메인 메서드로)
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
-
     // 게임 종료
     public void finish(LocalDate when) {
         this.status = RoomStatus.FINISHED;

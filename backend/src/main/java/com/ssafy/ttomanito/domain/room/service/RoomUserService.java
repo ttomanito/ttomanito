@@ -28,8 +28,14 @@ public class RoomUserService {
             roomUser = RoomUser.of(roomId, userId);
         }
 
-        roomUser.setStatusMessage(message);
-        roomUserRepository.save(roomUser); // 새로 만들었거나 업데이트
+        RoomUser updateRoomUser = roomUser
+                .toBuilder()
+                .statusMessage(message)
+                .build();
+
+        // 우지연 setter 사용 적발 경고!
+        // roomUser.setStatusMessage(message);
+        roomUserRepository.save(updateRoomUser); // 새로 만들었거나 업데이트
 
         // ✅ 소켓 브로드캐스트
         WaitingMessage msg = WaitingMessage.builder()
