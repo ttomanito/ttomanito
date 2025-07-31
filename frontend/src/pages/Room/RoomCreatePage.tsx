@@ -148,6 +148,9 @@ const RoomCreatePage = () => {
           {/* // }}> */}
         설정 완료
         </LongButton>
+        {/* 설정 완료 누르면 바로 대기방(room/{roomId}) 입장 
+        생성한 roomId를 바로 받아와야함 */}
+
       </Box>
     </Box>
   );
