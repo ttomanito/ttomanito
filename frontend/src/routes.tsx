@@ -2,7 +2,6 @@
 import React from 'react';
 import type { LazyExoticComponent, ComponentType, ReactElement } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import MainLayout from '@/components/layout/MainLayout';
 import AppLayout from '@/components/layout/AppLayout';
 
 // === lazy 로딩 타입 보조 함수 ===
@@ -13,8 +12,6 @@ function lazyImport<P = unknown>(
 }
 
 // === Layouts ===
-const NoBottomLayout = lazyImport(() => import('@/components/layout/NoBottomLayout'));
-const BasicLayout = lazyImport(() => import('@/components/layout/BasicLayout'));
 
 // === Pages ===
 const MainPage = lazyImport(() => import('@/pages/MainPage')); // /
@@ -39,22 +36,15 @@ export default function AppRoutes(): ReactElement {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<MainPage />} />
-      </Route>
-      {/* === 기본 레이아웃 === */}
-      <Route element={<BasicLayout />}>
+        {/* === 기본 레이아웃 === */}
         <Route path="/room" element={<RoomCreatePage />} />
         <Route path="/user/register" element={<SignupPage />} />
         {/* <Route path="/room/:roomId" element={<WaitingRoomPage />} /> */}
         <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
-      </Route>
 
-      {/* === 바텀 없는 인증/콜 전용 레이아웃 === */}
-      <Route element={<NoBottomLayout />}>
+        {/* === 바텀 없는 인증/콜 전용 레이아웃 === */}
         <Route path="/chat/:chatRoomId/call" element={<CallPage />} />
-      </Route>
 
-      {/* === 메인 기능 레이아웃 === */}
-      <Route element={<MainLayout />}>
         <Route path="/home" element={<HomePage />} />
         <Route path="/chat" element={<ChatListPage />} />
         <Route path="/chat/:chatRoomId" element={<ChatRoomPage />} />
@@ -65,9 +55,6 @@ export default function AppRoutes(): ReactElement {
         <Route path="/report/reportdetail/:reportId" element={<ReportDetailPage />} />
         <Route path="/test" element={<TestPage />} />
       </Route>
-
-      {/* === 404 Not Found === */}
-      <Route path="*" element={<p>페이지를 찾을 수 없습니다.</p>} />
     </Routes>
   );
 }

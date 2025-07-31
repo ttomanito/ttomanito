@@ -22,7 +22,7 @@ export default defineConfig({
         name: '또마니또',
         short_name: '또마니또',
         description: 'PWA test',
-        theme_color: '#D6DCFF',
+        theme_color: 'accent.500',
         background_color: '#FFFFFF',
         display: 'standalone',
         start_url: '/',
