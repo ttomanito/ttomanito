@@ -5,8 +5,6 @@ import {
   GridItem,
   Text,
   Flex,
-  chakra,
-  AspectRatio,
 } from "@chakra-ui/react"
 import { Outlet, useLocation, matchPath } from "react-router-dom"
 import AppHeader from "./AppHeader"
@@ -25,16 +23,6 @@ const PcMent = () => (
     textAlign="left"
   >
     <Box maxW="320px">
-      <AspectRatio ratio={15/ 15} maxW="560px">
-        <chakra.video
-          src="/assets/demo-video.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-        />
-      </AspectRatio>
-
       <Text textStyle="title_lg" mb={4}>
         또 마니또
       </Text>
@@ -97,6 +85,7 @@ export default function AppLayout() {
             display={{ base: "block", mobile: "none", md: "none" }}
             w="100%"
             h="100dvh"
+            bg="rgba(255,255,255,0.6)"
             backdropFilter="blur(4px)"
           >
             <Container
@@ -121,6 +110,7 @@ export default function AppLayout() {
             display={{ base: "none", mobile: "block", md: "none" }}
             w="520px"
             h="100dvh"
+            bg="rgba(255,255,255,0.6)"
             backdropFilter="blur(4px)"
           >
             <Container
@@ -146,7 +136,7 @@ export default function AppLayout() {
             left="0"
             w="520px"
             h="100dvh"
-            bg="white"
+            bg="rgba(255,255,255,0.6)"
             backdropFilter="blur(4px)"
             display={{ base: "none", md: "block" }}
           >
