@@ -2,7 +2,7 @@
 FROM node:22 AS builder
 
 WORKDIR /app
-COPY package*.json./
+COPY package*.json ./
 #RUN npm install
 RUN rm -rf node_modules package-lock.json && npm install
 COPY . .
