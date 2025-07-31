@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import CommonCard from '@/components/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
-import BaseModal from '@/components/modals/BaseModal';
+import BaseModal from '@/components/modal/BaseModal';
 
 const GameHomePage = () => {
   const startDate = '2025-07-28';
@@ -51,7 +51,7 @@ const GameHomePage = () => {
   const voteModal = useDisclosure();
 
   return (
-    <VStack spacing={6} px={4} py={6} align="center">
+    <VStack gap={6} px={4} py={6} align="center">
       {/* 진행 바 */}
       <Box w="100%">
         <Text fontSize="sm" color="gray.600" mb={1} textAlign="center">
@@ -139,7 +139,7 @@ const GameHomePage = () => {
         caption="누가 내 마니또일까요?"
         body={<Text>이름을 선택해 투표하세요</Text>}
         footer={
-          <HStack spacing={4}>
+          <HStack gap={4}>
             <LongButton onClick={voteModal.onClose}>취소</LongButton>
             <LongButton onClick={() => alert('투표 완료')}>투표하기</LongButton>
           </HStack>

@@ -17,8 +17,10 @@ import LongButton from '@/components/buttons/LongButton';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 import DateInput from '@/components/DateInput';
+import { useNavigate } from 'react-router-dom'
 
 const RoomCreatePage = () => {
+  const navigate = useNavigate()
   const [groupName, setGroupName] = useState('');
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -142,8 +144,9 @@ const RoomCreatePage = () => {
 
       {/* 완료 버튼 */}
       <Box mt={6}>
-        <LongButton>
-          {/* // onClick={() => { */}
+        <LongButton
+         onClick={() => navigate("/room/wait" )}>
+          {/* // onClick={() => { "/room/wait" */}
           {/* //   // 제출 처리 로직 */}
           {/* // }}> */}
         설정 완료
