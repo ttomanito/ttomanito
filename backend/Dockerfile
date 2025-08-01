@@ -1,4 +1,3 @@
-# 1. Gradle 빌드용 Stage
 FROM gradle:8.4.0-jdk17 AS builder
 WORKDIR /app
 COPY . /app
