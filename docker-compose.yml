@@ -67,19 +67,6 @@ services:
     networks:
       - app-network
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: frontend-app
-    restart: always
-    expose:
-      - "80"
-    environment:
-      - VITE_API_URL=${VITE_API_URL}
-    networks:
-      - app-network
-
   nginx:
     image: nginx:latest
     container_name: nginx
