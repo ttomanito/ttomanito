@@ -1,5 +1,4 @@
 node_modules
 .dev-dist
-.storybook
 *.log
 .DS_Store
