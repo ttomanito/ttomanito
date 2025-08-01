@@ -47,6 +47,14 @@ CREATE TABLE `mission_day` (
                                `day`	VARCHAR(50)	NOT NULL	COMMENT 'ENUM(`MON`, `TUE`, `WED`, `THU`, `FRI`, `SAT`, `SUN`)'
 );
 
+CREATE TABLE `notification` (
+                                `notification_id`	BIGINT	NOT NULL,
+                                `user_id`	BIGINT	NOT NULL,
+                                `content`	VARCHAR(500)	NULL,
+                                `type`	VARCHAR(50)	NULL	COMMENT 'ENUM(`MISSION`, `GUESS`, `POKE`, `FINISHED`, `SYSTEM`)',
+                                `check`	BOOLEAN	NOT NULL
+);
+
 CREATE TABLE `chatting_room` (
                                  `chatting_room_id`	BIGINT	NOT NULL,
                                  `manito_assignment_id`	BIGINT	NOT NULL,
@@ -83,6 +91,13 @@ CREATE TABLE `manito_activity` (
                                    `poke_count`	INT	NULL
 );
 
+CREATE TABLE `chatting_user` (
+                                 `chatting_room_id`	BIGINT	NOT NULL,
+                                 `room_user_id`	BIGINT	NOT NULL,
+                                 `unread_count`	INT	NULL,
+                                 `last_read_time`	DATETIME	NULL
+);
+
 CREATE TABLE `voice_chat` (
                               `chatting_room_id`	BIGINT	NOT NULL,
                               `room_user_id`	BIGINT	NOT NULL,
@@ -97,20 +112,6 @@ CREATE TABLE `manito_guess` (
                                 `guessed_user_id`	BIGINT	NOT NULL,
                                 `guessed_date`	DATE	NOT NULL,
                                 `is_correct`	BOOLEAN	NULL
-);
-
-CREATE TABLE `notification` (
-                                `notification_id`	BIGINT	NOT NULL,
-                                `user_id`	BIGINT	NOT NULL,
-                                `content`	VARCHAR(500)	NULL,
-                                `type`	VARCHAR(50)	NULL	COMMENT 'ENUM(`MISSION`, `GUESS`, `POKE`, `FINISHED`, `SYSTEM`)'
-);
-
-CREATE TABLE `chatting_user` (
-                                 `chatting_room_id`	BIGINT	NOT NULL,
-                                 `room_user_id`	BIGINT	NOT NULL,
-                                 `unread_count`	INT	NULL,
-                                 `last_read_time`	DATETIME	NULL
 );
 
 ALTER TABLE `mission_status` ADD CONSTRAINT `PK_MISSION_STATUS` PRIMARY KEY (
