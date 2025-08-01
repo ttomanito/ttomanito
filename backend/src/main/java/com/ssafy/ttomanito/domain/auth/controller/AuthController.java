@@ -46,9 +46,4 @@ public class AuthController {
         AccessTokenResponse dto = authService.refreshAccessToken(refreshToken);
         return ResponseEntity.ok(dto);
     }
-    @GetMapping("/token")
-    public ResponseEntity<JwtToken> generate() {
-        JwtToken token = jwtProvider.generateTokens(1004L, "nini");
-        return ResponseEntity.ok(token);
-    }
 }

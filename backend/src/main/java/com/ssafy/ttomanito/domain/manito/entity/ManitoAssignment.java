@@ -1,38 +1,41 @@
 package com.ssafy.ttomanito.domain.manito.entity;
 
+import com.ssafy.ttomanito.domain.room.entity.Room;
+import com.ssafy.ttomanito.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
+@Table(name = "manito_assignment")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder(toBuilder = true)
 public class ManitoAssignment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "manito_assignment_id")
     private Long manitoAssignmentId;
 
-    private Long manitoId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "manito_id", nullable = false)
+    private User manito;
 
-    private Long maniteeId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "manitee_id", nullable = false)
+    private User manitee;
 
-    private Long roomId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "room_id", nullable = false)
+    private Room room;
 
-    @Builder
-    private ManitoAssignment(Long manitoId, Long maniteeId, Long roomId) {
-        this.manitoId = manitoId;
-        this.maniteeId = maniteeId;
-        this.roomId = roomId;
-    }
-
-    public static ManitoAssignment create(Long manitoId, Long maniteeId, Long roomId) {
+    /** 정적 팩토리 메서드 */
+    public static ManitoAssignment create(User manito, User manitee, Room room) {
         return ManitoAssignment.builder()
-                .manitoId(manitoId)
-                .maniteeId(maniteeId)
-                .roomId(roomId)
+                .manito(manito)
+                .manitee(manitee)
+                .room(room)
                 .build();
     }
 }

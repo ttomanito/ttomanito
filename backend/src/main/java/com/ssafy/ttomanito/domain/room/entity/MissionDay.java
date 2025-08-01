@@ -8,33 +8,27 @@ import lombok.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
+@Builder(toBuilder = true)
 public class MissionDay {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "mission_day_id")
-    private Long id;
+    private Long missionDayId;
 
-    @Column(name = "room_id", nullable = false)
-    private Long roomId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "room_id", nullable = false)
+    private Room room;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "day", nullable = false, length = 10)
     private Weekday day;
 
-    public static MissionDay of(Long roomId, Weekday day) {
+    // 정적 팩토리: Room 객체와 Weekday로 생성
+    public static MissionDay of(Room room, Weekday day) {
         return MissionDay.builder()
-                .roomId(roomId)
+                .room(room)
                 .day(day)
                 .build();
     }
-
-    /*
-     * 추후 Room 엔티티와 연관관계 설정 시:
-     *
-     * @ManyToOne(fetch = FetchType.LAZY)
-     * @JoinColumn(name = "room_id", insertable = false, updatable = false)
-     * private Room room;
-     */
 }
