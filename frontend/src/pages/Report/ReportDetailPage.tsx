@@ -1,4 +1,4 @@
-import { Box, Text, Flex, Button } from '@chakra-ui/react';
+import { Box, Flex, Button } from '@chakra-ui/react';
 import ProfileCard from '@/components/profile/ProfileCard';
 import ReportList from '@/components/lists/ReportList';
 import SectionHeaderProps from '@/components/section/SectionHeader';
