@@ -11,10 +11,16 @@ import dayjs from 'dayjs';
 import CommonCard from '@/components/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
 import BaseModal from '@/components/modal/BaseModal';
+<<<<<<< HEAD
+=======
+import ProfileCard from '@/components/profile/ProfileCard';
+import ttoma_tutorial from '@/assets/ttoma_tutorial.svg'
+import TutorialCard from '@/components/TutorialCard';
+>>>>>>> 954e9ca (design: add ttoma  icon)
 
 const GameHomePage = () => {
-  const startDate = '2025-07-28';
-  const endDate = '2025-08-03';
+  const startDate = '2025-07-28'; // 방 생성일
+  const endDate = '2025-08-15';  // 방 생성시 설정한 종료일
 
   // ✅ 내부에서 진행 계산 함수 정의
   const { currentDay, totalDays } = useMemo(() => {
@@ -48,10 +54,14 @@ const GameHomePage = () => {
 
   const prevMissionModal = useDisclosure();
   const manitoModal = useDisclosure();
-  const voteModal = useDisclosure();
+  const tutorialModal = useDisclosure();
 
   return (
+<<<<<<< HEAD
     <VStack gap={6} px={4} py={6} align="center">
+=======
+    <VStack px={4} py={6} align="center">
+>>>>>>> 954e9ca (design: add ttoma  icon)
       {/* 진행 바 */}
       <Box w="100%">
         <Text fontSize="sm" color="gray.600" mb={1} textAlign="center">
@@ -110,10 +120,13 @@ const GameHomePage = () => {
           이전 미션 확인하기
         </CommonCard>
         <CommonCard onClick={manitoModal.onOpen}>
-          내 마니또 확인하기
+          내 마니띠 확인하기
         </CommonCard>
-        <CommonCard onClick={voteModal.onOpen}>
-          투표하기 (디스티니 공개)
+        <CommonCard onClick={tutorialModal.onOpen}>
+          <HStack gap={2} align="center">
+    <Image src={ttoma_tutorial} alt="ttoma icon" boxSize="40px" />
+    <Text fontWeight="bold">튜토리얼 다시 보기</Text>
+  </HStack>
         </CommonCard>
       </VStack>
 
@@ -128,11 +141,11 @@ const GameHomePage = () => {
       <BaseModal
         open={manitoModal.open}
         onClose={manitoModal.onClose}
-        title="내 마니또 확인"
-        caption="마니또는 비밀이에요 🤫"
-        body={<Text>게임이 끝나면 알려드릴게요!</Text>}
+        title="내 마니띠 확인"
+        body={<ProfileCard name="안수진" subtitle='상태메시지' title="내 마니띠" src='{src}'></ProfileCard>}
       />
       <BaseModal
+<<<<<<< HEAD
         open={voteModal.open}
         onClose={voteModal.onClose}
         title="마니또 투표하기"
@@ -144,6 +157,12 @@ const GameHomePage = () => {
             <LongButton onClick={() => alert('투표 완료')}>투표하기</LongButton>
           </HStack>
         }
+=======
+        open={tutorialModal.open}
+        onClose={tutorialModal.onClose}
+        title="튜토리얼"
+        body={<Text>마니또, 마니띠?</Text>}
+>>>>>>> 954e9ca (design: add ttoma  icon)
       />
     </VStack>
   );
