@@ -76,7 +76,7 @@ services:
     expose:
       - "80"
     environment:
-      - VITE_API_URL=/api
+      - VITE_API_URL=${VITE_API_URL}
     networks:
       - app-network
 
