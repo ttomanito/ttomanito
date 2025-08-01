@@ -1,4 +1,3 @@
-// src/main/java/com/ssafy/ttomanito/domain/room/repository/MissionDayRepository.java
 package com.ssafy.ttomanito.domain.room.repository;
 
 import com.ssafy.ttomanito.domain.room.entity.MissionDay;
@@ -11,9 +10,15 @@ import java.util.List;
 
 public interface MissionDayRepository extends JpaRepository<MissionDay, Long> {
 
-    List<MissionDay> findByRoomId(Long roomId);
-    @Query(value = "SELECT day FROM mission_day WHERE room_id = :roomId", nativeQuery = true)
+    /** room.id 값으로 MissionDay 목록 조회 */
+    List<MissionDay> findByRoom_roomId(Long roomId);
+
+    /** room.id 값으로 요일(Weekday enum)만 조회 */
+    @Query("SELECT md.day " +
+            "FROM MissionDay md " +
+            "WHERE md.room.roomId = :roomId")
     List<Weekday> findWeekdaysByRoomId(@Param("roomId") Long roomId);
 
-    void deleteByRoomId(Long roomId); // 요일 재설정/삭제가 필요할 때 사용하기 좋아요
+    /** room.id 값으로 일괄 삭제 */
+    void deleteByRoom_roomId(Long roomId);
 }

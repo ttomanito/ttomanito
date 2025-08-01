@@ -51,7 +51,7 @@ const MainPage: React.FC = () => {
 
         {/* 카카오 로그인 버튼 */}
         <LongButton
-          onClick={() => navigate("/main")}
+          onClick={() => window.location.href = '/api/oauth2/authorization/kakao'}
           bg="#FEE500"
           color="black"
           _hover={{ bg: '#FFEB33' }}

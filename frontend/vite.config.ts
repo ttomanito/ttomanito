@@ -10,7 +10,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import svgr from 'vite-plugin-svgr';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
-
+  
 export default defineConfig({
   base: '/',
   build: {
@@ -87,4 +87,14 @@ export default defineConfig({
       },
     ],
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        rewrite: path => path.replace(/^\/api/, '')
+      }
+    }
+  }
 });
