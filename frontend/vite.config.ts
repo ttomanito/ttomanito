@@ -12,6 +12,15 @@ import svgr from 'vite-plugin-svgr';
 const dirname = path.dirname(fileURLToPath(import.meta.url));
   
 export default defineConfig({
+  base: '/',
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+  },
+  define: {
+    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL),
+  },
+
   plugins: [
     react(),
     svgr(),
