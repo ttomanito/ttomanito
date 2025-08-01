@@ -1,14 +1,14 @@
 // src/pages/ChatRoomPage.tsx
-import { Avatar, Box, Flex, Icon, Input, Text, VStack, IconButton, Image } from '@chakra-ui/react';
+import { Box, Flex, Icon, Text, VStack, Image } from '@chakra-ui/react';
 import { FiPhone } from 'react-icons/fi';
-import { useParams } from 'react-router-dom';
+// import { useParams } from 'react-router-dom';
 import TextInput from '@/components/TextInput';
 import { useState } from 'react';
 import LongButton from '@/components/buttons/LongButton';
 import profile_manito from '@/assets/profile_manito.png';
 
 const ChatRoomPage = () => {
-  const { id } = useParams(); // '1' 또는 '2'가 들어옴
+  // const { id } = useParams(); // '1' 또는 '2'가 들어옴
   const [message, setMessage] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -16,9 +16,9 @@ const ChatRoomPage = () => {
     console.log(e.target.value);
   };
 
-  const alertMsg = () => {
-    return;
-  };
+  // const alertMsg = () => {
+  //   return;
+  // };
 
   return (
     <Box position="relative" h="full">
@@ -40,7 +40,7 @@ const ChatRoomPage = () => {
       </Box>
 
       {/* 메시지 영역 */}
-      <VStack px={4} spacing={3} align="flex-start">
+      <VStack px={4} gap={3} align="flex-start">
         <Box
           alignSelf="flex-end"
           bg="accent.500"

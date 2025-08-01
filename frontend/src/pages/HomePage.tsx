@@ -119,21 +119,21 @@ const GameHomePage = () => {
 
       {/* 모달들 */}
       <BaseModal
-        open={prevMissionModal.isOpen}
+        open={prevMissionModal.open}
         onClose={prevMissionModal.onClose}
         title="이전 미션 확인하기"
         caption="내가 수행한 미션 목록입니다"
         body={<Text>7/28: 인사하기<br />7/29: 몰래 간식 주기</Text>}
       />
       <BaseModal
-        open={manitoModal.isOpen}
+        open={manitoModal.open}
         onClose={manitoModal.onClose}
         title="내 마니또 확인"
         caption="마니또는 비밀이에요 🤫"
         body={<Text>게임이 끝나면 알려드릴게요!</Text>}
       />
       <BaseModal
-        open={voteModal.isOpen}
+        open={voteModal.open}
         onClose={voteModal.onClose}
         title="마니또 투표하기"
         caption="누가 내 마니또일까요?"

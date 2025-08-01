@@ -9,7 +9,7 @@ import {
   Icon,
 } from '@chakra-ui/react'
 
-import { useNavigate } from 'react-router-dom'
+// import { useNavigate } from 'react-router-dom'
 
 import LongButton from '@/components/buttons/LongButton'
 import { RiKakaoTalkFill } from 'react-icons/ri'
@@ -19,7 +19,7 @@ import { FaQuestionCircle } from 'react-icons/fa'
 import main_page_logo from '@/assets/main_page_logo.svg'
 
 const MainPage: React.FC = () => {
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
 
 
   // 로그인 안 된 경우 (카카오 로그인 버튼)
