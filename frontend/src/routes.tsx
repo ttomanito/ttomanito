@@ -15,9 +15,10 @@ function lazyImport<P = unknown>(
 
 // === Pages ===
 const MainPage = lazyImport(() => import('@/pages/MainPage')); // /
+const MainPage2 = lazyImport(() => import('@/pages/MainPage2')); // /main
 const SignupPage = lazyImport(() => import('@/pages/User/SignupPage')); // /user/login
 const RoomCreatePage = lazyImport(() => import('@/pages/Room/RoomCreatePage')); // /room
-// const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage')); // /room/:roomId
+const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage')); // /room/:roomId
 const MatchingPage = lazyImport(() => import('@/pages/Room/MatchingPage')); // /manito/:roomId/matching
 const HomePage = lazyImport(() => import('@/pages/HomePage')); // /home
 const ChatListPage = lazyImport(() => import('@/pages/Chat/ChatListPage')); // /chat
@@ -36,10 +37,11 @@ export default function AppRoutes(): ReactElement {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<MainPage />} />
+        <Route path="/main" element={<MainPage2 />} />
         {/* === 기본 레이아웃 === */}
         <Route path="/room" element={<RoomCreatePage />} />
         <Route path="/user/register" element={<SignupPage />} />
-        {/* <Route path="/room/:roomId" element={<WaitingRoomPage />} /> */}
+        <Route path="/room/wait" element={<WaitingRoomPage />} />
         <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
 
         {/* === 바텀 없는 인증/콜 전용 레이아웃 === */}

@@ -13,7 +13,7 @@ const CommonCard: React.FC<CommonCardProps> = ({ children, ...rest }) => (
     bg="white"
     p={6}
     width="100%"
-    maxW="400px"
+    maxW="480px"
     border="1px solid #F5F5F5"
     {...rest}
   >
