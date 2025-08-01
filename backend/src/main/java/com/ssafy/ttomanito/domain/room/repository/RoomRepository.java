@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface RoomRepository extends JpaRepository<Room, Long> {
-    Optional<Room> findByCreatorIdAndStatus(Long creatorId, RoomStatus status);
-
+    /** User PK + 상태로 방 조회 */
+    Optional<Room> findByCreator_UserIdAndStatus(Long creatorId, RoomStatus status);
 }
-

@@ -46,8 +46,8 @@ const LongButton = forwardRef<HTMLButtonElement, LongButtonProps>(({ children = 
       bg="accent.500"
       color="black"
       textStyle="body_sm"
-      border="1px solid black"
-      boxShadow="0px 4px 6px rgba(0, 0, 0, 0.2)"
+      border="1px solid gray.500"
+      boxShadow="0px 2px 4px rgba(0, 0, 0, 0.2)"
       rounded="xl"
       _hover={{ bg: 'accent.600' }}
       _active={{ bg: 'accent.700' }}

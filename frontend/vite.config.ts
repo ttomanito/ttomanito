@@ -10,7 +10,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import svgr from 'vite-plugin-svgr';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
-
+  
 export default defineConfig({
   plugins: [
     react(),
@@ -22,7 +22,7 @@ export default defineConfig({
         name: '또마니또',
         short_name: '또마니또',
         description: 'PWA test',
-        theme_color: '#D6DCFF',
+        theme_color: 'accent.500',
         background_color: '#FFFFFF',
         display: 'standalone',
         start_url: '/',
@@ -78,4 +78,14 @@ export default defineConfig({
       },
     ],
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        rewrite: path => path.replace(/^\/api/, '')
+      }
+    }
+  }
 });

@@ -14,35 +14,38 @@ public class WaitingSocketController {
     private final RoomUserRepository roomUserRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-
-
     // 입장 시 호출
     @MessageMapping("/waiting/enter")
     public void enter(WaitingMessage msg) {
+        RoomUser roomUser = roomUserRepository
+                .findByRoom_roomIdAndUser_UserId(msg.getRoomId(), msg.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        RoomUser roomUser = roomUserRepository.findByRoomIdAndUserId(
-                msg.getRoomId(), msg.getUserId()
-        ).orElseThrow(() -> new IllegalArgumentException("유저 없음"));
-
-        msg = WaitingMessage.builder()
+        WaitingMessage response = WaitingMessage.builder()
                 .roomId(msg.getRoomId())
                 .userId(msg.getUserId())
-                .statusMessage(roomUser.getStatusMessage()) // ✅ DB에서 가져온 값
+                .statusMessage(roomUser.getStatusMessage())
                 .type(WaitingMessage.MessageType.ENTER)
                 .build();
 
-        messagingTemplate.convertAndSend("/topic/waiting/" + msg.getRoomId(), msg);
+        messagingTemplate.convertAndSend(
+                "/topic/waiting/" + msg.getRoomId(),
+                response
+        );
     }
 
     @MessageMapping("/waiting/exit")
     public void exit(WaitingMessage msg) {
-        WaitingMessage responseMsg = WaitingMessage.builder()
+        WaitingMessage response = WaitingMessage.builder()
                 .roomId(msg.getRoomId())
                 .userId(msg.getUserId())
-                .statusMessage(null) // 나가는 거라 메시지 안 보냄
+                .statusMessage(null)
                 .type(WaitingMessage.MessageType.EXIT)
                 .build();
 
-        messagingTemplate.convertAndSend("/topic/waiting/" + msg.getRoomId(), responseMsg);
+        messagingTemplate.convertAndSend(
+                "/topic/waiting/" + msg.getRoomId(),
+                response
+        );
     }
 }
