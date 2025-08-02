@@ -8,7 +8,9 @@ import java.util.List;
 public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     /** user 기준 알림 목록 최신순 조회 */
-    List<Notice> findAllByUser_UserIdOrderByNoticeIdDesc(Long userId);
+    List<Notice> findByUser_UserIdAndCheckFalseOrderByNoticeIdDesc(Long userId);
+
+    List<Notice> findByUser_UserIdAndCheckFalse(Long userId);
 
     void deleteAllByUser_UserId(Long userId);
 }

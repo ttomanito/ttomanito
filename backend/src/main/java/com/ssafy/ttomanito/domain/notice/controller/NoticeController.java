@@ -41,6 +41,14 @@ public class NoticeController {
         return noticeService.getNotices(principal.getUserId());
     }
 
+    @PatchMapping("/check")
+    @Operation(summary = "전체 알림 읽음 처리", description = "해당 사용자의 모든 알림을 읽음 상태로 변경합니다.")
+    public void markAllAsRead(
+            @Parameter(hidden = true) @AuthenticationPrincipal JwtUserDetails principal
+    ) {
+        noticeService.markAllAsRead(principal.getUserId());
+    }
+
     @Operation(
             summary = "알림 전체 삭제", description = "로그인한 사용자의 알림을 모두 삭제합니다."
     )
