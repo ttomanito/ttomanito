@@ -14,10 +14,15 @@ public interface ManitoAssignmentRepository extends JpaRepository<ManitoAssignme
 
     /** 방 PK로 매니또 할당 일괄 삭제 */
     void deleteByRoom_RoomId(Long roomId);
+<<<<<<< HEAD
 =======
     Optional<ManitoAssignment> findByManitoIdAndRoomId(Long manitoId, Long roomId);
     // 마니띠가 guessUserId이고 마니또가 guessedUserId이며 room이 일치하는 기록이 존재하는지
     boolean existsByManiteeIdAndManitoIdAndRoomId(Long maniteeId, Long manitoId, Long roomId);
 >>>>>>> b50e0e8 (feat: manito/guess api)
+=======
+
+    Optional<ManitoAssignment> findByManitee_UserIdAndRoom_RoomId(Long maniteeId, Long roomId);
+>>>>>>> d4ff38c (feat: notice-list/delete)
 }
 
