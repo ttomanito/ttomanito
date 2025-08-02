@@ -50,4 +50,7 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
 
     /** 단일 RoomUser 조회 */
     Optional<RoomUser> findByRoom_roomIdAndUser_UserId(Long roomId, Long userId);
+
+    @Query("SELECT ru FROM RoomUser ru WHERE ru.room.status = 'IN_PROGRESS'")
+    List<RoomUser> findUsersInProgressRoom();
 }
