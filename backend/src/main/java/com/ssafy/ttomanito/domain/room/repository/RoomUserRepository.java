@@ -53,4 +53,6 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
 
     @Query("SELECT ru FROM RoomUser ru WHERE ru.room.status = 'IN_PROGRESS'")
     List<RoomUser> findUsersInProgressRoom();
+
+    List<RoomUser> findByRoom_RoomId(Long roomId);
 }

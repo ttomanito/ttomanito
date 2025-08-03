@@ -1,9 +1,11 @@
 package com.ssafy.ttomanito.domain.notice.repository;
 
+import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import com.ssafy.ttomanito.domain.notice.entity.Notice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
@@ -13,4 +15,6 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
     List<Notice> findByUser_UserIdAndCheckFalse(Long userId);
 
     void deleteAllByUser_UserId(Long userId);
+
+    Optional<ManitoAssignment> findByManitee_UserId(Long maniteeId);
 }
