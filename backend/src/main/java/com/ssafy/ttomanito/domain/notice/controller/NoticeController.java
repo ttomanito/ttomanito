@@ -93,7 +93,7 @@ public class NoticeController {
     @Operation(summary = "게임 종료 알림 전송", description = "해당 방의 모든 유저에게 게임 종료 알림(FINISHED)을 보냅니다.")
     @ApiResponse(responseCode = "200", description = "게임 종료 알림 전송 완료")
     @PostMapping("/{roomId}/finish")
-    public ResponseEntity<Void> sendFinishNotices(@PathVariable Long roomId) {
+    public ResponseEntity<Void> sendFinishNotices(@PathVariable("roomId") Long roomId) {
         noticeService.createFinishNoticeForRoom(roomId);
         return ResponseEntity.ok().build();
     }

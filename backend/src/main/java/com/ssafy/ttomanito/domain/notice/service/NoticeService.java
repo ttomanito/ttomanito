@@ -40,7 +40,7 @@ public class NoticeService {
 
         // 변경 감지는 JPA의 영속성 컨텍스트로 자동 처리됨
     }
-
+    @Transactional
     public void deleteAllNotices(Long userId) {
         noticeRepository.deleteAllByUser_UserId(userId);
     }
