@@ -16,5 +16,5 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     void deleteAllByUser_UserId(Long userId);
 
-    Optional<ManitoAssignment> findByManitee_UserId(Long maniteeId);
+
 }

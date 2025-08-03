@@ -23,6 +23,7 @@ public interface ManitoAssignmentRepository extends JpaRepository<ManitoAssignme
 =======
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     Optional<ManitoAssignment> findByManitee_UserIdAndRoom_RoomId(Long maniteeId, Long roomId);
 >>>>>>> d4ff38c (feat: notice-list/delete)
 =======
@@ -30,5 +31,12 @@ public interface ManitoAssignmentRepository extends JpaRepository<ManitoAssignme
 
     Optional<ManitoAssignment> findByManito_UserId(Long userId);
 >>>>>>> e74082f (feat: poke,guess and modify roomuserrepository,manitorepository)
+=======
+    Optional<ManitoAssignment> findByManitee_UserId(Long userId);
+
+    Optional<ManitoAssignment> findByManito_UserId(Long userId);
+
+
+>>>>>>> eb0fa31 (chore: roomcontroller)
 }
 
