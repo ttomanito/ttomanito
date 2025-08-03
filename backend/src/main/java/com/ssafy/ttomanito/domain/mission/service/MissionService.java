@@ -1,5 +1,6 @@
 package com.ssafy.ttomanito.domain.mission.service;
 
+import com.ssafy.ttomanito.domain.mission.dto.MissionListItemDto;
 import com.ssafy.ttomanito.domain.mission.dto.MissionResponseDto;
 import com.ssafy.ttomanito.domain.mission.entity.DailyMission;
 import com.ssafy.ttomanito.domain.mission.entity.Mission;
@@ -29,30 +30,36 @@ public class MissionService {
 
     @Transactional
     public MissionResponseDto getTodayMission(Long userId) {
-        // 1. 참여 중인 방 상태 (NOT_STARTED, IN_PROGRESS) 중 하나인 방의 RoomUser 가져오기
         List<RoomUser> activeRooms = roomUserRepository.findActiveRoomsForUser(userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS));
 
         if (activeRooms.isEmpty()) {
             throw new IllegalStateException("현재 참여 중인 마니또 방이 없습니다.");
         }
 
-        RoomUser roomUser = activeRooms.get(0);  // 하나만 있다고 가정
-
+        RoomUser roomUser = activeRooms.get(0);
         LocalDate today = LocalDate.now();
 
-        // 2. 이미 오늘 미션이 있으면 반환
+        // 1. 이미 오늘 미션이 있으면
         Optional<DailyMission> existing = dailyMissionRepository.findByManitoAndMissionDate(roomUser, today);
         if (existing.isPresent()) {
             DailyMission dm = existing.get();
-            boolean completed = missionStatusRepository
-                    .findByRoomUserAndDailyMission(roomUser, dm)
-                    .map(MissionStatus::isCompleted)
-                    .orElse(false);
+            List<MissionStatus> statusList = missionStatusRepository.findByRoomUserAndDailyMission(roomUser, dm);
+            boolean completed = statusList.stream().anyMatch(MissionStatus::isCompleted);
+            Long missionStatusId = statusList.stream().findFirst().map(MissionStatus::getId).orElse(null);
+
             Mission m = dm.getMission();
-            return new MissionResponseDto(m.getId(), m.getTitle(), m.getDescription(), m.getDifficulty(), m.getChannel(), completed);
+            return new MissionResponseDto(
+                    m.getId(),
+                    m.getTitle(),
+                    m.getDescription(),
+                    m.getDifficulty(),
+                    m.getChannel(),
+                    completed,
+                    missionStatusId
+            );
         }
 
-        // 3. 현재 방에서 받은 미션 ID 목록
+        // 2. 새로운 미션 부여
         List<DailyMission> pastMissions = dailyMissionRepository
                 .findAllByManitoRoomIdAndManitoUserId(roomUser.getRoomId(), roomUser.getUserId());
 
@@ -60,7 +67,6 @@ public class MissionService {
                 .map(dm -> dm.getMission().getId())
                 .collect(Collectors.toSet());
 
-        // 4. 전체 미션 중 아직 안 받은 것 필터링
         List<Mission> availableMissions = missionRepository.findAll().stream()
                 .filter(m -> !pastMissionIds.contains(m.getId()))
                 .toList();
@@ -69,8 +75,8 @@ public class MissionService {
             throw new IllegalStateException("줄 수 있는 새로운 미션이 없습니다.");
         }
 
-        // 5. 랜덤 미션 생성 및 저장
         Mission selected = availableMissions.get(new Random().nextInt(availableMissions.size()));
+
         DailyMission newDaily = DailyMission.builder()
                 .manito(roomUser)
                 .mission(selected)
@@ -91,7 +97,68 @@ public class MissionService {
                 selected.getDescription(),
                 selected.getDifficulty(),
                 selected.getChannel(),
-                false
+                false,
+                status.getId()  // ✅ 생성한 status의 ID도 같이 반환
         );
     }
+
+
+    @Transactional(readOnly = true)
+    public List<MissionListItemDto> getMyMissionList(Long userId) {
+        System.out.println("== userId: " + userId);
+        List<RoomUser> activeRooms = roomUserRepository.findActiveRoomsForUser(
+                userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS)
+        );
+        System.out.println("== activeRooms: " + activeRooms.size());
+        if (activeRooms.isEmpty()) {
+            throw new IllegalStateException("현재 참여 중인 마니또 방이 없습니다.");
+        }
+
+        RoomUser roomUser = activeRooms.get(0);
+
+        List<DailyMission> missionList = dailyMissionRepository.findAllByManito(roomUser);
+
+        return missionList.stream().map(dm -> {
+            Mission m = dm.getMission();
+            List<MissionStatus> statusList = missionStatusRepository.findByRoomUserAndDailyMission(roomUser, dm);
+            boolean completed = statusList.stream().anyMatch(MissionStatus::isCompleted);
+
+            return MissionListItemDto.from(
+                    m.getId(),
+                    m.getTitle(),
+                    m.getDescription(),
+                    m.getDifficulty(),
+                    m.getChannelList(),
+                    dm.getMissionDate(),
+                    completed
+            );
+        }).toList();
+    }
+    @Transactional
+    public void completeMission(Long userId, Long missionStatusId) {
+        // 1. 현재 참여중인 방의 RoomUser 가져오기
+        List<RoomUser> activeRooms = roomUserRepository.findActiveRoomsForUser(
+                userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS)
+        );
+        if (activeRooms.isEmpty()) {
+            throw new IllegalStateException("현재 참여 중인 방이 없습니다.");
+        }
+        RoomUser roomUser = activeRooms.get(0);
+
+        // 2. MissionStatus 조회
+        MissionStatus status = missionStatusRepository.findById(missionStatusId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 미션 상태가 존재하지 않습니다."));
+
+        // 3. 사용자 일치 여부 확인
+        if (!Objects.equals(status.getRoomUser().getUserId(), userId)) {
+            throw new IllegalStateException("본인의 미션만 완료할 수 있습니다.");
+        }
+
+        // 4. 완료 처리
+        if (!status.isCompleted()) {
+            status.complete();
+        }
+    }
+
+
 }

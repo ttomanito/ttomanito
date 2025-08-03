@@ -6,6 +6,7 @@ public record MissionResponseDto(
         String description,
         String difficulty,
         String channel,
-        boolean completed
+        boolean completed,
+        Long missionStatusId
 ) {
 }
