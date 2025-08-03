@@ -1,5 +1,6 @@
 package com.ssafy.ttomanito.domain.manito.service;
 
+import com.ssafy.ttomanito.domain.manito.dto.ManitoGuessHistoryDto;
 import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import com.ssafy.ttomanito.domain.manito.entity.ManitoGuess;
 import com.ssafy.ttomanito.domain.manito.repository.ManitoAssignmentRepository;
@@ -68,5 +69,13 @@ public class ManitoService {
                 .build();
 
         manitoGuessRepository.save(guess);
+    }
+    @Transactional(readOnly = true)
+    public List<ManitoGuessHistoryDto> getGuessHistory(Long userId) {
+        List<ManitoGuess> guesses = manitoGuessRepository.findAllByGuessUserId(userId);
+
+        return guesses.stream()
+                .map(ManitoGuessHistoryDto::from)
+                .toList();
     }
 }

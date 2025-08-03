@@ -52,4 +52,7 @@ public class ManitoGuess {
     public void markIncorrect() {
         this.isCorrect = false;
     }
+    public Boolean getIsCorrect() {
+        return isCorrect;
+    }
 }
