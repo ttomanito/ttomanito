@@ -41,17 +41,12 @@ export default defineConfig({
       /* ② generateSW 전략 명시 + Workbox 커스터마이징 */
       strategies: 'generateSW',
       workbox: {
-        /* 2-1. 카카오 OAuth 콜백은 절대 캐시하지 않음 → 무한 새로고침 방지 */
+        /* 모든 API·인증·콜백 경로를 한 방에 네트워크 전용으로 */
         runtimeCaching: [
-          {
-            urlPattern: ({ url }) =>
-              url.pathname.startsWith('/auth/kakao/callback'),
-            handler: 'NetworkOnly', // 네트워크 전용
-          },
+          { urlPattern: /^\/(api|auth|login)\//, handler: 'NetworkOnly' },
         ],
-
-        /* 2-2. SPA history fallback(index.html 프리캐시) 대상에서도 제외 */
-        navigateFallbackDenylist: [/^\/auth\/kakao\/callback/],
+        /* index.html fallback에서도 예외 처리 */
+        navigateFallbackDenylist: [/^\/(api|auth|login)\//],
       },
 
       /* ③ PWA 메타데이터 */
