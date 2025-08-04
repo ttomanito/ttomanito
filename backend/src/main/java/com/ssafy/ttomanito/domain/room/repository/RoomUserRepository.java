@@ -42,6 +42,7 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
             "WHERE ru.room.roomId = :roomId")
     List<Long> findUserIdsByRoomId(@Param("roomId") Long roomId);
 
+
     /** 존재 여부 확인 */
     boolean existsByRoom_roomIdAndUser_UserId(Long roomId, Long userId);
 
@@ -50,4 +51,17 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
 
     /** 단일 RoomUser 조회 */
     Optional<RoomUser> findByRoom_roomIdAndUser_UserId(Long roomId, Long userId);
+
+    @Query("""
+        SELECT ru
+        FROM RoomUser ru
+        JOIN ru.room r
+        JOIN ru.user u
+        WHERE r.status = com.ssafy.ttomanito.domain.room.entity.RoomStatus.IN_PROGRESS
+          AND u.status = 'ACTIVE'
+    """)
+    List<RoomUser> findUsersInProgressRoom();
+
+    List<RoomUser> findByRoom_RoomId(Long roomId);
+
 }

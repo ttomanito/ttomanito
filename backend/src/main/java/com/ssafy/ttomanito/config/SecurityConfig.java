@@ -52,6 +52,7 @@ public class SecurityConfig {
                                 "/login/oauth2/code/**",
                                 "/auth/**"
                         ).permitAll()
+                        .requestMatchers("/notice/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth

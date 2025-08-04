@@ -47,10 +47,8 @@ export default function AppLayout() {
   const noHeaderPatterns = [
     '/chat/:chatRoomId/call',
     '/',
-    '/main',
     '/room',
-    '/room/wait',
-    '/report/reportlist',
+    '/user/register',
     '/manito/:roomId/matching',
   ];
   const noBottomPatterns = [...noHeaderPatterns];

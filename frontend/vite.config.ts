@@ -1,40 +1,70 @@
 // vite.config.ts
 /// <reference types="vitest/config" />
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import svgr from 'vite-plugin-svgr';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
-  
+
 export default defineConfig({
   base: '/',
+
+  /* ------------------------------- 빌드 ------------------------------- */
   build: {
     outDir: 'dist',
     emptyOutDir: true,
   },
+
+  /* .env 대신 define으로 넘겨야 하는 값이 있다면 이쪽에 */
   define: {
     'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL),
   },
 
+  /* ------------------------------ 플러그인 ----------------------------- */
   plugins: [
     react(),
     svgr(),
-    tsconfigPaths(), // ✅ 추가
+    tsconfigPaths(), // 💡 tsconfig 경로 별칭 처리
+
+    /* ----------------------------- PWA 설정 --------------------------- */
     VitePWA({
+      /* ① SW가 새 버전이면 자동 교체 */
       registerType: 'autoUpdate',
+
+      /* ② generateSW 전략 명시 + Workbox 커스터마이징 */
+      strategies: 'generateSW',
+      workbox: {
+        /* 2-1. 카카오 OAuth 콜백은 절대 캐시하지 않음 → 무한 새로고침 방지 */
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) =>
+              url.pathname.startsWith('/auth/kakao/callback'),
+            handler: 'NetworkOnly', // 네트워크 전용
+          },
+        ],
+
+        /* 2-2. SPA history fallback(index.html 프리캐시) 대상에서도 제외 */
+        navigateFallbackDenylist: [/^\/auth\/kakao\/callback/],
+      },
+
+      /* ③ PWA 메타데이터 */
       manifest: {
         name: '또마니또',
         short_name: '또마니또',
         description: 'PWA test',
-        theme_color: 'accent.500',
+        theme_color: '#C8C6FF',       // 토큰 대신 HEX 값 사용
         background_color: '#FFFFFF',
         display: 'standalone',
         start_url: '/',
+
+        /* 아이콘 세트 */
         icons: [
           {
             src: 'icons/android-chrome-192x192.png',
@@ -56,11 +86,15 @@ export default defineConfig({
           },
         ],
       },
+
+      /* ④ dev 서버에서도 SW 테스트하고 싶다면 enabled 유지 */
       devOptions: {
         enabled: true,
       },
     }),
   ],
+
+  /* ------------------------------ Vitest ----------------------------- */
   test: {
     projects: [
       {
@@ -77,9 +111,7 @@ export default defineConfig({
             headless: true,
             provider: 'playwright',
             instances: [
-              {
-                browser: 'chromium',
-              },
+              { browser: 'chromium' },
             ],
           },
           setupFiles: ['.storybook/vitest.setup.ts'],
@@ -87,14 +119,16 @@ export default defineConfig({
       },
     ],
   },
+
+  /* ------------------------------ 서버 ------------------------------ */
   server: {
     proxy: {
       '/api': {
         target: 'https://i13b206.p.ssafy.io',
         changeOrigin: true,
         secure: false,
-        rewrite: path => path.replace(/^\/api/, '')
-      }
-    }
-  }
+        rewrite: (p) => p.replace(/^\/api/, ''),
+      },
+    },
+  },
 });
