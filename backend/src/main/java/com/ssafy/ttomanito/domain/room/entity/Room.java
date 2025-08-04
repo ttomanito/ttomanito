@@ -64,4 +64,5 @@ public class Room {
         this.status = RoomStatus.FINISHED;
         this.endDate = when;
     }
+
 }

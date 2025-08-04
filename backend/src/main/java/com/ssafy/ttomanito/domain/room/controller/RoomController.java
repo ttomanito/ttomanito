@@ -244,7 +244,7 @@ public class RoomController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @PostMapping("/{roomId}/start")
-    public ResponseEntity<?> startGame(@PathVariable Long roomId,
+    public ResponseEntity<?> startGame(@PathVariable("roomId") Long roomId,
                                        @AuthenticationPrincipal JwtUserDetails principal) {
         Long userId = principal.getUserId();
         roomService.startGame(roomId, userId);
