@@ -2,9 +2,8 @@ import {
   Box,
   Text,
   VStack,
-  HStack,
   Button,
-  Flex,
+  SimpleGrid,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import DatePicker from 'react-datepicker';
@@ -14,16 +13,29 @@ import { addDays } from 'date-fns';
 import CommonCard from '@/components/CommonCard';
 import TextInput from '@/components/TextInput';
 import LongButton from '@/components/buttons/LongButton';
+import type { LongButtonProps } from '@/components/buttons/LongButton';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 import DateInput from '@/components/DateInput';
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
+import { api } from '@/api/client';  // api 인스턴스 import
+
+const korToEngDay = {
+  '월': 'MON',
+  '화': 'TUE',
+  '수': 'WED',
+  '목': 'THU',
+  '금': 'FRI',
+  '토': 'SAT',
+  '일': 'SUN',
+};
 
 const RoomCreatePage = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [groupName, setGroupName] = useState('');
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
   dayjs.locale('ko');
   const today = dayjs().format('YYYY년 MM월 DD일 dddd');
@@ -35,14 +47,48 @@ const RoomCreatePage = () => {
   };
 
   const dayOptions = ['월', '화', '수', '목', '금', '토', '일'];
-  
+
+  const handleCreateRoom = async () => {
+    if (!groupName || !endDate || selectedDays.length === 0) {
+      alert('모든 항목을 입력해주세요.');
+      return;
+    }
+    setLoading(true);
+
+    const missionDays = selectedDays.map(
+      (kor) => korToEngDay[kor as keyof typeof korToEngDay]
+    );
+    const deadline = dayjs(endDate).format('YYYY-MM-DD');
+
+    try {
+      // 여기서 api 인스턴스 사용 (토큰 자동 헤더 포함)
+      const res = await api.post('/room', {
+        name: groupName,
+        deadline,
+        missionDays,
+      });
+
+      const { roomId } = res.data;
+      navigate(`/room/${roomId}`);
+    } catch (err) {
+      console.error(err);
+      alert('방 생성 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const longButtonProps: LongButtonProps = {
+    loading,
+    disabled: loading,
+    onClick: handleCreateRoom,
+    children: '설정 완료',
+  };
+
   return (
     <Box p={4}>
-      <Text textStyle="title_mlg" mb={4}>
-        방 생성하기
-      </Text>
+      <Text textStyle="title_mlg" mb={4}>방 생성하기</Text>
 
-      {/* 방 이름 입력 */}
       <CommonCard>
         <VStack align="start">
           <Text textStyle="title_md">방 이름</Text>
@@ -55,105 +101,68 @@ const RoomCreatePage = () => {
         </VStack>
       </CommonCard>
 
-      {/* 기간 설정 */}
       <CommonCard w="full" mt={4}>
         <VStack align="start" w="full">
           <Text textStyle="title_md">기간 설정</Text>
-
-          <Box w="full" >
-            <Text textStyle="body_sm" textAlign="start">
-              시작일
-            </Text>
+          <Box w="full">
+            <Text textStyle="body_sm" textAlign="start">시작일</Text>
             <Box bg="gray.100" w="full" borderRadius="xl" px={4} py={2} mt={2}>
-              <Text textStyle="body_md" textAlign="start">
-                {today}
-              </Text>
-              <Text textStyle="caption_xs_light" textAlign="start">
-                방 생성일 당일로 자동 설정됩니다
-              </Text>
+              <Text textStyle="body_md" textAlign="start">{today}</Text>
+              <Text textStyle="caption_xs_light" textAlign="start">방 생성일 당일로 자동 설정됩니다</Text>
             </Box>
           </Box>
 
-
-          <Box width = "100%" >
-            <Text textStyle="body_sm" textAlign="start" mb={2}>
-              종료일
-            </Text>
-            <Flex>
+          <Box width="100%">
+            <Text textStyle="body_sm" textAlign="start" mb={2}>종료일</Text>
             <DatePicker
               selected={endDate}
               onChange={(date: Date | null) => setEndDate(date)}
               wrapperClassName="datepicker-full-width"
               minDate={new Date()}
-              maxDate={addDays(new Date(), 30)}   // 오늘 + 30일까지 선택 가능 
+              maxDate={addDays(new Date(), 30)}
               dateFormat="yyyy-MM-dd"
-              placeholderText="종료일을 선택해주세요" 
+              placeholderText="종료일을 선택해주세요"
               customInput={
-                <DateInput 
+                <DateInput
                   value={endDate ? dayjs(endDate).format('YYYY-MM-DD') : ''}
-                  placeholder="종료일을 선택해주세요                 " 
+                  placeholder="종료일을 선택해주세요"
                 />
               }
-            /></Flex>
-            <Text textStyle="caption_xs_light" textAlign="start">
-              오늘로부터 30일까지 선택 가능
-            </Text>
-            {/* <TextInput
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              placeholder="종료일을 선택해주세요"
-            /> */}
+            />
+            <Text textStyle="caption_xs_light" textAlign="start" mt={2}>오늘로부터 30일까지 선택 가능</Text>
           </Box>
         </VStack>
       </CommonCard>
 
-      {/* 미션 수행 요일 */}
       <CommonCard mt={4}>
         <VStack align="start">
           <Text textStyle="title_md">미션 수행 요일</Text>
-          <Text textStyle="caption_xs_light">
-            미션이 제공될 요일을 선택해주세요
-          </Text>
+          <Text textStyle="caption_xs_light">미션이 제공될 요일을 선택해주세요</Text>
 
-          <HStack wrap="wrap">
-          {dayOptions.map((day) => (
-            <Button
-              key={day}
-              size="sm"
-              variant="outline" 
-              borderColor={selectedDays.includes(day) ? 'accent.500' : 'gray.300'}
-              color={selectedDays.includes(day) ? 'accent.500' : 'gray.600'}
-              borderWidth={selectedDays.includes(day) ? '1.5px' : '1.5px'}
-              borderRadius="lg"
-              bg="white" // ✅ 배경 고정
-              onClick={() => toggleDay(day)}
-              _hover={{
-                borderColor: 'purple.400',
-              }}
-              _active={{
-                bg: 'white',
-              }}
-            >
-              {day}
-            </Button>
+          <SimpleGrid columns={7} gap={3} w="100%">
+            {dayOptions.map((day) => (
+              <Button
+                key={day}
+                size="sm"
+                variant="outline"
+                borderColor={selectedDays.includes(day) ? 'accent.500' : 'gray.300'}
+                color={selectedDays.includes(day) ? 'accent.500' : 'gray.600'}
+                borderWidth="1.5px"
+                borderRadius="lg"
+                bg="white"
+                onClick={() => toggleDay(day)}
+                _hover={{ borderColor: 'purple.400' }}
+                _active={{ bg: 'white' }}
+              >
+                {day}
+              </Button>
             ))}
-          </HStack>
-
+          </SimpleGrid>
         </VStack>
       </CommonCard>
 
-      {/* 완료 버튼 */}
       <Box mt={6}>
-        <LongButton
-         onClick={() => navigate("/room/wait" )}>
-          {/* // onClick={() => { "/room/wait" */}
-          {/* //   // 제출 처리 로직 */}
-          {/* // }}> */}
-        설정 완료
-        </LongButton>
-        {/* 설정 완료 누르면 바로 대기방(room/{roomId}) 입장 
-        생성한 roomId를 바로 받아와야함 */}
-
+        <LongButton {...longButtonProps} />
       </Box>
     </Box>
   );
