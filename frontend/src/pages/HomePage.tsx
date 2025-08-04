@@ -11,12 +11,8 @@ import dayjs from 'dayjs';
 import CommonCard from '@/components/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
 import BaseModal from '@/components/modal/BaseModal';
-<<<<<<< HEAD
-=======
 import ProfileCard from '@/components/profile/ProfileCard';
 import ttoma_tutorial from '@/assets/ttoma_tutorial.svg'
-import TutorialCard from '@/components/TutorialCard';
->>>>>>> 954e9ca (design: add ttoma  icon)
 
 const GameHomePage = () => {
   const startDate = '2025-07-28'; // 방 생성일
@@ -57,11 +53,7 @@ const GameHomePage = () => {
   const tutorialModal = useDisclosure();
 
   return (
-<<<<<<< HEAD
     <VStack gap={6} px={4} py={6} align="center">
-=======
-    <VStack px={4} py={6} align="center">
->>>>>>> 954e9ca (design: add ttoma  icon)
       {/* 진행 바 */}
       <Box w="100%">
         <Text fontSize="sm" color="gray.600" mb={1} textAlign="center">
@@ -145,24 +137,10 @@ const GameHomePage = () => {
         body={<ProfileCard name="안수진" subtitle='상태메시지' title="내 마니띠" src='{src}'></ProfileCard>}
       />
       <BaseModal
-<<<<<<< HEAD
-        open={voteModal.open}
-        onClose={voteModal.onClose}
-        title="마니또 투표하기"
-        caption="누가 내 마니또일까요?"
-        body={<Text>이름을 선택해 투표하세요</Text>}
-        footer={
-          <HStack gap={4}>
-            <LongButton onClick={voteModal.onClose}>취소</LongButton>
-            <LongButton onClick={() => alert('투표 완료')}>투표하기</LongButton>
-          </HStack>
-        }
-=======
         open={tutorialModal.open}
         onClose={tutorialModal.onClose}
         title="튜토리얼"
         body={<Text>마니또, 마니띠?</Text>}
->>>>>>> 954e9ca (design: add ttoma  icon)
       />
     </VStack>
   );
