@@ -1,0 +1,163 @@
+import { Box, Text, VStack, HStack, Button, Flex } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import 'react-datepicker/dist/react-datepicker.css';
+import '@/App.css';
+import CommonCard from '@/components/CommonCard';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+import {
+  // useNavigate,
+  useParams,
+} from 'react-router-dom';
+import ProfileList from '@/components/lists/ProfileList';
+import { getRequest } from '@/api/requests';
+
+interface RoomInfo {
+  roomId: number;
+  creatorId: number;
+  name: string;
+  status: 'NONE' | 'NOT_STARTED' | 'IN_PROGRESS' | 'FINISHED';
+  startDate: string;
+  endDate: string;
+  deadline: string;
+  missionDays: ('MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN')[];
+}
+
+const WaitingRoomPage = () => {
+  // const navigate = useNavigate();
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+
+  dayjs.locale('ko');
+
+  const dayOptions = ['월', '화', '수', '목', '금', '토', '일'];
+  const dayMapEngToKor: Record<string, string> = {
+    MON: '월',
+    TUE: '화',
+    WED: '수',
+    THU: '목',
+    FRI: '금',
+    SAT: '토',
+    SUN: '일',
+  };
+
+  const { roomId } = useParams<{ roomId: string }>();
+  const [roomInfo, setRoomInfo] = useState<RoomInfo | null>(null);
+  const [participants, setParticipants] = useState([]);
+  const [socket] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    if (!roomId) return;
+
+    const initializeRoom = async () => {
+      try {
+        // 1. 참여 여부 확인
+        const canParticapate = await getRequest('/room/check');
+        if (!!canParticapate) {
+          // navigate('/home');
+          //   return;
+        }
+
+        // 2. 방 정보 조회
+        const roomData = await getRequest(`/room/${roomId}`);
+        setRoomInfo(roomData);
+
+        // 3. 참여자 목록 조회 - 방장이면 왕관 노출
+        const participantData = await getRequest(`/room/${roomId}/participants`);
+        setParticipants(
+          participantData?.map((el: { userId: any; statusMessage: any }) => {
+            return {
+              name: el?.userId,
+              statusMessage: el?.statusMessage,
+              rightSideChild: null, // [todo]: 방장인 경우 아이콘 추가
+            };
+          }),
+        );
+      } catch (err) {
+        console.error(err);
+        alert('방 진입 중 오류가 발생했습니다.');
+        // navigate('/home');
+      }
+    };
+
+    initializeRoom();
+
+    return () => {
+      if (socket) socket.close();
+    };
+  }, [roomId]);
+
+  useEffect(() => {
+    const converted = roomInfo?.missionDays?.map(eng => dayMapEngToKor[eng]).filter(Boolean); // 영어 → 한글 변환
+    setSelectedDays(converted ?? []); // 예: ["월", "수", "금"]
+  }, [roomInfo]);
+
+  return (
+    <Box p={4}>
+      <Text textStyle="title_md" mb={2} textAlign="start">
+        {roomInfo?.name}
+      </Text>
+      {/* 기간 설정 */}
+      <Flex gap={2}>
+        <CommonCard w="full">
+          <Box w="full">
+            <Text textStyle="body_sm" textAlign="start">
+              시작일
+            </Text>
+            <Box borderRadius="xl" mt={2}>
+              <Text textStyle="caption_sm" textAlign="start">
+                {/* {roomInfo?.startDate} */}
+                {dayjs().format('YY.MM.DD')}
+              </Text>
+            </Box>
+          </Box>
+        </CommonCard>
+        <CommonCard w="full">
+          <Box w="full">
+            <Text textStyle="body_sm" textAlign="start">
+              종료일
+            </Text>
+            <Box borderRadius="xl" mt={2}>
+              <Text textStyle="caption_sm" textAlign="start">
+                {dayjs(roomInfo?.endDate).format('YY.MM.DD')}
+              </Text>
+            </Box>
+          </Box>
+        </CommonCard>
+      </Flex>
+
+      {/* 미션 수행 요일 */}
+      <CommonCard mt={4}>
+        <VStack align="start">
+          <Text textStyle="body_sm" textAlign="start">
+            미션 수행 요일
+          </Text>
+          <HStack wrap="wrap">
+            {dayOptions.map(day => (
+              <Button
+                key={day}
+                size="sm"
+                variant="outline"
+                borderColor={selectedDays.includes(day) ? 'accent.800' : 'gray.500'}
+                color={selectedDays.includes(day) ? 'white' : 'gray.600'}
+                borderWidth="1.5px"
+                borderRadius="lg"
+                bg={selectedDays.includes(day) ? 'accent.800' : 'white'}
+                disabled
+              >
+                {day}
+              </Button>
+            ))}
+          </HStack>
+        </VStack>
+      </CommonCard>
+
+      {/* 참여자 리스트 */}
+      <Text textStyle="title_md" mt={8} mb={2} textAlign="start">
+        참여자
+      </Text>
+      <ProfileList data={participants} />
+    </Box>
+  );
+};
+
+export default WaitingRoomPage;
