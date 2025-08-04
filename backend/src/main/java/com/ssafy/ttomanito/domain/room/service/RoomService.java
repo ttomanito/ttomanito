@@ -177,4 +177,9 @@ public class RoomService {
     public boolean isRoomNotStarted(Long roomId) {
         return find(roomId).getStatus() == RoomStatus.NOT_STARTED;
     }
+
+    public boolean checkCreator(Long userId) {
+        List<RoomStatus> active = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
+        return roomRepository.checkCreator(userId, active);
+    }
 }
