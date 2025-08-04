@@ -10,9 +10,13 @@ import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import CommonCard from '@/components/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
+import DoubleButton from '@/components/buttons/DoubleButton';
 import BaseModal from '@/components/modal/BaseModal';
 import ProfileCard from '@/components/profile/ProfileCard';
 import ttoma_tutorial from '@/assets/ttoma_tutorial.svg'
+import ttoma_heart from '@/assets/ttoma_heart.svg'
+import ttoma_mission from '@/assets/ttoma_mission.svg'
+
 
 const GameHomePage = () => {
   const startDate = '2025-07-28'; // 방 생성일
@@ -47,7 +51,7 @@ const GameHomePage = () => {
       localStorage.setItem(`mission_revealed_${todayKey}`, 'true');
     }
   };
-
+  const missionCompleteModal = useDisclosure();
   const prevMissionModal = useDisclosure();
   const manitoModal = useDisclosure();
   const tutorialModal = useDisclosure();
@@ -99,8 +103,8 @@ const GameHomePage = () => {
               maxW="120px"
               mb={4}
             />
-            <LongButton onClick={() => alert('미션 완료 처리')}>
-              미션 완료하기
+            <LongButton onClick={missionCompleteModal.onOpen}>
+              미션 완료!
             </LongButton>
           </>
         )}
@@ -109,20 +113,54 @@ const GameHomePage = () => {
       {/* 메뉴 카드 */}
       <VStack w="100%" maxW="480px">
         <CommonCard onClick={prevMissionModal.onOpen}>
-          이전 미션 확인하기
+          <HStack gap={2} align="center">
+          <Image src={ttoma_mission} alt="ttoma icon" boxSize="40px" />
+            <VStack gap={1} align="start">
+          <Text textStyle="body_sm">이전 미션 확인하기</Text>
+          <Text textStyle="caption_xs_light">지난 미션 기록을 확인해보세요</Text>
+            </VStack>
+          </HStack>
         </CommonCard>
         <CommonCard onClick={manitoModal.onOpen}>
-          내 마니띠 확인하기
+          <HStack gap={2} align="center">
+          <Image src={ttoma_heart} alt="ttoma icon" boxSize="40px" />
+            <VStack gap={1} align="start">
+          <Text textStyle="body_sm">내 마니띠 확인하기</Text>
+          <Text textStyle="caption_xs_light">내 마니띠가 누구인지 다시 확인해보세요</Text>
+            </VStack>
+          </HStack>
         </CommonCard>
         <CommonCard onClick={tutorialModal.onOpen}>
           <HStack gap={2} align="center">
-    <Image src={ttoma_tutorial} alt="ttoma icon" boxSize="40px" />
-    <Text fontWeight="bold">튜토리얼 다시 보기</Text>
-  </HStack>
+          <Image src={ttoma_tutorial} alt="ttoma icon" boxSize="40px" />
+            <VStack gap={1} align="start">
+          <Text textStyle="body_sm">튜토리얼 다시 보기</Text>
+          <Text textStyle="caption_xs_light">필요할 때 언제든 튜토리얼을 다시 볼 수 있어요</Text>
+            </VStack>
+          </HStack>
         </CommonCard>
       </VStack>
 
       {/* 모달들 */}
+      <BaseModal 
+      open={missionCompleteModal.open}
+      onClose={missionCompleteModal.onClose}
+      title="미션 완료 확인"
+      caption={
+        "미션 수행 결과는 수정이 불가능합니다. 신중히 해주세요."
+      }
+      footer={
+        <DoubleButton
+        leftLabel="취소"
+        rightLabel="확인"
+        onLeftClick={missionCompleteModal.onClose}
+        onRightClick={() => {
+          alert('미션 완료 처리')
+          missionCompleteModal.onClose()
+        }}
+        />
+      }
+      />
       <BaseModal
         open={prevMissionModal.open}
         onClose={prevMissionModal.onClose}
