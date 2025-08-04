@@ -74,8 +74,7 @@ export default function AppLayout() {
         {/* 오른쪽 앱 화면 */}
         <GridItem position="relative" display="flex" justifyContent="center" alignItems="center">
           {/* xs~mobile: 전체 너비 */}
-          {/* <Box display={{ base: 'block', mobile: 'none', lg: 'none' }} w="100%" h="100dvh"> */}
-          <Box display={{ base: 'block', lg: 'none' }} w="100%" h="100dvh">
+          <Box display={{ base: 'block', mobile: 'none', lg: 'none' }} w="100%" h="100dvh">
             <Container
               maxW="560px"
               w="full"
@@ -95,8 +94,7 @@ export default function AppLayout() {
           </Box>
 
           {/* mobile~lg: 중앙 고정폭 520px */}
-          {/* <Box display={{ base: 'none', mobile: 'block', lg: 'none' }} w="520px" h="100dvh"> */}
-          <Box display={{ base: 'none', lg: 'none' }} w="520px" h="100dvh">
+          <Box display={{ base: 'none', mobile: 'block', lg: 'none' }} w="520px" h="100dvh">
             <Container
               maxW="560px"
               w="full"
