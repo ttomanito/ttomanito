@@ -5,6 +5,7 @@ import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import com.ssafy.ttomanito.domain.manito.entity.ManitoGuess;
 import com.ssafy.ttomanito.domain.manito.repository.ManitoAssignmentRepository;
 import com.ssafy.ttomanito.domain.manito.repository.ManitoGuessRepository;
+import com.ssafy.ttomanito.domain.room.entity.Room;
 import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomRepository;
@@ -22,7 +23,7 @@ public class ManitoService {
     private final RoomUserRepository roomUserRepository;
     private final ManitoAssignmentRepository manitoAssignmentRepository;
     private final ManitoGuessRepository manitoGuessRepository;
-
+    private final RoomRepository roomRepository;
     @Transactional(readOnly = true)
     public Long getManiteeId(Long userId) {
         // 현재 참여 중인 RoomUser
@@ -77,5 +78,30 @@ public class ManitoService {
         return guesses.stream()
                 .map(ManitoGuessHistoryDto::from)
                 .toList();
+    }
+    @Transactional
+    public void finishRoom(Long userId) {
+        // 1. 유저가 만든 방 찾기
+        RoomUser roomUser = roomUserRepository
+                .findActiveRoomsForUser(userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS))
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("참여 중인 방이 없습니다."));
+
+        Room room = roomRepository.findByIdAndCreatorId(roomUser.getRoomId(), userId)
+                .orElseThrow(() -> new IllegalStateException("해당 유저가 만든 방을 찾을 수 없습니다."));
+
+        // 2. 이미 종료된 방은 무시
+        if (room.getStatus() == RoomStatus.FINISHED) {
+            return;
+        }
+
+        // 3. 종료 조건 확인 (종료일이 지났거나 사용자가 직접 종료)
+        if (room.getEndDate() != null && !room.getEndDate().isAfter(LocalDate.now())) {
+            room.finish(LocalDate.now()); // 내부에서 status = FINISHED로 바꾸는 메서드
+        } else {
+            // 사용자가 수동으로 종료했을 경우에도 강제로 종료
+            room.finish(LocalDate.now());
+        }
     }
 }

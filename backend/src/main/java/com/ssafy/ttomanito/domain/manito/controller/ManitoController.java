@@ -57,4 +57,17 @@ public class ManitoController {
         List<ManitoGuessHistoryDto> result = manitoService.getGuessHistory(userId);
         return ResponseEntity.ok(result);
     }
+
+    @Operation(summary = "마니또 게임 종료", description = "방장 권한으로 마니또 게임을 종료합니다. 종료일이 지나지 않았더라도 즉시 종료할 수 있습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "종료 성공"),
+            @ApiResponse(responseCode = "404", description = "방을 찾을 수 없음 또는 권한 없음")
+    })
+    @PostMapping("/finish")
+    public ResponseEntity<Void> finishManito(
+            @AuthenticationPrincipal JwtUserDetails principal
+    ) {
+        manitoService.finishRoom(principal.getUserId());
+        return ResponseEntity.ok().build();
+    }
 }
