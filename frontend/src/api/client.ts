@@ -4,7 +4,7 @@ import axios from 'axios';
  * axios 인스턴스 생성
  */
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: import.meta.env.VITE_BASE_URL || '/api',
   timeout: 10000,
   withCredentials: true,
 });
