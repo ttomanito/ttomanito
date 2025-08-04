@@ -42,6 +42,7 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
             "WHERE ru.room.roomId = :roomId")
     List<Long> findUserIdsByRoomId(@Param("roomId") Long roomId);
 
+
     /** 존재 여부 확인 */
     boolean existsByRoom_roomIdAndUser_UserId(Long roomId, Long userId);
 
@@ -62,4 +63,5 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
     List<RoomUser> findUsersInProgressRoom();
 
     List<RoomUser> findByRoom_RoomId(Long roomId);
+
 }

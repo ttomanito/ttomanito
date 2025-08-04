@@ -33,8 +33,11 @@ public class ManitoService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("참여 중인 방이 없습니다."));
 
-        return manitoAssignmentRepository.findByManitoIdAndRoomId(userId, roomUser.getRoomId())
-                .map(ManitoAssignment::getManiteeId)
+        return manitoAssignmentRepository
+                .findByManito_UserIdAndRoom_RoomId(
+                        userId,                            // manito
+                        roomUser.getRoom().getRoomId())    // room
+                .map(a -> a.getManitee().getUserId())      // ⭐ manitee 객체 → PK
                 .orElseThrow(() -> new IllegalStateException("마니띠가 배정되지 않았습니다."));
     }
     @Transactional
@@ -48,18 +51,18 @@ public class ManitoService {
         }
 
         RoomUser roomUser = activeRooms.get(0); // 하나만 있다고 가정
-        Long roomId = roomUser.getRoomId();
+        Long roomId = roomUser.getRoom().getRoomId();
 
         // 2. 실제 마니또 ID 가져오기
-        ManitoAssignment assignment = manitoAssignmentRepository.findByManitoIdAndRoomId(userId, roomId)
+        ManitoAssignment assignment = manitoAssignmentRepository.findByManito_UserIdAndRoom_RoomId(userId, roomId)
                 .orElseThrow(() -> new IllegalStateException("마니또 배정 정보를 찾을 수 없습니다."));
 
-        Long realManitoId = assignment.getManitoId();
+        Long realManitoId = assignment.getManito().getUserId();
 
         // 3. 맞췄는지 여부 판단
 //        boolean isCorrect = realManitoId.equals(guessedUserId);
         boolean isCorrect = manitoAssignmentRepository
-                .existsByManiteeIdAndManitoIdAndRoomId(userId, guessedUserId, roomId);
+                .existsByManitee_UserIdAndManito_UserIdAndRoom_RoomId(userId, guessedUserId, roomId);
 
         // 4. 추측 저장
         ManitoGuess guess = ManitoGuess.builder()
@@ -88,7 +91,7 @@ public class ManitoService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("참여 중인 방이 없습니다."));
 
-        Room room = roomRepository.findByIdAndCreatorId(roomUser.getRoomId(), userId)
+        Room room = roomRepository.findByRoomIdAndCreator_UserId(roomUser.getRoom().getRoomId(), userId)
                 .orElseThrow(() -> new IllegalStateException("해당 유저가 만든 방을 찾을 수 없습니다."));
 
         // 2. 이미 종료된 방은 무시

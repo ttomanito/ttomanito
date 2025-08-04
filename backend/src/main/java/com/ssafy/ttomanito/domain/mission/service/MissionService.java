@@ -61,7 +61,7 @@ public class MissionService {
 
         // 2. 새로운 미션 부여
         List<DailyMission> pastMissions = dailyMissionRepository
-                .findAllByManitoRoomIdAndManitoUserId(roomUser.getRoomId(), roomUser.getUserId());
+                .findAllByManito_Room_RoomIdAndManito_User_UserId(roomUser.getRoom().getRoomId(), roomUser.getUser().getUserId());
 
         Set<Long> pastMissionIds = pastMissions.stream()
                 .map(dm -> dm.getMission().getId())
@@ -150,7 +150,7 @@ public class MissionService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 미션 상태가 존재하지 않습니다."));
 
         // 3. 사용자 일치 여부 확인
-        if (!Objects.equals(status.getRoomUser().getUserId(), userId)) {
+        if (!Objects.equals(status.getRoomUser().getUser().getUserId(), userId)) {
             throw new IllegalStateException("본인의 미션만 완료할 수 있습니다.");
         }
 

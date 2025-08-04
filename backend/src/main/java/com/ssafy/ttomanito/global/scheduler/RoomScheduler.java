@@ -28,7 +28,7 @@ public class RoomScheduler {
 
         for (Room room : expiredRooms) {
             room.finish(LocalDate.now()); // Room 엔티티에 도메인 메서드 추가
-            log.info("✅ Room 종료: {}", room.getId());
+            log.info("✅ Room 종료: {}", room.getRoomId());
         }
     }
 }

@@ -9,11 +9,16 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 @Repository
-
 public interface DailyMissionRepository extends JpaRepository<DailyMission, Long> {
-    Optional<DailyMission> findByManitoAndMissionDate(RoomUser manito, LocalDate missionDate);
-// ✅ 현재 마니또 방에서 받은 모든 미션 (중복 방지용)
-    List<DailyMission> findAllByManitoRoomIdAndManitoUserId(Long roomId, Long userId);
-    List<DailyMission> findAllByManito(RoomUser manito);
 
+    /* 단일 날짜의 미션 */
+    Optional<DailyMission> findByManitoAndMissionDate(RoomUser manito,
+                                                      LocalDate missionDate);
+
+    /* 방(roomId) + manito(userId) 로 모든 미션 조회 ── ★ 핵심 수정 */
+    List<DailyMission> findAllByManito_Room_RoomIdAndManito_User_UserId(Long roomId,
+                                                                        Long manitoUserId);
+
+    /* 특정 RoomUser(=manito) 의 전체 미션 */
+    List<DailyMission> findAllByManito(RoomUser manito);
 }
