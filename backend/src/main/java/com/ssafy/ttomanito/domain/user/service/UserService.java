@@ -65,6 +65,13 @@ public class UserService {
         oauthService.deleteByUserId(userId);
     }
 
+    @Transactional(readOnly = true)
+    public String getUserName(Long userId) {
+        User user = repo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        return user.getName();
+    }
+
     private UserDto toDto(User u) {
         return new UserDto(
                 u.getUserId(),
