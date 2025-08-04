@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 @RequestMapping("/user")
 @RequiredArgsConstructor
 @Tag(name = "User", description = "사용자 관리 API")
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true", allowedHeaders = "*")
+//@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true", allowedHeaders = "*")
 public class UserController {
     private final UserService userService;
 
