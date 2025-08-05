@@ -1,6 +1,7 @@
 import axios from 'axios';
-
+import { useAuth } from '@/stores/auth'
 /**
+ * src/api/client.ts
  * axios 인스턴스 생성
  */
 export const api = axios.create({
@@ -10,26 +11,25 @@ export const api = axios.create({
 });
 
 // 요청 인터셉터 (개발 모드에서만 콘솔 로그)
-api.interceptors.request.use(config => {
-  console.log(import.meta.env.VITE_API_URL);
-  console.log(import.meta.env.VITE_BASE_URL);
-  console.log(config.baseURL);
-  // 예: 로컬스토리지에 저장된 토큰 가져오기
-  const token =
-    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0Mjc0MTMwLCJleHAiOjE3NTQzMDI5MzB9.dsRMODLGw5DmSHkEKgEbV0FftjUyrYgdX31R3Jp0hQ0';
-  // 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0Mjc0MTU3LCJleHAiOjE3NTQzMDI5NTd9.6WTkjRv3RGIafG7ZkA9NvxZn1mp9-ZZ-jd-u2DjPEEc';
-  // const token = localStorage.getItem('accessToken'); // 또는 sessionStorage
-
+api.interceptors.request.use((config) => {
+  //   console.log(config.baseURL);
+  const token = useAuth.getState().tokens.accessToken
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${token}`
   }
 
   if (import.meta.env.DEV) {
-    console.log('[API REQUEST]', config.method?.toUpperCase(), config.url, config.data || '');
+    console.log(
+      '[API REQUEST]',
+      config.method?.toUpperCase(),
+      config.url,
+      config.data || ''
+    )
   }
 
-  return config;
+  return config
 });
+
 
 // 응답 인터셉터 (개발 모드 + 에러 핸들링)
 api.interceptors.response.use(
@@ -39,13 +39,36 @@ api.interceptors.response.use(
     }
     return res;
   },
-  error => {
-    const { response } = error;
-    if (import.meta.env.DEV) {
-      console.error('[API ERROR]', response?.config?.url, response?.data || error.message);
+  async (error) => {
+    const { response } = error
+    const originalRequest = error.config
+
+    if (response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+      try {
+        // ✅ refresh 요청 (refreshToken은 HttpOnly 쿠키에서 자동 전송됨)
+        const refreshRes = await api.post('/auth/refresh', {})
+        const newAccessToken = refreshRes.data.accessToken
+
+        // ✅ Zustand에 저장
+        useAuth.getState().setTokens({ accessToken: newAccessToken, refreshToken: null })
+
+        // ✅ 실패했던 요청 재시도
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+        return api(originalRequest)
+      } catch (err) {
+        // ✅ refresh 실패 → 로그아웃 후 로그인 페이지로 이동
+        useAuth.getState().logout()
+        window.location.href = '/login'
+        return Promise.reject(err)
+      }
     }
 
-    return Promise.reject(error);
+    if (import.meta.env.DEV) {
+      console.error('[API ERROR]', response?.config?.url, response?.data || error.message)
+    }
+
+    return Promise.reject(error)
   },
 );
 
