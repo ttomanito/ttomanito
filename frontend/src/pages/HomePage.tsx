@@ -13,10 +13,10 @@ import LongButton from '@/components/buttons/LongButton';
 import DoubleButton from '@/components/buttons/DoubleButton';
 import BaseModal from '@/components/modal/BaseModal';
 import ProfileCard from '@/components/profile/ProfileCard';
-import ttoma_tutorial from '@/assets/ttoma_tutorial.svg'
 import ttoma_heart from '@/assets/ttoma_heart.svg'
 import ttoma_mission from '@/assets/ttoma_mission.svg'
 
+import ttoma_questionmark from '@/assets/ttoma_questionmark.svg'
 
 const GameHomePage = () => {
   const startDate = '2025-07-28'; // 방 생성일
@@ -132,7 +132,7 @@ const GameHomePage = () => {
         </CommonCard>
         <CommonCard onClick={tutorialModal.onOpen}>
           <HStack gap={2} align="center">
-          <Image src={ttoma_tutorial} alt="ttoma icon" boxSize="40px" />
+          <Image src={ttoma_questionmark} alt="ttoma icon" boxSize="40px" />
             <VStack gap={1} align="start">
           <Text textStyle="body_sm">튜토리얼 다시 보기</Text>
           <Text textStyle="caption_xs_light">필요할 때 언제든 튜토리얼을 다시 볼 수 있어요</Text>

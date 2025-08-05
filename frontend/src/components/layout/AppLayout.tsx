@@ -29,7 +29,6 @@ const PcMent = () => (
       <Box pl={10}>
         <Image src={logo_ttomanito} alt="ttomanito logo" mb={2} />
         <Text textStyle="body_md" color="gray.500">
-          <Text textStyle="title_md">두근두근!</Text>
           정해진 날짜에만 열리는 미션!
           <br />
           그 날만큼은 마니띠에게 더 따뜻한
@@ -47,9 +46,11 @@ export default function AppLayout() {
   const noHeaderPatterns = [
     '/chat/:chatRoomId/call',
     '/',
+    '/main',
     '/room',
     '/login',
     '/register',
+    '/room/:roomId',
     '/manito/:roomId/matching',
   ];
   const noBottomPatterns = [...noHeaderPatterns];
