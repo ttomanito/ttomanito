@@ -119,7 +119,7 @@ public class RoomService {
                         .build()
         );
     }
-    
+
 
     public void kick(Long roomId, Long hostId, Long targetUserId) {
         Room room = find(roomId);

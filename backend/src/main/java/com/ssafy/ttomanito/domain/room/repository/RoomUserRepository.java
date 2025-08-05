@@ -74,16 +74,6 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
     List<RoomUser> findByRoom_RoomId(Long roomId);
 
     @Query("""
-    SELECT ma
-    FROM ManitoAssignment ma
-    JOIN ma.room r
-    JOIN ma.manitee u
-    WHERE u.userId = :userId
-      AND r.status = com.ssafy.ttomanito.domain.room.entity.RoomStatus.IN_PROGRESS
-""")
-    Optional<ManitoAssignment> findActiveAssignmentByManiteeUserId(@Param("userId") Long userId);
-
-    @Query("""
     SELECT ru
     FROM RoomUser ru
     JOIN ru.room r
@@ -92,6 +82,9 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
 """)
     Optional<RoomUser> findActiveRoomUserByUserId(@Param("userId") Long userId);
 
+    // User.userId 기준, Room.status 기준으로 조회
+    Optional<RoomUser> findByUser_UserIdAndRoom_Status(Long userId, RoomStatus status);
 
-
+    // 필요하다면 방 ID + Room.status 로 전체 ACTIVE 멤버 조회
+    List<RoomUser> findByRoom_RoomIdAndRoom_Status(Long roomId, RoomStatus status);
 }
