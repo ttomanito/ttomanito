@@ -104,6 +104,7 @@ public class RoomService {
         roomUserRepository.save(ru);
     }
 
+    
     public void closeRoomByCreatorId(Long creatorId) {
         Room room = roomRepository
                 .findByCreator_UserIdAndStatus(creatorId, RoomStatus.NOT_STARTED)
@@ -118,6 +119,7 @@ public class RoomService {
                         .build()
         );
     }
+    
 
     public void kick(Long roomId, Long hostId, Long targetUserId) {
         Room room = find(roomId);
