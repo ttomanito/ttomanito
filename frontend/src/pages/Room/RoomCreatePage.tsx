@@ -88,8 +88,8 @@ const RoomCreatePage = () => {
   };
 
   return (
-    <Box p={4}>
-      <Text textStyle="title_mlg" mb={4}>방 생성하기</Text>
+    <Box px={4} py={6}>
+      <Text textStyle="title_mlg" m={8}>방 생성하기</Text>
 
       <CommonCard>
         <VStack align="start">
