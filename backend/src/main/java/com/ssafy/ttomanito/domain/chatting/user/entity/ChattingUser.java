@@ -1,5 +1,6 @@
-package com.ssafy.ttomanito.domain.chatting.entity;
+package com.ssafy.ttomanito.domain.chatting.user.entity;
 
+import com.ssafy.ttomanito.domain.chatting.room.entity.ChattingRoom;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import jakarta.persistence.*;
 import lombok.*;
