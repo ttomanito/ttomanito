@@ -35,6 +35,12 @@ public class VoiceChatService {
     @Transactional
     public void startCall(Long chattingRoomId, Long callerUserId) {
         log.info("▶▶ ENTER acceptCall", new RuntimeException("stack trace"));
+
+        if (voiceChatRepository.existsByRoomUser_User_UserIdAndIsActiveTrue(callerUserId)) {
+            log.info("▶▶ 이미 통화 중이라 예외 발생");
+            throw new IllegalStateException("이미 다른 방에서 진행 중인 통화가 있습니다.");
+        }
+
         // 1) 채팅방 → ManitoAssignment → 룸 ID
         ChattingRoom cr = chattingRepository
                 .findWithAssignmentByChattingRoomId(chattingRoomId)
@@ -116,5 +122,59 @@ public class VoiceChatService {
         messagingTemplate.convertAndSend(
                 "/topic/call/" + callerId,         // UserDestinationPrefix + queue 경로
                 msg       );               // payload);
+    }
+
+    @Transactional
+    public void rejectCall(Long chattingRoomId, Long callerId) {
+        log.info("▶▶ CALL_REJECTED 브로드캐스트 to /topic/call/{}", callerId);
+        // 1) 같은 채팅룸의 두 건 조회
+        List<VoiceChat> voiceChats = voiceChatRepository
+                .findByChattingRoom_ChattingRoomId(chattingRoomId);
+
+        // 2) 두 레코드를 모두 '비활성화' 처리
+        for (VoiceChat vc : voiceChats) {
+            vc.cancel();  // isActive=false
+        }
+        voiceChatRepository.saveAll(voiceChats);
+
+        // 3) 발신자(Caller)에게만 CALL_REJECTED 브로드캐스트
+        Map<String,Object> msg = Map.of(
+                "type",       "CALL_REJECTED",
+                "chatroomId", chattingRoomId,
+                "callerId",   callerId
+        );
+        log.info("▶▶ CALL_REJECTED 브로드캐스트 to /topic/call/{}", callerId);
+        messagingTemplate.convertAndSend(
+                "/topic/call/" + callerId,
+                msg
+        );
+    }
+    /** 음성통화 종료 */
+    @Transactional
+    public void endCall(Long chattingRoomId, Long userId) {
+        // 1) 같은 채팅룸의 두 건 조회
+        List<VoiceChat> voiceChats = voiceChatRepository
+                .findByChattingRoom_ChattingRoomId(chattingRoomId);
+
+        // 2) endNow() 호출해서 endedAt, durationSec, isActive=false 처리
+        for (VoiceChat vc : voiceChats) {
+            vc.endNow();
+        }
+        voiceChatRepository.saveAll(voiceChats);
+
+        // 3) 두 유저 모두에게 CALL_ENDED 브로드캐스트
+        for (VoiceChat vc : voiceChats) {
+            Long targetUserId = vc.getRoomUser().getUser().getUserId();
+            Map<String, Object> msg = Map.of(
+                    "type", "CALL_ENDED",
+                    "chatroomId", chattingRoomId,
+                    "userId", userId  // 누가 종료했는지 알려 주고 싶다면 포함
+            );
+            log.info("▶▶ CALL_ENDED 브로드캐스트 to /topic/call/{}", targetUserId);
+            messagingTemplate.convertAndSend(
+                    "/topic/call/" + targetUserId,
+                    msg
+            );
+        }
     }
 }

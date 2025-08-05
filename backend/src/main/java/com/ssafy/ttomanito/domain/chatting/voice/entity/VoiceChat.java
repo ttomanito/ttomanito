@@ -50,11 +50,23 @@ public class VoiceChat {
 
     /* ── 비즈니스 메서드 ───────────────────── */
     public void endNow() {
-        this.endedAt     = LocalDateTime.now();
-        this.durationSec = (int) Duration.between(startedAt, endedAt).getSeconds();
-        this.isActive    = false; // ✅ 종료 처리
-    }
+        LocalDateTime now = LocalDateTime.now();
+        this.endedAt = now;
 
+        // 1) 이번 세션의 지속시간 계산
+        int diff = (int) Duration.between(startedAt, now).getSeconds();
+
+        // 2) 기존 durationSec에 누적
+        int prev = (this.durationSec == null ? 0 : this.durationSec);
+        this.durationSec = prev + diff;
+
+        // 3) 비활성화
+        this.isActive = false;
+    }
+    public void cancel() {
+        this.isActive = false;
+        // endedAt, durationSec는 그대로 둡니다.
+    }
     public void activate(LocalDateTime startedAt) {
         this.startedAt = startedAt;
         this.isActive = true;

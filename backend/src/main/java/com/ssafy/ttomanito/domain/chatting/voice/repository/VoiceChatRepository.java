@@ -14,9 +14,8 @@ import java.util.Optional;
 public interface VoiceChatRepository
         extends JpaRepository<VoiceChat, VoiceChatId> {
 
-    // (기존) 통화 중인지 확인
-    boolean existsByRoomUserAndIsActiveTrue(RoomUser user);
-
+    // 통화 중인지 확인
+    boolean existsByRoomUser_User_UserIdAndIsActiveTrue(Long userId);
 
 
     // 반대편(caller) 레코드 — userId와 다른 하나
