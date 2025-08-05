@@ -177,4 +177,5 @@ public class RoomService {
     public boolean isRoomNotStarted(Long roomId) {
         return find(roomId).getStatus() == RoomStatus.NOT_STARTED;
     }
+
 }
