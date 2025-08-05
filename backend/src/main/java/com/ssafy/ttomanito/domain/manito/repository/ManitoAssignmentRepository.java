@@ -24,5 +24,6 @@ public interface ManitoAssignmentRepository extends JpaRepository<ManitoAssignme
     /* ────────── 단순 userId 기준 조회 ────────── */
     Optional<ManitoAssignment> findByManito_UserId(Long userId);
     Optional<ManitoAssignment> findByManitee_UserId(Long userId);
+
 }
 

@@ -5,6 +5,7 @@ import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
@@ -34,4 +35,28 @@ public class VoiceChat {
 
     @Column(name = "duration_sec")
     private Integer durationSec;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive;
+    /* ── 정적 팩토리 ───────────────────────── */
+    public static VoiceChat start(ChattingRoom room, RoomUser user) {
+        return VoiceChat.builder()
+                .chattingRoom(room)
+                .roomUser(user)
+                .startedAt(LocalDateTime.now())
+                .isActive(true) // ✅ 추가
+                .build();
+    }
+
+    /* ── 비즈니스 메서드 ───────────────────── */
+    public void endNow() {
+        this.endedAt     = LocalDateTime.now();
+        this.durationSec = (int) Duration.between(startedAt, endedAt).getSeconds();
+        this.isActive    = false; // ✅ 종료 처리
+    }
+
+    public void activate(LocalDateTime startedAt) {
+        this.startedAt = startedAt;
+        this.isActive = true;
+    }
 }

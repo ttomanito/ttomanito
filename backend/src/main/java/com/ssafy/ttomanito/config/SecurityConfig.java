@@ -52,7 +52,10 @@ public class SecurityConfig {
                                 "/login/oauth2/code/**",
                                 "/auth/**"
                         ).permitAll()
-                        .requestMatchers("/notice/**").authenticated()
+
+                     //   .requestMatchers("/notice/**").authenticated()
+                        .requestMatchers("/ws/**", "/ws/signal/**", "/topic/**", "/app/**").permitAll()
+                        .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
@@ -74,9 +77,11 @@ public class SecurityConfig {
         return http.build();
     }
 
+
     @Bean
     public WebSecurityCustomizer webCustomizer() {
         return web -> web.ignoring().requestMatchers(HttpMethod.OPTIONS, "/**");
+
     }
 
     //  CORS 설정 Bean 추가
