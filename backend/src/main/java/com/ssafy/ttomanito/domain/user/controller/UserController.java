@@ -88,4 +88,17 @@ public class UserController {
 
         return ResponseEntity.noContent().build();
     }
+    @Operation(summary = "사용자 이름 조회", description = "userId로 다른 사용자의 이름을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+    })
+    @GetMapping("/{userId}")
+    public ResponseEntity<String> getUserName(
+            @Parameter(description = "조회할 사용자 ID", required = true)
+            @PathVariable Long userId
+    ) {
+        String name = userService.getUserName(userId);
+        return ResponseEntity.ok(name);
+    }
 }

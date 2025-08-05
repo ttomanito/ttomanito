@@ -1,4 +1,4 @@
-package com.ssafy.ttomanito.domain.chatting.entity;
+package com.ssafy.ttomanito.domain.chatting.voice.entity;
 
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;

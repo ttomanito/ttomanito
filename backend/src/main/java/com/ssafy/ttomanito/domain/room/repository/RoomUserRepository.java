@@ -22,17 +22,25 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
             "   AND ru.room.status IN :statuses")
     List<RoomUser> findActiveRoomsForUser(
             @Param("userId") Long userId,
+
             @Param("statuses") List<RoomStatus> statuses
     );
 
     /**
      * 방 참여자 정보(ParticipantResponse) 조회
      */
-    @Query("SELECT new com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse(" +
-            "    ru.user.userId, ru.statusMessage" +
-            ") " +
-            "FROM RoomUser ru " +
-            "WHERE ru.room.roomId = :roomId")
+    @Query("""
+       SELECT new com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse(
+           u.userId,         
+           u.name,           
+           ru.statusMessage,  
+           r.creator.userId    
+       )
+       FROM RoomUser ru
+       JOIN ru.user u
+       JOIN ru.room r
+       WHERE r.roomId = :roomId
+       """)
     List<ParticipantResponse> findParticipantsByRoomId(@Param("roomId") Long roomId);
 
     /**
