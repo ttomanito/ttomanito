@@ -14,7 +14,6 @@ import java.nio.charset.StandardCharsets;
 
 @SpringBootApplication
 @EnableScheduling
-@EnableJpaAuditing
 public class TtomanitoApplication {
 	public static void main(String[] args) {
 
