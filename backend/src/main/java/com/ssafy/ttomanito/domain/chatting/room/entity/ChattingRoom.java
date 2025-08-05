@@ -1,4 +1,4 @@
-package com.ssafy.ttomanito.domain.chatting.entity;
+package com.ssafy.ttomanito.domain.chatting.room.entity;
 
 import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import jakarta.persistence.*;

@@ -42,8 +42,8 @@ public class RoomController {
 
 
     @Operation(
-            summary = "사용자 참여 여부 확인",
-            description = "현재 로그인한 사용자가 대기 중이거나 진행 중인 방에 참여하고 있는지 여부를 확인합니다.",
+            summary = "사용자 첫 방문 여부 확인",
+            description = "현재 로그인한 사용자가 첫 방문인지 or 대기 중이거나 진행 중인 방에 참여하고 있는지 여부를 확인합니다.",
             security = @SecurityRequirement(name = "bearer-key") // JWT 인증 필요 시
     )
     @ApiResponses(value = {
@@ -72,7 +72,7 @@ public class RoomController {
 
     @Operation(
             summary = "방 생성",
-            description = "사용자가 새로운 방을 생성합니다. JWT 토큰에서 사용자 ID를 추출하여 방을 생성하고, 생성된 방 정보를 반환합니다.",
+            description = "사용자가 새로운 방을 생성하며 방장이 됩니다. 생성된 방 정보를 반환합니다.",
             security = @SecurityRequirement(name = "bearer-key")
     )
     @ApiResponses(value = {
@@ -92,7 +92,7 @@ public class RoomController {
 
     @Operation(
             summary = "방장 퇴장 (방 종료)",
-            description = "방장이 방을 종료합니다. JWT 인증이 필요하며 WebSocket으로 방이 종료된 것에 대해 메시지를 브로드캐스트합니다.",
+            description = "방장이 방을 종료합니다. 방 상태는 NOT-STARTED 에서 NONE 으로 수정되며 JWT 인증이 필요하며 WebSocket으로 방이 종료된 것에 대해 메시지를 브로드캐스트합니다.",
             security = @SecurityRequirement(name = "bearer-key")
     )
     @ApiResponses(value = {
@@ -112,7 +112,7 @@ public class RoomController {
 
     @Operation(
             summary = "방 정보 조회",
-            description = "방 ID를 기반으로 해당 방의 상세 정보를 조회합니다. 초대받을 시 참여자가 보게 될 정보"
+            description = "초대장에 표시될 방 정보를 반환합니다."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "방 정보 조회 성공"),
@@ -125,8 +125,8 @@ public class RoomController {
     }
 
     @Operation(
-            summary = "참여자 목록 조회",
-            description = "특정 방에 참여 중인 사용자들의 정보를 조회합니다."
+            summary = "대기방에서의 참여자 목록 조회",
+            description = "roomId 기준 참가자 정보를 반환합니다."
 
     )
     @ApiResponses(value = {
@@ -162,7 +162,7 @@ public class RoomController {
     }
 
     @Operation(
-            summary = "참가하기 버튼 클릭 처리",
+            summary = "참여자의 참가하기 버튼",
             description = "초대링크 진입 후 참가하기 버튼을 누르면 호출되며, 방 상태 확인 후 입장 준비를 수행합니다.",
             security = @SecurityRequirement(name = "bearer-key")
     )
@@ -191,7 +191,7 @@ public class RoomController {
     }
 
     @Operation(
-            summary = "방 나가기",
+            summary = "참여자의 방 나가기 버튼",
             description = "사용자가 참여 중인 방에서 나갑니다.",
             security = @SecurityRequirement(name = "bearer-key")
     )
@@ -211,7 +211,7 @@ public class RoomController {
     }
 
     @Operation(
-            summary = "참여자 강퇴",
+            summary = "방장으로써 참여자 강퇴",
             description = "방장이 특정 참여자를 강퇴합니다.",
             security = @SecurityRequirement(name = "bearer-key")
     )
@@ -250,4 +250,25 @@ public class RoomController {
         roomService.startGame(roomId, userId);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(
+            summary     = "방장 여부 확인",
+            description = "로그인 사용자가 NOT_STARTED / IN_PROGRESS 상태의 방에서 방장인지 여부를 반환합니다.",
+            security    = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description  = "true = 방장, false = 방장이 아님",
+                    content      = @Content(schema = @Schema(type = "boolean"))
+            ),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @GetMapping("/creator")
+    public boolean isManager(
+            @AuthenticationPrincipal JwtUserDetails principal    // ← JWT에서 복원된 사용자
+    ) {
+        return roomService.checkCreator(principal.getUserId());
+    }
+
 }
