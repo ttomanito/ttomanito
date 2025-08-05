@@ -1,6 +1,8 @@
 package com.ssafy.ttomanito.domain.mission.entity;
 
+import com.ssafy.ttomanito.domain.room.entity.Room;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
+import com.ssafy.ttomanito.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -26,11 +28,15 @@ public class DailyMission {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manito_id", nullable = false)
-    private RoomUser manito;
+    private User manito;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mission_id", nullable = false)
     private Mission mission;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id", nullable = false)
+    private Room room;
 
     @Column(name = "mission_date", nullable = false)
     private LocalDate missionDate;
@@ -41,8 +47,9 @@ public class DailyMission {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
-    public DailyMission(RoomUser manito, Mission mission, LocalDate missionDate) {
+    public DailyMission(User manito, Room room,Mission mission, LocalDate missionDate) {
         this.manito = manito;
+        this.room =room;
         this.mission = mission;
         this.missionDate = missionDate;
     }
