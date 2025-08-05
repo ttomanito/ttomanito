@@ -1,4 +1,12 @@
-import { Box, Text, VStack, HStack, Button, Flex } from '@chakra-ui/react';
+import {
+  Box,
+  Text,
+  VStack,
+  HStack,
+  Button,
+  Flex,
+  // Image
+} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/App.css';
@@ -11,6 +19,13 @@ import {
 } from 'react-router-dom';
 import ProfileList from '@/components/lists/ProfileList';
 import { getRequest } from '@/api/requests';
+// import { connectStomp } from '@/utils/socket.ts'; // 유틸 함수로 작성 권장
+// import ttoma_king from '@/assets/ttoma_king.png';
+
+interface Participant {
+  name: string;
+  statusMessage: string;
+}
 
 interface RoomInfo {
   roomId: number;
@@ -42,7 +57,7 @@ const WaitingRoomPage = () => {
 
   const { roomId } = useParams<{ roomId: string }>();
   const [roomInfo, setRoomInfo] = useState<RoomInfo | null>(null);
-  const [participants, setParticipants] = useState([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const [socket] = useState<WebSocket | null>(null);
 
   useEffect(() => {
@@ -50,32 +65,29 @@ const WaitingRoomPage = () => {
 
     const initializeRoom = async () => {
       try {
-        // 1. 참여 여부 확인
+        // 1. 참여 여부 확인 - 다른 게임 이미 참여 중인 경우 대기 불가.
         const canParticapate = await getRequest('/room/check');
-        if (!!canParticapate) {
+        if (!canParticapate) {
           // navigate('/home');
           //   return;
         }
 
-        // 2. 방 정보 조회
-        const roomData = await getRequest(`/room/${roomId}`);
+        // 2. 방 정보 조회 - 이미 시작/끝인 게임인 경우 참여 불가.
+        const roomData = await getRequest<RoomInfo>(`/room/${roomId}`);
         setRoomInfo(roomData);
 
-        // 3. 참여자 목록 조회 - 방장이면 왕관 노출
-        const participantData = await getRequest(`/room/${roomId}/participants`);
+        // // 3. 참여자 목록 조회 - 방장이면 왕관 노출
+        const participantData = await getRequest<Participant[]>(`/room/${roomId}/participants`);
         setParticipants(
-          participantData?.map((el: { userId: any; statusMessage: any }) => {
+          participantData?.map(el => {
             return {
-              name: el?.userId,
-              statusMessage: el?.statusMessage,
-              rightSideChild: null, // [todo]: 방장인 경우 아이콘 추가
+              name: el.name,
+              statusMessage: el.statusMessage,
             };
           }),
         );
       } catch (err) {
         console.error(err);
-        alert('방 진입 중 오류가 발생했습니다.');
-        // navigate('/home');
       }
     };
 
