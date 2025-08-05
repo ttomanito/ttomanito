@@ -3,10 +3,9 @@ import { Flex, Image } from '@chakra-ui/react';
 import { useAuth } from '@/stores/auth';
 
 const AppHeader = () => {
-  const logout = useAuth(s => s.logout);
 
   const handleLogout = () => {
-    logout();
+    useAuth.getState().logout();
     window.location.href = '/login';
   };
 

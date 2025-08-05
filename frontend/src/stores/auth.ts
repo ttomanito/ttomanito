@@ -14,7 +14,7 @@
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-
+import Cookies from 'js-cookie'
 /**
  * 🔑 서버로부터 받는 토큰 객체 형태(예시).
  * - accessToken: API 호출 때 Authorization 헤더에 붙는 토큰
@@ -111,6 +111,8 @@ export const useAuth = create<AuthState>()(
         //    - persist로 저장된 값 자체를 지우고 싶으면 사용하세요.
         //    - 멀티탭 동기화를 하려면 'storage' 이벤트 리스너도 고려.
         localStorage.removeItem('auth')
+        Cookies.remove('accessToken')
+        Cookies.remove('refreshToken')  
       },
 
       // 재수화가 끝났음을 표시하는 내부용 메서드
