@@ -16,6 +16,8 @@ import LongButton from '@/components/buttons/LongButton';
 import type { LongButtonProps } from '@/components/buttons/LongButton';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
+import { ko } from 'date-fns/locale';
+import { format } from 'date-fns';
 import DateInput from '@/components/DateInput';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/api/client';  // api 인스턴스 import
@@ -117,11 +119,23 @@ const RoomCreatePage = () => {
             <DatePicker
               selected={endDate}
               onChange={(date: Date | null) => setEndDate(date)}
+               renderCustomHeader={({
+    date,
+    decreaseMonth,
+    increaseMonth,
+  }) => (
+    <div className="custom-datepicker-header">
+      <button onClick={decreaseMonth}>{'<ㅤㅤㅤ'}</button>
+      <span>{format(date, 'yyyy년 M월', { locale: ko })}</span>
+      <button onClick={increaseMonth}>{'ㅤㅤㅤ>'}</button>
+    </div>
+  )}
               wrapperClassName="datepicker-full-width"
               minDate={new Date()}
               maxDate={addDays(new Date(), 30)}
               dateFormat="yyyy-MM-dd"
               placeholderText="종료일을 선택해주세요"
+              locale={ko}
               customInput={
                 <DateInput
                   value={endDate ? dayjs(endDate).format('YYYY-MM-DD') : ''}
