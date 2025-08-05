@@ -12,7 +12,7 @@ import CommonCard from '@/components/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
 import BaseModal from '@/components/modal/BaseModal';
 import ProfileCard from '@/components/profile/ProfileCard';
-import ttoma_tutorial from '@/assets/ttoma_tutorial.svg'
+import ttoma_questionmark from '@/assets/ttoma_questionmark.svg'
 
 const GameHomePage = () => {
   const startDate = '2025-07-28'; // 방 생성일
@@ -116,7 +116,7 @@ const GameHomePage = () => {
         </CommonCard>
         <CommonCard onClick={tutorialModal.onOpen}>
           <HStack gap={2} align="center">
-    <Image src={ttoma_tutorial} alt="ttoma icon" boxSize="40px" />
+    <Image src={ttoma_questionmark} alt="ttoma icon" boxSize="40px" />
     <Text fontWeight="bold">튜토리얼 다시 보기</Text>
   </HStack>
         </CommonCard>
