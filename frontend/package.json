@@ -23,13 +23,15 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "framer-motion": "^12.23.7",
+    "js-cookie": "^3.0.5",
     "next-themes": "^0.4.6",
     "react": "^19.1.0",
     "react-datepicker": "^8.4.0",
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.7.0",
-    "vite-plugin-svgr": "^4.3.0"
+    "vite-plugin-svgr": "^4.3.0",
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.0.1",
@@ -38,7 +40,9 @@
     "@storybook/addon-docs": "^9.0.17",
     "@storybook/addon-vitest": "^9.0.17",
     "@storybook/react-vite": "^9.0.17",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^24.1.0",
+    "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
     "@vitest/browser": "^3.2.4",
