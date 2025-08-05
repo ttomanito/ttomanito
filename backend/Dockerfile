@@ -1,7 +1,7 @@
 FROM gradle:8.4.0-jdk17 AS builder
 WORKDIR /app
 COPY . /app
-RUN gradle build -x test
+RUN gradle clean build -x test
 
 # 2. 실행용 Stage
 FROM eclipse-temurin:17-jdk
