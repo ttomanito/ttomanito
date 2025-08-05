@@ -64,4 +64,6 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
 
     List<RoomUser> findByRoom_RoomId(Long roomId);
 
+    Optional<RoomUser> findByRoomRoomIdAndUserUserId(Long roomId, Long userId);
+
 }
