@@ -92,7 +92,8 @@ export const useAuth = create<AuthState>()(
 
       // 파생값: accessToken 존재 여부로 로그인 상태 판단
       get isAuthenticated() {
-        return !!get().tokens.accessToken
+        const state = get?.()
+        return !!state?.tokens?.accessToken
       },
 
       // 토큰 저장/교체(로그인·재발급)

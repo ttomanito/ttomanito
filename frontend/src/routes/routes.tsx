@@ -20,7 +20,7 @@ const MainPage = lazyImport(() => import('@/pages/MainPage')); // /
 const SignupPage = lazyImport(() => import('@/pages/Auth/SignupPage')); // /auth/SignupPage
 const LoginPage = lazyImport(() => import('@/pages/Auth/LoginPage')); // /auth/LoginPage
 const RoomCreatePage = lazyImport(() => import('@/pages/Room/RoomCreatePage')); // /room
-// const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage')); // /room/:roomId
+const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage')); // /room/:roomId
 const MatchingPage = lazyImport(() => import('@/pages/Room/MatchingPage')); // /manito/:roomId/matching
 const HomePage = lazyImport(() => import('@/pages/HomePage')); // /home
 const ChatListPage = lazyImport(() => import('@/pages/Chat/ChatListPage')); // /chat
@@ -38,16 +38,15 @@ export default function AppRoutes() {
     <Suspense fallback={<Loading />}>
       <Routes>
         <Route element={<AppLayout />}>
-          {/* 🔓 ─────────── 비로그인 허용 4개 ─────────── */}
+          {/* 🔓 ─────────── 비로그인 허용 ─────────── */}
           <Route path="/login"                 element={<LoginPage />} />
-          <Route path="/"                      element={<MainPage />} />
-          <Route path="/main"                  element={<MainPage />} />
           <Route path="/report/reportdetail/:reportId" element={<ReportDetailPage />} />
-          {/*   WaitingRoom(대기방) 경로가 확정되면 여기서도 공개로 두세요  */}
-          {/*   <Route path="/room/:roomId"      element={<WaitingRoomPage />}/> */}
+          <Route path="/room/:roomId"      element={<WaitingRoomPage />}/>
 
           {/* 🔒 ─────────── 나머지 전부 보호 ─────────── */}
           <Route element={<RequireAuth />}>
+            <Route path="/"                      element={<MainPage />} />
+            <Route path="/main"                  element={<MainPage />} />
             <Route path="/register"                element={<SignupPage />} />
             <Route path="/room"                    element={<RoomCreatePage />} />
             <Route path="/manito/:roomId/matching" element={<MatchingPage />} />

@@ -1,15 +1,19 @@
 // src/routes/RequireAuth.tsx
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '@/stores/auth'
-import Loading from '@/routes/Loading'     // 동일 로더
+import Loading from '@/routes/Loading'
 
 export default function RequireAuth() {
-  const hydrated = useAuth(s => s.hydrated)
-  const isAuthed = useAuth(s => s.isAuthenticated)
-  const loc      = useLocation()
+  const hydrated = useAuth((s) => s.hydrated)
 
-  if (!hydrated) return <Loading />           // 재수화 대기
+  // ✅ getter 대신 직접 accessToken 여부로 판별
+  const accessToken = useAuth((s) => s.tokens.accessToken)
+  const isAuthed = !!accessToken
 
-  if (!isAuthed)  return <Navigate to="/login" replace state={{ from: loc }} />
+  const loc = useLocation()
+
+  if (!hydrated) return <Loading />
+  if (!isAuthed) return <Navigate to="/login" replace state={{ from: loc }} />
+
   return <Outlet />
 }

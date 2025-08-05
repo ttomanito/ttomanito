@@ -1,8 +1,15 @@
 // components/layout/AppHeader.tsx
-
 import { Flex, Image } from '@chakra-ui/react';
+import { useAuth } from '@/stores/auth';
 
 const AppHeader = () => {
+  const logout = useAuth(s => s.logout);
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/login';
+  };
+
   return (
     <Flex
       as="header"
@@ -11,15 +18,21 @@ const AppHeader = () => {
       pt={2}
       mb={2}
       py={4}
-      px={4} // ← 양옆 16px 패딩
+      px={4}
     >
-      {/* 로고 */}
-      <Image src="/src/assets/logo.svg" boxSize={10} alt="logo" />
+      {/* 로고 → 클릭 시 로그아웃 */}
+      <Image
+        src="@assets/logo.svg"
+        boxSize={10}
+        alt="logo"
+        cursor="pointer"
+        onClick={handleLogout}
+      />
 
       {/* 오른쪽 아이콘 */}
       <Flex gap={4}>
-        <Image src="/src/assets/bellicon.svg" boxSize={12} alt="알림" />
-        <Image src="/src/assets/menuicon.svg" boxSize={14} alt="메뉴" />
+        <Image src="@assets/bellicon.svg" boxSize={12} alt="알림" />
+        <Image src="@assets/menuicon.svg" boxSize={14} alt="메뉴" />
       </Flex>
     </Flex>
   );
