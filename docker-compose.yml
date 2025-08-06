@@ -100,7 +100,7 @@ services:
     networks:
       - app-network
   openvidu-server-kms:
-    image: openvidu/openvidu-server-kms:2.31.0
+    image: openvidu/openvidu-server-kms:2.20.0
     container_name: openvidu-server-kms
     restart: always
     environment:
