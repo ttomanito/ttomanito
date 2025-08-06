@@ -53,6 +53,7 @@ public class SecurityConfig {
                                 "/auth/**"
                         ).permitAll()
                         .requestMatchers("/notice/**").authenticated()
+                        .requestMatchers("/ws/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
