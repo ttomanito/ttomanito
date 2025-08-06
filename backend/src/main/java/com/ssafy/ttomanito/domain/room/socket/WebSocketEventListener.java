@@ -27,27 +27,6 @@ public class WebSocketEventListener {
     @Getter
     private final Map<String, Long> sessionMap = new ConcurrentHashMap<>();
 
-    @EventListener
-    public void handleConnect(SessionConnectEvent event) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        String sessionId = accessor.getSessionId();
-
-        String userIdHeader = accessor.getFirstNativeHeader("userId");
-        String roomIdHeader = accessor.getFirstNativeHeader("roomId");
-
-        if (userIdHeader == null || roomIdHeader == null) {
-            log.warn("Missing headers: userId or roomId");
-            return;
-        }
-
-        Long userId = Long.valueOf(userIdHeader);
-        Long roomId = Long.valueOf(roomIdHeader);
-        sessionMap.put(sessionId, userId);
-
-        log.info("🔵 CONNECT: user {} joined room {}, session: {}", userId, roomId, sessionId);
-
-
-    }
 
     @EventListener
     public void handleDisconnect(SessionDisconnectEvent event) {
