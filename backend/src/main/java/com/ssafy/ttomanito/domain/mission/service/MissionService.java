@@ -61,6 +61,7 @@ public class MissionService {
                     m.getDescription(),
                     m.getDifficulty(),
                     m.getChannel(),
+                    m.getType(),
                     completed,
                     missionStatusId
             );
@@ -109,6 +110,7 @@ public class MissionService {
                 selected.getDescription(),
                 selected.getDifficulty(),
                 selected.getChannel(),
+                selected.getType(),
                 false,
                 status.getId()
         );
@@ -142,6 +144,7 @@ public class MissionService {
                     m.getDescription(),
                     m.getDifficulty(),
                     m.getChannelList(),
+                    m.getType(),
                     dm.getMissionDate(),
                     completed
             );
