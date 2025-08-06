@@ -9,7 +9,7 @@ import { Toaster } from '@/components/ui/toaster'
 import Loading from '@/routes/Loading'
 
 import Cookies from 'js-cookie'
-import { useAuth } from '@/stores/auth'
+import { useAuth } from '@/stores/authStore'
 import { jwtParser } from '@/utils/jwtparser'
 
 export default function App() {
