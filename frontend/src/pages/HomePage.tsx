@@ -5,6 +5,7 @@ import {
   Image,
   useDisclosure,
   HStack,
+  Flex
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
@@ -13,11 +14,12 @@ import LongButton from '@/components/buttons/LongButton';
 import DoubleButton from '@/components/buttons/DoubleButton';
 import BaseModal from '@/components/modal/BaseModal';
 import ProfileCard from '@/components/profile/ProfileCard';
+import ttoma_questionmark from '@/assets/ttoma_questionmark.svg'
 import ttoma_heart from '@/assets/ttoma_heart.svg'
 import ttoma_mission from '@/assets/ttoma_mission.svg'
-
-import ttoma_questionmark from '@/assets/ttoma_questionmark.svg'
-
+import ttoma_gift from '@/assets/mission_icons/ttoma_gift.svg'
+import easy from '@/assets/mission_icons/stars/easy.svg'
+import missioncard_bg from '@/assets/imgs/missioncard_bg.png'
 const GameHomePage = () => {
   const startDate = '2025-07-28'; // 방 생성일
   const endDate = '2025-08-15';  // 방 생성시 설정한 종료일
@@ -57,10 +59,22 @@ const GameHomePage = () => {
   const tutorialModal = useDisclosure();
 
   return (
-    <VStack gap={6} px={4} py={6} align="center">
-      {/* 진행 바 */}
+    <VStack gap={5} align="center" w="full" m={0} p={0}>
+  {/* 배경 전체 */}
+  <Box
+    w="full"
+    bgImage={`url(${missioncard_bg})`}
+    bgSize="cover"
+    bgRepeat="no-repeat"
+    py={6}
+  >
+    <Box maxW="480px" mx="auto" px={4}>
+      <Text textStyle="title_lg" textAlign="center" mb={-5}>
+        오늘의 미션
+      </Text>
+
       <Box w="100%">
-        <Text fontSize="sm" color="gray.600" mb={1} textAlign="center">
+        <Text textStyle="body_sm" mb={1} mr={3} textAlign="end">
           {currentDay} / {totalDays}일
         </Text>
         <Box h="10px" bg="gray.200" borderRadius="full" overflow="hidden">
@@ -77,41 +91,47 @@ const GameHomePage = () => {
       <CommonCard
         onClick={handleRevealMission}
         cursor={!isMissionRevealed ? 'pointer' : 'default'}
+        h="360px"
       >
-        <Text fontSize="xl" fontWeight="bold" textAlign="center" mb={2}>
-          오늘의 미션
-        </Text>
-
-        {!isMissionRevealed ? (
-          <>
-            <Text fontSize="4xl" textAlign="center" mb={2}>
-              ???
-            </Text>
-            <Text textAlign="center" color="gray.500">
-              클릭해서 오늘의 미션을 확인하세요
-            </Text>
-          </>
-        ) : (
-          <>
-            <Text fontSize="md" textAlign="center" mb={2}>
-              몰래 과자 선물하기!!
-            </Text>
-            <Image
-              src="/images/bread-mission.png"
-              alt="미션 이미지"
-              mx="auto"
-              maxW="120px"
-              mb={4}
-            />
-            <LongButton onClick={missionCompleteModal.onOpen}>
-              미션 완료!
-            </LongButton>
-          </>
-        )}
+        <Flex
+          direction="column"
+          justify="center"
+          align="center"
+          h="100%"
+          w="100%"
+          bgImage={isMissionRevealed ? undefined : `url("${missioncard_bg}")`}
+          bgSize="cover"
+          bgRepeat="no-repeat"
+          borderRadius="inherit"
+        >
+          {!isMissionRevealed ? (
+            <>
+              <Text textStyle="title_lg" textAlign="center" mb={2}>???</Text>
+              <Text textStyle="caption_xs_light" textAlign="center">
+                클릭해서 오늘의 미션을 확인해주세요
+              </Text>
+            </>
+          ) : (
+            <>
+              <Image src={easy} alt="난이도" mx="auto" maxW="120px" mb={4} />
+              <Text textStyle="title_ml" textAlign="center" mb={1}>
+                마니띠 몰래 과자 선물하기
+              </Text>
+              <Text textStyle="caption_xs_light" textAlign="center">
+                마니띠 몰래 과자 선물하기
+              </Text>
+              <Image src={ttoma_gift} alt="미션 이미지" mx="auto" maxW="120px" mb={4} />
+              <LongButton onClick={missionCompleteModal.onOpen}>미션 완료!</LongButton>
+            </>
+          )}
+        </Flex>
       </CommonCard>
+    </Box>
+  </Box>
+
 
       {/* 메뉴 카드 */}
-      <VStack w="100%" maxW="480px">
+      <VStack gap={3} w="100%" maxW="480px">
         <CommonCard onClick={prevMissionModal.onOpen}>
           <HStack gap={2} align="center">
           <Image src={ttoma_mission} alt="ttoma icon" boxSize="40px" />
@@ -145,17 +165,18 @@ const GameHomePage = () => {
       <BaseModal 
       open={missionCompleteModal.open}
       onClose={missionCompleteModal.onClose}
-      title="미션 완료 확인"
+      title="오늘의 미션을 완료하셨나요?"
       caption={
-        "미션 수행 결과는 수정이 불가능합니다. 신중히 해주세요."
+        "미션 수행 결과는 수정이 불가능합니다."
       }
+      body={<Text textStyle="caption_xs_light" textAlign="center" mt={-5}>신중히 해주세요.</Text>}
       footer={
         <DoubleButton
         leftLabel="취소"
         rightLabel="확인"
         onLeftClick={missionCompleteModal.onClose}
         onRightClick={() => {
-          alert('미션 완료 처리')
+          alert('미션을 완료하였습니다 !')
           missionCompleteModal.onClose()
         }}
         />
