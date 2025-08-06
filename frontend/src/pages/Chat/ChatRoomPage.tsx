@@ -5,7 +5,7 @@ import { FiPhone } from 'react-icons/fi';
 import TextInput from '@/components/inputs/TextInput';
 import { useState } from 'react';
 import LongButton from '@/components/buttons/LongButton';
-import profile_manito from '@/assets/profile_manito.png';
+import profile_manito from '@/assets/ttomas/profile_manito.png';
 
 const ChatRoomPage = () => {
   // const { id } = useParams(); // '1' 또는 '2'가 들어옴

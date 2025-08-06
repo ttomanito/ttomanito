@@ -14,7 +14,7 @@ import Cookies from 'js-cookie'
 import LongButton from '@/components/buttons/LongButton'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/stores/authStore' // ✅ 임시 로그인용 스토어 접근
-import main_page_logo from '@/assets/main_page_logo.svg'
+import main_page_logo from '@/assets/ttomas/main_page_logo.svg'
 
 import TutorialBody from '@/components/modal/TutorialBody'; // ✨ 1. TutorialBody 컴포넌트 import
 import { useModalStore } from '@/stores/modalStore'; // ✨ 2. Zustand 스토어 import
