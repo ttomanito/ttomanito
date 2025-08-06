@@ -3,7 +3,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import CommonCard from "./CommonCard";
 import { Text, VStack } from "@chakra-ui/react";
-import TextInput from "./TextInput";
+import TextInput from "../inputs/TextInput";
 
 const meta: Meta<typeof CommonCard> = {
   title: "Components/CommonCard",

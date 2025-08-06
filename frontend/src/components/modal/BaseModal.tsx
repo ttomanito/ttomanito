@@ -70,12 +70,12 @@ const BaseModal = ({
                     {title}
                   </DialogTitle>
                   {caption && (
-                    <Text textStyle="caption_xs_light">{caption}</Text>
+                    <Text whiteSpace="pre-line" textStyle="caption_xs_light">{caption}</Text>
                   )}
                 </DialogHeader>
               )}
               
-              <DialogBody>{body ?? <p>내용 없음</p>}</DialogBody>
+              {body && <DialogBody>{body}</DialogBody>}
 
               <DialogFooter>
                 {footer ?? <LongButton onClick={onClose}>닫기</LongButton>}
