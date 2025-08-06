@@ -5,6 +5,7 @@ import com.ssafy.ttomanito.domain.manito.repository.ManitoAssignmentRepository;
 import com.ssafy.ttomanito.domain.poke.entity.PokeLog;
 import com.ssafy.ttomanito.domain.poke.repository.PokeLogRepository;
 
+import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import com.ssafy.ttomanito.domain.user.entity.User;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,25 +27,27 @@ public class PokeService {
 
     @Transactional
     public void poke(Long userId) {
-        // 1. 활성 RoomUser 조회
-        RoomUser roomUser = roomUserRepo.findActiveRoomUserByUserId(userId)
+        // 1. 현재 사용자의 RoomUser 조회
+        RoomUser current = roomUserRepo
+                .findActiveRoomsForUser(userId, List.of(RoomStatus.IN_PROGRESS))
+                .stream()
+                .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("RoomUser 없음"));
-        // 2. 마니또 배정 정보 조회
-        ManitoAssignment assignment =manitoAssignmentRepository
-                .findActiveAssignmentByManiteeUserId(userId)
+        Long ruId = current.getRoomUserId();
+        Long roomId = current.getRoom().getRoomId();
+
+        // 2. 매니또 배정 정보 조회
+        ManitoAssignment assignment = manitoAssignmentRepository
+                .findByManitee_RoomUserIdAndRoom_RoomId(ruId, roomId)
                 .orElseThrow(() -> new IllegalArgumentException("마니또 배정 정보 없음"));
 
-        // 3. 마니띠, 마니또 설정
-        User manitee = assignment.getManitee(); // = 나
-        User manito = assignment.getManito();   // = 상대
-
-        // 3. 저장
+        // 3. PokeLog 저장
         pokeRepo.save(PokeLog.builder()
-                .manito(manito)
-                .manitee(manitee)
-                .assignment(assignment) // 안 써도 된다면 제거 가능
+                .manito(assignment.getManito().getUser())
+                .manitee(assignment.getManitee().getUser())
+                .assignment(assignment)
+                .roomUser(current)
                 .createdAt(LocalDateTime.now())
-                .roomUser(roomUser)
                 .build());
     }
 
