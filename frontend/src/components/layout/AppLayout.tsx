@@ -13,8 +13,8 @@ import { Outlet, useLocation, matchPath } from 'react-router-dom';
 import AppHeader from './AppHeader';
 import BottomNav from './BottomNav';
 import bgImage from '@/assets/imgs/profile_bg.png';
-import detective_ttoma_img from '@/assets/detective_ttoma.svg';
-import logo_ttomanito from '@/assets/logo_ttomanito.svg';
+import detective_ttoma_img from '@/assets/ttomas/detective_ttoma.svg';
+import logo_ttomanito from '@/assets/ttomas/logo_ttomanito.svg';
 import { useModalStore } from '@/stores/modalStore';
 import BaseModal from '@/components/modal/BaseModal';
 

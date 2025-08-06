@@ -11,9 +11,9 @@ import dayjs from 'dayjs';
 import CommonCard from '@/components/cards/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
 import ProfileCard from '@/components/profile/ProfileCard';
-import ttoma_questionmark from '@/assets/ttoma_questionmark.svg'
-import ttoma_heart from '@/assets/ttoma_heart.svg'
-import ttoma_mission from '@/assets/ttoma_mission.svg'
+import ttoma_questionmark from '@/assets/ttomas/ttoma_questionmark.svg';
+import ttoma_heart from '@/assets/ttomas/ttoma_heart.svg';
+import ttoma_mission from '@/assets/ttomas/ttoma_mission.svg';
 import ttoma_gift from '@/assets/mission_icons/ttoma_gift.svg'
 import easy from '@/assets/mission_icons/stars/easy.svg'
 import missioncard_bg from '@/assets/imgs/missioncard_bg.png'
