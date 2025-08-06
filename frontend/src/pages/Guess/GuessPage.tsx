@@ -58,8 +58,14 @@ const GuessPage = () => {
         const guessRes = await getRequest<GuessHistory[]>('/manito/guess/history');
         const today = new Date().toISOString().slice(0, 10);
         const guessedToday = guessRes.some((g) => g.guessedDate === today);
+        // 이전 추측 더미 데이터
+        const dummyHistory: GuessHistory[] = [
+        { guessedUserId: 1, guessedDate: '2025-08-03' },
+        { guessedUserId: 3, guessedDate: '2025-08-05' },
+      ];
+      setGuessHistory(dummyHistory);
+      // setGuessHistory(guessRes);
         setHasGuessedToday(guessedToday);
-        setGuessHistory(guessRes);
       } catch (err) {
         console.error('데이터 불러오기 실패:', err);
       }
@@ -94,6 +100,7 @@ const GuessPage = () => {
     } catch (err) {
       console.error('추측 이력 불러오기 실패:', err);
     } finally {
+        console.log('모달을 열겠습니다!'); // ✅ 디버깅
       setHistoryOpen(true); // 무조건 모달 열림
     }
   };
