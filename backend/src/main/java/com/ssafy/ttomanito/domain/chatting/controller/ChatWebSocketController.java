@@ -22,11 +22,11 @@ public class ChatWebSocketController {
 
     /**
      * 1) 클라이언트에서 과거 메시지 요청 시
-     *    send: /app/chat.history.{chatRoomId}
-     *    receive: /user/queue/history
+     * send: /app/chat.history.{chatRoomId}
+     * receive: /user/queue/history
      */
     @MessageMapping("/chat.history.{chatRoomId}")
-    public void history(@DestinationVariable Long chatRoomId,  Principal principal) {
+    public void history(@DestinationVariable Long chatRoomId, Principal principal) {
         List<ChatMessageDto> history = service.getHistory(chatRoomId);
         template.convertAndSendToUser(
                 principal.getName(),
@@ -37,8 +37,8 @@ public class ChatWebSocketController {
 
     /**
      * 2) 새 메시지 수신 시
-     *    send: /app/chat.send.{chatRoomId}
-     *    broadcast: /topic/chat.{chatRoomId}
+     * send: /app/chat.send.{chatRoomId}
+     * broadcast: /topic/chat.{chatRoomId}
      */
     @MessageMapping("/chat.send.{chatRoomId}")
     public void sendMessage(@DestinationVariable Long chatRoomId,
@@ -58,8 +58,8 @@ public class ChatWebSocketController {
 
     /**
      * 3) 찌르기 요청 시
-     *    send: /app/chat.poke.{chatRoomId}
-     *    broadcast: /topic/chat.{chatRoomId}
+     * send: /app/chat.poke.{chatRoomId}
+     * broadcast: /topic/chat.{chatRoomId}
      */
     @MessageMapping("/chat.poke.{chatRoomId}")
     public void poke(@DestinationVariable Long chatRoomId,

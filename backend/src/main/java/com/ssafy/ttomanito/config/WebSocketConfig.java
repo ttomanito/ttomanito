@@ -43,7 +43,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
+        registry.addEndpoint("/ws/chat")
+                .setAllowedOriginPatterns(
+                        "http://localhost:5173",
+                        "http://localhost:8080",
+                        "https://i13b206.p.ssafy.io"
+                )
+                .withSockJS()
+                .setSessionCookieNeeded(true);
+        registry.addEndpoint("/ws/waiting")
                 .setAllowedOriginPatterns(
                         "http://localhost:5173",
                         "http://localhost:8080",

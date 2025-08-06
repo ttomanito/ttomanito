@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -31,11 +30,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class ChattingService {
-    private final RoomUserRepository      ruRepo;
+    private final RoomUserRepository ruRepo;
     private final ManitoAssignmentRepository maRepo;
     private final ChattingRoomRepository chatRoomRepo;
     private final ChattingUserRepository chatUserRepo;
-    private final ChatMessageRepository   chatMsgRepo;
+    private final ChatMessageRepository chatMsgRepo;
 
     @Transactional(readOnly = true)
     public ChatRoomListDto getRoomList(Long userId) {
