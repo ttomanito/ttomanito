@@ -2,7 +2,7 @@
 import { Box, Flex, Icon, Text, VStack, Image } from '@chakra-ui/react';
 import { FiPhone } from 'react-icons/fi';
 // import { useParams } from 'react-router-dom';
-import TextInput from '@/components/TextInput';
+import TextInput from '@/components/inputs/TextInput';
 import { useState } from 'react';
 import LongButton from '@/components/buttons/LongButton';
 import profile_manito from '@/assets/profile_manito.png';

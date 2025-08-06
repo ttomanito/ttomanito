@@ -8,7 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
-import CommonCard from '@/components/CommonCard';
+import CommonCard from '@/components/cards/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
 import ProfileCard from '@/components/profile/ProfileCard';
 import ttoma_questionmark from '@/assets/ttoma_questionmark.svg'
