@@ -57,7 +57,7 @@ export default function AppLayout() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { pathname } = useLocation();
-  const { isModalOpen, closeModal, modalTitle, modalBody, modalFooter } =
+  const { isModalOpen, closeModal, modalTitle, modalBody, modalCaption, modalFooter } =
     useModalStore();
 
   const noHeaderPatterns = [
@@ -105,6 +105,7 @@ export default function AppLayout() {
             <BaseModal
               open={isModalOpen}
               onClose={closeModal}
+              caption={modalCaption}
               title={modalTitle}
               body={modalBody}
               footer={modalFooter}

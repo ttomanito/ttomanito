@@ -4,13 +4,20 @@ import {
   Text,
   Image,
   HStack,
+  Flex,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import CommonCard from '@/components/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
 import ProfileCard from '@/components/profile/ProfileCard';
-import ttoma_questionmark from '@/assets/ttoma_questionmark.svg';
+import ttoma_questionmark from '@/assets/ttoma_questionmark.svg'
+import ttoma_heart from '@/assets/ttoma_heart.svg'
+import ttoma_mission from '@/assets/ttoma_mission.svg'
+import ttoma_gift from '@/assets/mission_icons/ttoma_gift.svg'
+import easy from '@/assets/mission_icons/stars/easy.svg'
+import missioncard_bg from '@/assets/imgs/missioncard_bg.png'
+import DoubleButton from '@/components/buttons/DoubleButton';
 import { useModalStore } from '@/stores/modalStore';
 import TutorialBody from '@/components/modal/TutorialBody'; // ✨ 1. 새로 만든 TutorialBody를 import
 
@@ -48,6 +55,25 @@ const GameHomePage = () => {
   };
 
   // ✨ 1. 각 모달에 필요한 데이터를 객체로 미리 정의합니다.
+  const missionCompleteModalData = {
+    title: '오늘의 미션을 완료하셨나요?',
+    caption: '미션 수행 결과는 수정이 불가능합니다.\n 신중히 선택해주세요.',
+    body: (''
+    ),
+    footer: (
+      <DoubleButton
+        leftLabel="취소"
+        rightLabel="확인"
+        // ✨ missionCompleteModal.onClose 대신 closeModal을 사용합니다.
+        onLeftClick={closeModal}
+        onRightClick={() => {
+          alert('미션을 완료하였습니다 !');
+          // ✨ missionCompleteModal.onClose 대신 closeModal을 사용합니다.
+          closeModal();
+        }}
+      />
+    ),
+  };
   const prevMissionModalData = {
     title: '이전 미션 확인하기',
     caption: '내가 수행한 미션 목록입니다',
@@ -68,10 +94,22 @@ const GameHomePage = () => {
   };
 
   return (
-    <VStack gap={6} px={4} py={6} align="center">
-      {/* 진행 바 */}
+    <VStack gap={5} align="center" w="full" m={0} p={0}>
+  {/* 배경 전체 */}
+  <Box
+    w="full"
+    bgImage={`url(${missioncard_bg})`}
+    bgSize="cover"
+    bgRepeat="no-repeat"
+    py={6}
+  >
+    <Box maxW="480px" mx="auto" px={4}>
+      <Text textStyle="title_lg" textAlign="center" mb={-5}>
+        오늘의 미션
+      </Text>
+
       <Box w="100%">
-        <Text fontSize="sm" color="gray.600" mb={1} textAlign="center">
+        <Text textStyle="body_sm" mb={1} mr={3} textAlign="end">
           {currentDay} / {totalDays}일
         </Text>
         <Box h="10px" bg="gray.200" borderRadius="full" overflow="hidden">
@@ -88,52 +126,72 @@ const GameHomePage = () => {
       <CommonCard
         onClick={handleRevealMission}
         cursor={!isMissionRevealed ? 'pointer' : 'default'}
+        h="360px"
       >
-        {/* ... 미션 카드 내용 생략 ... */}
-        <Text fontSize="xl" fontWeight="bold" textAlign="center" mb={2}>
-          오늘의 미션
-        </Text>
-        {!isMissionRevealed ? (
-          <>
-            <Text fontSize="4xl" textAlign="center" mb={2}>
-              ???
-            </Text>
-            <Text textAlign="center" color="gray.500">
-              클릭해서 오늘의 미션을 확인하세요
-            </Text>
-          </>
-        ) : (
-          <>
-            <Text fontSize="md" textAlign="center" mb={2}>
-              몰래 과자 선물하기!!
-            </Text>
-            <Image
-              src="/images/bread-mission.png"
-              alt="미션 이미지"
-              mx="auto"
-              maxW="120px"
-              mb={4}
-            />
-            <LongButton onClick={() => alert('미션 완료 처리')}>
-              미션 완료하기
-            </LongButton>
-          </>
-        )}
+        <Flex
+          direction="column"
+          justify="center"
+          align="center"
+          h="100%"
+          w="100%"
+          bgImage={isMissionRevealed ? undefined : `url("${missioncard_bg}")`}
+          bgSize="cover"
+          bgRepeat="no-repeat"
+          borderRadius="inherit"
+        >
+          {!isMissionRevealed ? (
+            <>
+              <Text textStyle="title_lg" textAlign="center" mb={2}>???</Text>
+              <Text textStyle="caption_xs_light" textAlign="center">
+                클릭해서 오늘의 미션을 확인해주세요
+              </Text>
+            </>
+          ) : (
+            <>
+              <Image src={easy} alt="난이도" mx="auto" maxW="120px" mb={4} />
+              <Text textStyle="title_ml" textAlign="center" mb={1}>
+                마니띠 몰래 과자 선물하기
+              </Text>
+              <Text textStyle="caption_xs_light" textAlign="center">
+                마니띠 몰래 과자 선물하기
+              </Text>
+              <Image src={ttoma_gift} alt="미션 이미지" mx="auto" maxW="120px" mb={4} />
+              <LongButton onClick={() => openModal(missionCompleteModalData)}>미션 완료!</LongButton>
+            </>
+          )}
+        </Flex>
       </CommonCard>
+    </Box>
+  </Box>
+
 
       {/* 메뉴 카드 */}
-      <VStack w="100%" maxW="480px">
-        {/* ✨ 2. onClick 핸들러에서 미리 정의한 객체를 전달합니다. */}
+      <VStack gap={3} w="100%" maxW="480px">
         <CommonCard onClick={() => openModal(prevMissionModalData)}>
-          이전 미션 확인하기
+          <HStack gap={2} align="center">
+          <Image src={ttoma_mission} alt="ttoma icon" boxSize="40px" />
+            <VStack gap={1} align="start">
+          <Text textStyle="body_sm">이전 미션 확인하기</Text>
+          <Text textStyle="caption_xs_light">지난 미션 기록을 확인해보세요</Text>
+            </VStack>
+          </HStack>
         </CommonCard>
         <CommonCard onClick={() => openModal(manitoModalData)}>
-          내 마니띠 확인하기
+          <HStack gap={2} align="center">
+          <Image src={ttoma_heart} alt="ttoma icon" boxSize="40px" />
+            <VStack gap={1} align="start">
+          <Text textStyle="body_sm">내 마니띠 확인하기</Text>
+          <Text textStyle="caption_xs_light">내 마니띠가 누구인지 다시 확인해보세요</Text>
+            </VStack>
+          </HStack>
         </CommonCard>
         <CommonCard onClick={() => openModal(tutorialModalData)}>
           <HStack gap={2} align="center">
-            <Image src={ttoma_questionmark} alt="ttoma icon" boxSize="40px" />
-            <Text fontWeight="bold">튜토리얼 다시 보기</Text>
+          <Image src={ttoma_questionmark} alt="ttoma icon" boxSize="40px" />
+            <VStack gap={1} align="start">
+          <Text textStyle="body_sm">튜토리얼 다시 보기</Text>
+          <Text textStyle="caption_xs_light">필요할 때 언제든 튜토리얼을 다시 볼 수 있어요</Text>
+            </VStack>
           </HStack>
         </CommonCard>
       </VStack>
