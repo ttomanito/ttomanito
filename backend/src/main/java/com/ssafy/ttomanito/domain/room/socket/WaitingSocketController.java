@@ -34,6 +34,7 @@ public class WaitingSocketController {
         );
     }
 
+
     @MessageMapping("/waiting/exit")
     public void exit(WaitingMessage msg) {
         WaitingMessage response = WaitingMessage.builder()
