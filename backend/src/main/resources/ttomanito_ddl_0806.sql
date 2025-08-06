@@ -1,6 +1,6 @@
 CREATE DATABASE IF NOT EXISTS `ttomanito`
-  CHARACTER SET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
+    CHARACTER SET = utf8mb4
+    COLLATE = utf8mb4_unicode_ci;
 USE `ttomanito`;
 
 CREATE TABLE `mission_status` (
@@ -107,7 +107,7 @@ CREATE TABLE `voice_chat` (
 );
 
 CREATE TABLE `manito_guess` (
-                                `manito_guess`	BIGINT	NOT NULL,
+                                `manito_guess_id`	BIGINT	NOT NULL,
                                 `guess_user_id`	BIGINT	NOT NULL,
                                 `guessed_user_id`	BIGINT	NOT NULL,
                                 `guessed_date`	DATE	NOT NULL,
@@ -165,7 +165,7 @@ ALTER TABLE `voice_chat` ADD CONSTRAINT `PK_VOICE_CHAT` PRIMARY KEY (
     );
 
 ALTER TABLE `manito_guess` ADD CONSTRAINT `PK_MANITO_GUESS` PRIMARY KEY (
-                                                                         `manito_guess`
+                                                                         `manito_guess_id`
     );
 
 ALTER TABLE `notification` ADD CONSTRAINT `PK_NOTIFICATION` PRIMARY KEY (
@@ -212,3 +212,72 @@ ALTER TABLE `chatting_user` ADD CONSTRAINT `FK_room_user_TO_chatting_user_1` FOR
                             `room_user_id`
         );
 
+-- 1) mission 테이블 수정 --------------------------------------------------
+ALTER TABLE `mission`
+    CHANGE COLUMN `channels` `channel` VARCHAR(50) NOT NULL
+        COMMENT 'ENUM(\'MEET\', \'CHAT\', \'CALL\')',
+    ADD COLUMN `type` VARCHAR(50) NOT NULL
+        COMMENT 'ENUM(\'GIFT\', \'COMMUNICATION\', \'PERFORMANCE\', \'NOTES\', \'OBSERVATION\')'
+        AFTER `channel`,
+    ADD COLUMN `created_at` DATETIME NOT NULL AFTER `type`,
+    ADD COLUMN `updated_at` DATETIME NULL AFTER `created_at`;
+
+-- 2) daily_mission 테이블 수정 --------------------------------------------
+
+ALTER TABLE `daily_mission`
+    ADD COLUMN `room_id` BIGINT NOT NULL AFTER `mission_id`;
+
+-- 2) created_at, updated_at 컬럼 추가 및 외래키 제약 걸기
+ALTER TABLE `daily_mission`
+    ADD COLUMN `created_at` DATETIME NOT NULL AFTER `mission_date`,
+    ADD COLUMN `updated_at` DATETIME NULL AFTER `created_at`,
+    ADD CONSTRAINT `FK_DAILY_MISSION_USER`
+        FOREIGN KEY (`manito_id`)  REFERENCES `user`(`user_id`),
+    ADD CONSTRAINT `FK_DAILY_MISSION_MISSION`
+        FOREIGN KEY (`mission_id`) REFERENCES `mission`(`mission_id`),
+    ADD CONSTRAINT `FK_DAILY_MISSION_ROOM`
+        FOREIGN KEY (`room_id`)    REFERENCES `room`(`room_id`);
+
+
+-- 3) mission_status 테이블 재정의 또는 신규 생성 --------------------------
+DROP TABLE IF EXISTS `mission_status`;
+CREATE TABLE `mission_status` (
+                                  `mission_status_id` BIGINT NOT NULL AUTO_INCREMENT,
+                                  `user_id`           BIGINT NOT NULL,
+                                  `daily_mission_id`  BIGINT NOT NULL,
+                                  `room_user_id`      BIGINT NOT NULL,
+                                  `completed`         BOOLEAN NOT NULL,
+                                  `completed_at`      DATETIME     NULL,
+                                  `created_at`        DATETIME NOT NULL,
+                                  `updated_at`        DATETIME     NULL,
+                                  PRIMARY KEY (`mission_status_id`),
+                                  CONSTRAINT `FK_MS_USER`
+                                      FOREIGN KEY (`user_id`)          REFERENCES `user`(`user_id`),
+                                  CONSTRAINT `FK_MS_DAILY`
+                                      FOREIGN KEY (`daily_mission_id`) REFERENCES `daily_mission`(`daily_mission_id`),
+                                  CONSTRAINT `FK_MS_ROOM_USER`
+                                      FOREIGN KEY (`room_user_id`)     REFERENCES `room_user`(`room_user_id`)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
+
+-- 4) poke_log 테이블 정의 ------------------------------------------------
+CREATE TABLE `poke_log` (
+                            `poke_id`                BIGINT NOT NULL AUTO_INCREMENT,
+                            `manito_id`              BIGINT NOT NULL,
+                            `manitee_id`             BIGINT NOT NULL,
+                            `manito_assignment_id`   BIGINT NOT NULL,
+                            `room_user_id`           BIGINT NOT NULL,
+                            `created_at`             DATETIME NOT NULL,
+                            PRIMARY KEY (`poke_id`),
+                            CONSTRAINT `FK_PL_MANITO`
+                                FOREIGN KEY (`manito_id`)             REFERENCES `user`(`user_id`),
+                            CONSTRAINT `FK_PL_MANITEE`
+                                FOREIGN KEY (`manitee_id`)            REFERENCES `user`(`user_id`),
+                            CONSTRAINT `FK_PL_ASSIGNMENT`
+                                FOREIGN KEY (`manito_assignment_id`)  REFERENCES `manito_assignment`(`manito_assignment_id`),
+                            CONSTRAINT `FK_PL_ROOM_USER`
+                                FOREIGN KEY (`room_user_id`)          REFERENCES `room_user`(`room_user_id`)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
