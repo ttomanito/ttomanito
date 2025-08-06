@@ -9,7 +9,7 @@ import {
 import BaseModal from '@/components/modal/BaseModal';
 import { useParams } from 'react-router-dom';
 import { getRequest, postRequest } from '@/api/requests';
-import { useAuth } from '@/stores/auth';
+import { useAuth } from '@/stores/authStore';
 import ProfileListItem from '@/components/lists/ProfileListItem';
 import { dummyParticipants } from '@/mocks/participants';
 import LongButton from '@/components/buttons/LongButton';
