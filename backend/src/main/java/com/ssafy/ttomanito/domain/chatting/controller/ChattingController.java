@@ -1,12 +1,14 @@
 package com.ssafy.ttomanito.domain.chatting.controller;
 
 import com.ssafy.ttomanito.domain.chatting.message.dto.ChatMessageDto;
+import com.ssafy.ttomanito.domain.chatting.room.dto.ChatRoomListDto;
 import com.ssafy.ttomanito.domain.chatting.room.dto.ChattingRoomDto;
 import com.ssafy.ttomanito.domain.chatting.service.ChattingService;
+import com.ssafy.ttomanito.global.security.userdetails.JwtUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,49 +22,65 @@ public class ChattingController {
     private final SimpMessagingTemplate template;
 
     @GetMapping("/roomlist")
-    public ResponseEntity<List<ChattingRoomDto>> getChatRoomList(@RequestParam Long userId) {
-        return ResponseEntity.ok(service.getRooms(userId));
-    }
-
-    @GetMapping("/room")
-    public ResponseEntity<Long> getChatRoomId(@RequestParam Long manitoAssignmentId) {
-        return ResponseEntity.ok(service.getOrCreateRoom(manitoAssignmentId));
-    }
-
-    @GetMapping("/room/{chatroomId}/messages")
-    public ResponseEntity<List<ChatMessageDto>> getHistory(@PathVariable Long chatroomId) {
-        return ResponseEntity.ok(service.getHistory(chatroomId));
-    }
-
-    @PostMapping("/room/{chatroomId}/message")
-    public ResponseEntity<ChatMessageDto> sendMessage(
-            @PathVariable Long chatroomId,
-            @RequestBody ChatMessageDto payload
+    public ResponseEntity<ChatRoomListDto> getRoomList(
+            @AuthenticationPrincipal JwtUserDetails user
     ) {
-        var saved = service.saveMessage(
-                new ChatMessageDto(chatroomId, payload.senderRoomUserId(), payload.content(), null)
-        );
-        template.convertAndSend("/topic/chat." + chatroomId, saved);
-        return new ResponseEntity<>(saved, HttpStatus.CREATED);
+        ChatRoomListDto dto = service.getRoomList(user.getUserId());
+        return ResponseEntity.ok(dto);
     }
 
+    // 1) 내가 마니또인 방
+    @GetMapping("/room/manito")
+    public ResponseEntity<ChattingRoomDto> getRoomsAsManito(@AuthenticationPrincipal JwtUserDetails user) {
+        return ResponseEntity.ok(service.getRoomAsManito(user.getUserId()));
+    }
+
+    // 2) 내가 마니띠인 방
+    @GetMapping("/room/manitee")
+    public ResponseEntity<ChattingRoomDto> getRoomsAsManitee(@AuthenticationPrincipal JwtUserDetails user) {
+        return ResponseEntity.ok(service.getRoomAsManitee(user.getUserId()));
+    }
+
+    // 메시지 히스토리
+//    @GetMapping("/room/{chatroomId}/messages")
+//    public List<ChatMessageDto> getHistory(@PathVariable Long chatroomId) {
+//        return service.getHistory(chatroomId);
+//    }
+
+    // 메시지 전송 및 unread_count++
+//    @PostMapping("/room/{chatroomId}/message")
+//    public ResponseEntity<ChatMessageDto> sendMessage(
+//            @PathVariable Long chatroomId,
+//            @AuthenticationPrincipal JwtUserDetails user,
+//            @RequestBody ChatMessageDto payload) {
+//        ChatMessageDto saved = service.sendMessage(chatroomId, user.getUserId(), payload.content());
+//        template.convertAndSend("/topic/chat." + chatroomId, saved);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+//    }
+
+    // 입장: unread_count = 0
     @PostMapping("/{chatroomId}/enter")
-    public ResponseEntity<Void> enterChatRoom(@PathVariable Long chatroomId, @RequestParam Long userId) {
-        service.enterRoom(chatroomId, userId);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/{chatroomId}/exit")
-    public ResponseEntity<Void> exitChatRoom(@PathVariable Long chatroomId, @RequestParam Long userId) {
-        service.exitRoom(chatroomId, userId);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/{chatroomId}/unread")
-    public ResponseEntity<Integer> getUnreadCount(
+    public ResponseEntity<Void> enter(
             @PathVariable Long chatroomId,
-            @RequestParam Long userId
-    ) {
-        return ResponseEntity.ok(service.getUnreadCount(chatroomId, userId));
+            @AuthenticationPrincipal JwtUserDetails user) {
+        service.markRead(chatroomId, user.getUserId());
+        return ResponseEntity.ok().build();
     }
+
+    // 퇴장: last_message 동기화
+//    @PostMapping("/{chatroomId}/exit")
+//    public ResponseEntity<Void> exit(
+//            @PathVariable Long chatroomId,
+//            @AuthenticationPrincipal JwtUserDetails user) {
+//        service.leaveRoom(chatroomId, user.getUserId());
+//        return ResponseEntity.ok().build();
+//    }
+//
+//    @GetMapping("/{chatroomId}/unread")
+//    public ResponseEntity<Integer> getUnreadCount(
+//            @PathVariable Long chatroomId,
+//            @RequestParam Long userId
+//    ) {
+//        return ResponseEntity.ok(service.getUnreadCount(chatroomId, userId));
+//    }
 }
