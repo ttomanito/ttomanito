@@ -1,10 +1,12 @@
 package com.ssafy.ttomanito.domain.notice.service;
 
+import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import com.ssafy.ttomanito.domain.manito.repository.ManitoAssignmentRepository;
 import com.ssafy.ttomanito.domain.notice.dto.NoticeResponse;
 import com.ssafy.ttomanito.domain.notice.entity.Notice;
 import com.ssafy.ttomanito.domain.notice.entity.NoticeType;
 import com.ssafy.ttomanito.domain.notice.repository.NoticeRepository;
+import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import com.ssafy.ttomanito.domain.user.entity.User;
@@ -46,23 +48,57 @@ public class NoticeService {
     }
 
     @Transactional
-    public void createPokeNotice(Long maniteeId) {
-        User manito = findMyManito(maniteeId);
-        Notice notice = Notice.of(manito, NoticeType.POKE);
-        noticeRepository.save(notice);
+    public void createPokeNotice(Long userId) {
+        // 현재 사용자의 RoomUser 조회
+        RoomUser current = roomUserRepository
+                .findActiveRoomsForUser(userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS))
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("참여 중인 방이 없습니다."));
+        Long ruId = current.getRoomUserId();
+        Long roomId = current.getRoom().getRoomId();
+
+        ManitoAssignment assign = manitoAssignmentRepository
+                .findByManitee_RoomUserIdAndRoom_RoomId(ruId, roomId)
+                .orElseThrow(() -> new IllegalArgumentException("마니또 정보가 없습니다."));
+        User manito = assign.getManito().getUser();
+
+        noticeRepository.save(Notice.of(manito, NoticeType.POKE));
     }
 
     @Transactional
-    public void createGuessNotice(Long maniteeId) {
-        User manito = findMyManito(maniteeId);
-        Notice notice = Notice.of(manito, NoticeType.GUESS);
-        noticeRepository.save(notice);
+    public void createGuessNotice(Long userId) {
+        // 현재 사용자의 RoomUser 조회
+        RoomUser current = roomUserRepository
+                .findActiveRoomsForUser(userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS))
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("참여 중인 방이 없습니다."));
+        Long ruId = current.getRoomUserId();
+        Long roomId = current.getRoom().getRoomId();
+
+        ManitoAssignment assign = manitoAssignmentRepository
+                .findByManitee_RoomUserIdAndRoom_RoomId(ruId, roomId)
+                .orElseThrow(() -> new IllegalArgumentException("마니또 정보가 없습니다."));
+        User manito = assign.getManito().getUser();
+
+        noticeRepository.save(Notice.of(manito, NoticeType.GUESS));
     }
 
-    private User findMyManito(Long maniteeId) {
-        return manitoAssignmentRepository.findByManitee_UserId(maniteeId)
+    private User findMyManito(Long userId) {
+        RoomUser current = roomUserRepository
+                .findActiveRoomsForUser(userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS))
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("참여 중인 방이 없습니다."));
+        Long ruId = current.getRoomUserId();
+        Long roomId = current.getRoom().getRoomId();
+
+        return manitoAssignmentRepository
+                .findByManitee_RoomUserIdAndRoom_RoomId(ruId, roomId)
                 .orElseThrow(() -> new IllegalArgumentException("마니또 정보가 없습니다."))
-                .getManito();
+                .getManito()
+                .getUser();
     }
 
     @Transactional
@@ -74,20 +110,30 @@ public class NoticeService {
         }
     }
 
+    @Transactional
     public void createExitNotices(Long userId) {
-        // 내가 마니띠라면 → 마니또에게 알림
-        manitoAssignmentRepository.findByManitee_UserId(userId)
-                .ifPresent(assign -> {
-                    Notice notice = Notice.of(assign.getManito(), NoticeType.SYSTEM);
-                    noticeRepository.save(notice);
-                });
+        // 현재 사용자의 RoomUser 조회
+        RoomUser current = roomUserRepository
+                .findActiveRoomsForUser(userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS))
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("참여 중인 방이 없습니다."));
+        Long ruId = current.getRoomUserId();
+        Long roomId = current.getRoom().getRoomId();
 
-        // 내가 마니또라면 → 마니띠에게 알림
-        manitoAssignmentRepository.findByManito_UserId(userId)
-                .ifPresent(assign -> {
-                    Notice notice = Notice.of(assign.getManitee(), NoticeType.SYSTEM);
-                    noticeRepository.save(notice);
-                });
+        // 내가 마니띠라면 → 마니또에게 SYSTEM 알림
+        manitoAssignmentRepository
+                .findByManitee_RoomUserIdAndRoom_RoomId(ruId, roomId)
+                .ifPresent(assign -> noticeRepository.save(
+                        Notice.of(assign.getManito().getUser(), NoticeType.SYSTEM)
+                ));
+
+        // 내가 마니또라면 → 마니띠에게 SYSTEM 알림
+        manitoAssignmentRepository
+                .findByManito_RoomUserIdAndRoom_RoomId(ruId, roomId)
+                .ifPresent(assign -> noticeRepository.save(
+                        Notice.of(assign.getManitee().getUser(), NoticeType.SYSTEM)
+                ));
     }
 
 

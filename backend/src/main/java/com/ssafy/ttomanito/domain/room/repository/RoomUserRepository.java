@@ -1,6 +1,5 @@
 package com.ssafy.ttomanito.domain.room.repository;
 
-import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
@@ -12,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
-    Optional<RoomUser> findByRoom_RoomIdAndUser_UserId(Long roomId, Long userId);
+//    Optional<RoomUser> findByRoom_RoomIdAndUser_UserId(Long roomId, Long userId);
     /**
      * 사용자가 참여한 방 중 상태가 NOT_STARTED or IN_PROGRESS인 RoomUser 조회
      */
@@ -22,7 +21,6 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
             "   AND ru.room.status IN :statuses")
     List<RoomUser> findActiveRoomsForUser(
             @Param("userId") Long userId,
-
             @Param("statuses") List<RoomStatus> statuses
     );
 
@@ -73,25 +71,27 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
 
     List<RoomUser> findByRoom_RoomId(Long roomId);
 
-    @Query("""
-    SELECT ma
-    FROM ManitoAssignment ma
-    JOIN ma.room r
-    JOIN ma.manitee u
-    WHERE u.userId = :userId
-      AND r.status = com.ssafy.ttomanito.domain.room.entity.RoomStatus.IN_PROGRESS
-""")
-    Optional<ManitoAssignment> findActiveAssignmentByManiteeUserId(@Param("userId") Long userId);
+//    @Query("""
+//    SELECT ma
+//    FROM ManitoAssignment ma
+//    JOIN ma.room r
+//    JOIN ma.manitee u
+//    WHERE u.userId = :userId
+//      AND r.status = com.ssafy.ttomanito.domain.room.entity.RoomStatus.IN_PROGRESS
+//""")
+//    Optional<ManitoAssignment> findActiveAssignmentByManiteeUserId(@Param("userId") Long userId);
+//
+//    @Query("""
+//    SELECT ru
+//    FROM RoomUser ru
+//    JOIN ru.room r
+//    WHERE ru.user.userId = :userId
+//      AND r.status = com.ssafy.ttomanito.domain.room.entity.RoomStatus.IN_PROGRESS
+//""")
+//    Optional<RoomUser> findActiveRoomUserByUserId(@Param("userId") Long userId);
+//
+//
 
-    @Query("""
-    SELECT ru
-    FROM RoomUser ru
-    JOIN ru.room r
-    WHERE ru.user.userId = :userId
-      AND r.status = com.ssafy.ttomanito.domain.room.entity.RoomStatus.IN_PROGRESS
-""")
-    Optional<RoomUser> findActiveRoomUserByUserId(@Param("userId") Long userId);
-
-
+    Optional<RoomUser> findByRoomRoomIdAndUserUserId(Long roomId, Long userId);
 
 }
