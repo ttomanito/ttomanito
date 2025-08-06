@@ -99,6 +99,33 @@ services:
     restart: always
     networks:
       - app-network
+  openvidu-server-kms:
+    image: openvidu/openvidu-server-kms:2.31.0
+    container_name: openvidu-server-kms
+    restart: always
+    environment:
+      OPENVIDU_SECRET: ${OPENVIDU_SECRET}
+      OPENVIDU_PUBLICURL: ${VITE_API_URL}
+    ports:
+      - "4443:4443"
+    networks:
+      - app-network
+
+  coturn:
+    image: instrumentisto/coturn
+    container_name: coturn
+    restart: always
+    command:
+      - --listening-port=3478
+      - --realm=${TURN_REALM}
+      - --user=${TURN_USER}:${TURN_PASS}
+      - --lt-cred-mech
+      - --no-cli
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+    networks:
+      - app-network
 
 volumes:
   mysql-data:
