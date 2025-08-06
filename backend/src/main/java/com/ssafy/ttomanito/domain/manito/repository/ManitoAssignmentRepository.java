@@ -11,18 +11,14 @@ public interface ManitoAssignmentRepository extends JpaRepository<ManitoAssignme
     List<ManitoAssignment> findByRoom_RoomId(Long roomId);
     void deleteByRoom_RoomId(Long roomId);
 
-    /* ────────── 단건 조회 ────────── */
-    Optional<ManitoAssignment> findByManito_UserIdAndRoom_RoomId(Long manitoId, Long roomId);   // ★ manito + room
+    Optional<ManitoAssignment> findByManito_RoomUserIdAndRoom_RoomId(Long manitoRuId, Long roomId);
+    Optional<ManitoAssignment> findByManitee_RoomUserIdAndRoom_RoomId(Long maniteeRuId, Long roomId);
 
-    Optional<ManitoAssignment>
-    findByManitee_UserIdAndRoom_RoomId(Long maniteeId, Long roomId); // (필요 시)
+    boolean existsByManitee_RoomUserIdAndManito_RoomUserIdAndRoom_RoomId(
+            Long maniteeRuId, Long manitoRuId, Long roomId);
 
-    /* ────────── exists(정답 여부) ────────── */
-    boolean existsByManitee_UserIdAndManito_UserIdAndRoom_RoomId(
-            Long maniteeId, Long manitoId, Long roomId);
+    Optional<ManitoAssignment> findByManito_RoomUserId(Long ruId);
+    Optional<ManitoAssignment> findByManitee_RoomUserId(Long ruId);
 
-    /* ────────── 단순 userId 기준 조회 ────────── */
-    Optional<ManitoAssignment> findByManito_UserId(Long userId);
-    Optional<ManitoAssignment> findByManitee_UserId(Long userId);
 }
 

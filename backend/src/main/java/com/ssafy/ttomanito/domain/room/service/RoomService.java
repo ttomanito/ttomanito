@@ -140,11 +140,14 @@ public class RoomService {
         if (!room.getCreator().getUserId().equals(hostId)) {
             throw new RuntimeException("호스트만 게임을 시작할 수 있습니다.");
         }
-        List<Long> participantIds = roomUserRepository.findUserIdsByRoomId(roomId);
-        if (participantIds.size() < 4) {
+        // 룸유저 엔티티를 모두 가져와서 랜덤 섞기
+        List<RoomUser> participants = roomUserRepository.findByRoom_RoomId(roomId);
+        if (participants.size() < 4) {
             throw new RuntimeException("최소 4명의 참가자가 필요합니다.");
         }
+        Collections.shuffle(participants);
 
+        // 게임 시작 브로드캐스트
         messagingTemplate.convertAndSend(
                 "/topic/waiting/" + roomId,
                 WaitingMessage.builder()
@@ -152,16 +155,12 @@ public class RoomService {
                         .type(WaitingMessage.MessageType.START)
                         .build()
         );
-        room.start(LocalDate.now());  // Dirty Checking
+        room.start(LocalDate.now());
 
-        // 매니또 할당
-        for (int i = 0; i < participantIds.size(); i++) {
-            Long manitoId = participantIds.get(i);
-            Long maniteeId = participantIds.get((i + 1) % participantIds.size());
-            User manito = userRepository.findById(manitoId)
-                    .orElseThrow(() -> new UserNotFoundException(manitoId));
-            User manitee = userRepository.findById(maniteeId)
-                    .orElseThrow(() -> new UserNotFoundException(maniteeId));
+        // 매니또 할당 (순환 교대 방식)
+        for (int i = 0; i < participants.size(); i++) {
+            RoomUser manito = participants.get(i);
+            RoomUser manitee = participants.get((i + 1) % participants.size());
             manitoAssignmentRepository.save(
                     ManitoAssignment.create(manito, manitee, room)
             );

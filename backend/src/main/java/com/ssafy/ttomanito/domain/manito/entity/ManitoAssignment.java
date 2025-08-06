@@ -1,7 +1,7 @@
 package com.ssafy.ttomanito.domain.manito.entity;
 
 import com.ssafy.ttomanito.domain.room.entity.Room;
-import com.ssafy.ttomanito.domain.user.entity.User;
+import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,18 +20,18 @@ public class ManitoAssignment {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "manito_id", nullable = false)
-    private User manito;
+    private RoomUser manito;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "manitee_id", nullable = false)
-    private User manitee;
+    private RoomUser manitee;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "room_id", nullable = false)
     private Room room;
 
     /** 정적 팩토리 메서드 */
-    public static ManitoAssignment create(User manito, User manitee, Room room) {
+    public static ManitoAssignment create(RoomUser manito, RoomUser manitee, Room room) {
         return ManitoAssignment.builder()
                 .manito(manito)
                 .manitee(manitee)
