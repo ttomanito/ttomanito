@@ -1,19 +1,28 @@
 // src/pages/ChatRoomPage.tsx
-import { Box, Flex, Icon, Text, VStack, Image } from '@chakra-ui/react';
+import { Box, Flex, Icon, Text, VStack } from '@chakra-ui/react';
 import { FiPhone } from 'react-icons/fi';
 // import { useParams } from 'react-router-dom';
 import TextInput from '@/components/TextInput';
 import { useState } from 'react';
 import LongButton from '@/components/buttons/LongButton';
-import profile_manito from '@/assets/profile_manito.png';
+import type { Message } from '@/types/chat/chat';
+import ChatBubble from '@/components/chat/ChatBubble';
+import SystemMessage from '@/components/chat/SystemMessage';
 
 const ChatRoomPage = () => {
-  // const { id } = useParams(); // '1' 또는 '2'가 들어옴
+  // const { chatRoomId } = useParams(); // '1' 또는 '2'가 들어옴
   const [message, setMessage] = useState('');
+  const [messages] = useState<Message[]>([
+    { sender: 'me', content: '안녕하세요', time: '7:50 PM' },
+    { sender: 'me', content: '오늘 내가 과자 놓고 갔었는데 봤어?', time: '7:50 PM' },
+    { sender: 'other', content: '응 아까 밥 먹고 오니까 있더라ㅎㅎ', time: '7:50 PM' },
+    { sender: 'other', content: '응 아까 밥 먹고 오니까 있더라ㅎㅎ', time: '7:50 PM' },
+    { sender: 'other', type: 'poke', time: '7:50 PM' },
+    { sender: 'me', type: 'poke', time: '8:00 PM' },
+  ]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
-    console.log(e.target.value);
   };
 
   // const alertMsg = () => {
@@ -40,52 +49,14 @@ const ChatRoomPage = () => {
       </Box>
 
       {/* 메시지 영역 */}
-      <VStack px={4} gap={3} align="flex-start">
-        <Box
-          alignSelf="flex-end"
-          bg="accent.500"
-          px={4}
-          py={2}
-          borderRadius="lg"
-          position="relative"
-        >
-          <Text textStyle="body_sm">안녕하세요</Text>
-          <Text
-            textStyle="caption_xs_light"
-            position="absolute"
-            bottom="0" // 말풍선 위로 띄우기
-            left={-1}
-            transform="translateX(-100%)" // 시간 텍스트 너비만큼 이동
-            color="gray.500"
-            fontSize="xs"
-          >
-            7:50 PM
-          </Text>
-        </Box>
-        <Box alignSelf="flex-end" bg="accent.500" px={4} py={2} borderRadius="lg">
-          <Text textStyle="body_sm">오늘 내가 과자 놓고 갔었는데 봤어?</Text>
-        </Box>
-        <Box bg="gray.100" px={4} py={2} borderRadius="lg">
-          <Text textStyle="body_sm">응 아까 밥 먹고 오니까 있더라ㅎㅎ</Text>
-        </Box>
-        <Box bg="gray.100" px={4} py={2} borderRadius="lg">
-          <Text textStyle="body_sm">잘 먹을게 고마워!❤️</Text>
-        </Box>
-        <Box px={4} py={2} borderRadius="lg">
-          <Box w={24} p={1}>
-            <Image src={profile_manito} mr={3}></Image>
-          </Box>
-          {/* <Text textStyle="body_sm">콕! 찌르기 👉</Text> */}
-        </Box>
-        <Box bg="gray.100" px={4} py={2} borderRadius="lg">
-          <Text textStyle="body_sm">콕! 찌르기 👉</Text>
-        </Box>
+      <VStack px={4} gap={3} align="stretch">
+        {messages.map(el => (
+          <ChatBubble sender={el?.sender} content={el?.content} time={el?.time} type={el?.type} />
+        ))}
       </VStack>
 
       {/* 퇴장 메시지 */}
-      <Box bg="gray.200" textAlign="center" color="gray.500" textStyle="body_sm" py={2}>
-        <Text textStyle="body_sm"> 마니또가 퇴장하였습니다.</Text>
-      </Box>
+      <SystemMessage type="exit" />
 
       {/* 입력창 */}
       <Flex
