@@ -20,6 +20,7 @@ import ttoma_mission from '@/assets/ttoma_mission.svg'
 import ttoma_gift from '@/assets/mission_icons/ttoma_gift.svg'
 import easy from '@/assets/mission_icons/stars/easy.svg'
 import missioncard_bg from '@/assets/imgs/missioncard_bg.png'
+
 const GameHomePage = () => {
   const startDate = '2025-07-28'; // 방 생성일
   const endDate = '2025-08-15';  // 방 생성시 설정한 종료일
