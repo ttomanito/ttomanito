@@ -34,6 +34,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenRevocationService tokenRevocationService;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        return request.getRequestURI().startsWith("/ws/signal");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain)
@@ -80,4 +85,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 4) 필터 체인 계속
         chain.doFilter(request, response);
     }
+
 }

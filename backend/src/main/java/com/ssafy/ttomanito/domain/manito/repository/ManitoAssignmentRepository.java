@@ -24,17 +24,8 @@ public interface ManitoAssignmentRepository extends JpaRepository<ManitoAssignme
 //    Optional<ManitoAssignment> findByManitee_RoomUserId(Long ruId);
 //
     /* ────────── 단순 userId 기준 조회 ────────── */
-//    Optional<ManitoAssignment> findByManito_UserId(Long userId);
-//
-//    Optional<ManitoAssignment> findByManitee_UserId(Long userId);
-//    @Query("""
-//    SELECT ma
-//    FROM ManitoAssignment ma
-//    JOIN ma.room r
-//    WHERE ma.manitee.userId = :userId
-//      AND r.status = com.ssafy.ttomanito.domain.room.entity.RoomStatus.IN_PROGRESS
-//""")
-//    Optional<ManitoAssignment> findActiveAssignmentByManiteeUserId(Long userId);
-//
+
+
+
 }
 

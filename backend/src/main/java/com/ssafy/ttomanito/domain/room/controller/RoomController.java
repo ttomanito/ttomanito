@@ -254,7 +254,7 @@ public class RoomController {
     @Operation(
             summary     = "방장 여부 확인",
             description = "로그인 사용자가 NOT_STARTED / IN_PROGRESS 상태의 방에서 방장인지 여부를 반환합니다.",
-            security    = { @SecurityRequirement(name = "bearerAuth") }
+            security    = { @SecurityRequirement(name = "bearer-key") }
     )
     @ApiResponses({
             @ApiResponse(
