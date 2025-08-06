@@ -1,5 +1,5 @@
 // src/pages/ChatRoomPage.tsx
-import { Box, Flex, Icon, Text, VStack } from '@chakra-ui/react';
+import { Box, Flex, Icon, Text, VStack, Image } from '@chakra-ui/react';
 import { FiPhone } from 'react-icons/fi';
 // import { useParams } from 'react-router-dom';
 import TextInput from '@/components/TextInput';
@@ -7,6 +7,7 @@ import { useState } from 'react';
 import LongButton from '@/components/buttons/LongButton';
 import type { Message } from '@/types/chat/chat';
 import ChatMessageRenderer from '@/components/chat/ChatMessageRenderer';
+import poke_icon from '@/assets/poke_icon.svg';
 
 const ChatRoomPage = () => {
   // const { chatRoomId } = useParams(); // '1' 또는 '2'가 들어옴
@@ -103,8 +104,16 @@ const ChatRoomPage = () => {
         borderTop="1px solid #ccc"
         zIndex="10"
       >
-        <LongButton w="10" h="10">
-          dd
+        <LongButton
+          w="10"
+          h="10"
+          p="0"
+          bg="white"
+          onClick={() => {
+            alert('찌르기 실행');
+          }}
+        >
+          <Image src={poke_icon} w={10} />
         </LongButton>
         <TextInput value={message} onChange={handleChange} placeholder="메시지를 입력하세요" />
         <LongButton w="10" h="10">
