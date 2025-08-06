@@ -7,6 +7,7 @@ import java.util.List;
 
 public record MissionListItemDto(
         Long missionId,
+        Long missionStatusId,
         String title,
         String description,
         String difficulty,                // 👈 enum 아님! String
@@ -16,6 +17,7 @@ public record MissionListItemDto(
 ) {
     public static MissionListItemDto from(
             Long missionId,
+            Long missionStatusId,
             String title,
             String description,
             String difficulty,
@@ -23,6 +25,6 @@ public record MissionListItemDto(
             LocalDate missionDate,
             boolean completed
     ) {
-        return new MissionListItemDto(missionId, title, description, difficulty, channels, missionDate, completed);
+        return new MissionListItemDto(missionId,missionStatusId, title, description, difficulty, channels, missionDate, completed);
     }
 }

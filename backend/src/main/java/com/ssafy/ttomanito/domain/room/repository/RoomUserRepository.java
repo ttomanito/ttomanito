@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
-
+//    Optional<RoomUser> findByRoom_RoomIdAndUser_UserId(Long roomId, Long userId);
     /**
      * 사용자가 참여한 방 중 상태가 NOT_STARTED or IN_PROGRESS인 RoomUser 조회
      */
@@ -27,11 +27,18 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
     /**
      * 방 참여자 정보(ParticipantResponse) 조회
      */
-    @Query("SELECT new com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse(" +
-            "    ru.user.userId, ru.statusMessage" +
-            ") " +
-            "FROM RoomUser ru " +
-            "WHERE ru.room.roomId = :roomId")
+    @Query("""
+       SELECT new com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse(
+           u.userId,         
+           u.name,           
+           ru.statusMessage,  
+           r.creator.userId    
+       )
+       FROM RoomUser ru
+       JOIN ru.user u
+       JOIN ru.room r
+       WHERE r.roomId = :roomId
+       """)
     List<ParticipantResponse> findParticipantsByRoomId(@Param("roomId") Long roomId);
 
     /**
@@ -63,6 +70,27 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
     List<RoomUser> findUsersInProgressRoom();
 
     List<RoomUser> findByRoom_RoomId(Long roomId);
+
+//    @Query("""
+//    SELECT ma
+//    FROM ManitoAssignment ma
+//    JOIN ma.room r
+//    JOIN ma.manitee u
+//    WHERE u.userId = :userId
+//      AND r.status = com.ssafy.ttomanito.domain.room.entity.RoomStatus.IN_PROGRESS
+//""")
+//    Optional<ManitoAssignment> findActiveAssignmentByManiteeUserId(@Param("userId") Long userId);
+//
+//    @Query("""
+//    SELECT ru
+//    FROM RoomUser ru
+//    JOIN ru.room r
+//    WHERE ru.user.userId = :userId
+//      AND r.status = com.ssafy.ttomanito.domain.room.entity.RoomStatus.IN_PROGRESS
+//""")
+//    Optional<RoomUser> findActiveRoomUserByUserId(@Param("userId") Long userId);
+//
+//
 
     Optional<RoomUser> findByRoomRoomIdAndUserUserId(Long roomId, Long userId);
 

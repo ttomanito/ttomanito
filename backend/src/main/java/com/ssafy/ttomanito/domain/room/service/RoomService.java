@@ -104,6 +104,7 @@ public class RoomService {
         roomUserRepository.save(ru);
     }
 
+    
     public void closeRoomByCreatorId(Long creatorId) {
         Room room = roomRepository
                 .findByCreator_UserIdAndStatus(creatorId, RoomStatus.NOT_STARTED)
@@ -118,6 +119,7 @@ public class RoomService {
                         .build()
         );
     }
+    
 
     public void kick(Long roomId, Long hostId, Long targetUserId) {
         Room room = find(roomId);
@@ -175,5 +177,10 @@ public class RoomService {
 
     public boolean isRoomNotStarted(Long roomId) {
         return find(roomId).getStatus() == RoomStatus.NOT_STARTED;
+    }
+
+    public boolean checkCreator(Long userId) {
+        List<RoomStatus> active = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
+        return roomRepository.checkCreator(userId, active);
     }
 }
