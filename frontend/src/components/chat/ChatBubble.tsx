@@ -1,5 +1,6 @@
-import { Box, Text, Flex } from '@chakra-ui/react';
+import { Box, Text, Flex, Image } from '@chakra-ui/react';
 import type { Message } from '@/types/chat/chat';
+import ttoma_poke from '@/assets/ttoma_poke.png';
 
 const ChatBubble = ({ sender, content, time, type = 'text' }: Message) => {
   const isMe = sender === 'me';
@@ -8,6 +9,7 @@ const ChatBubble = ({ sender, content, time, type = 'text' }: Message) => {
     if (type === 'poke') {
       return (
         <Box bg="gray.100" px={4} py={2} borderRadius="lg" maxW="30%">
+          <Image src={ttoma_poke} />
           <Text textStyle="body_sm">콕! 찔렀어요 👉</Text>
         </Box>
       );
