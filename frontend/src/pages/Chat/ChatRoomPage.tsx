@@ -6,28 +6,60 @@ import TextInput from '@/components/TextInput';
 import { useState } from 'react';
 import LongButton from '@/components/buttons/LongButton';
 import type { Message } from '@/types/chat/chat';
-import ChatBubble from '@/components/chat/ChatBubble';
-import SystemMessage from '@/components/chat/SystemMessage';
+import ChatMessageRenderer from '@/components/chat/ChatMessageRenderer';
 
 const ChatRoomPage = () => {
   // const { chatRoomId } = useParams(); // '1' 또는 '2'가 들어옴
   const [message, setMessage] = useState('');
   const [messages] = useState<Message[]>([
-    { sender: 'me', content: '안녕하세요', time: '7:50 PM' },
-    { sender: 'me', content: '오늘 내가 과자 놓고 갔었는데 봤어?', time: '7:50 PM' },
-    { sender: 'other', content: '응 아까 밥 먹고 오니까 있더라ㅎㅎ', time: '7:50 PM' },
-    { sender: 'other', content: '응 아까 밥 먹고 오니까 있더라ㅎㅎ', time: '7:50 PM' },
-    { sender: 'other', type: 'poke', time: '7:50 PM' },
-    { sender: 'me', type: 'poke', time: '8:00 PM' },
+    {
+      id: '2',
+      sender: 'me',
+      content: '오늘 내가 과자 놓고 갔었는데 봤어?',
+      time: '7:51 PM',
+      type: 'text',
+    },
+    {
+      id: '3',
+      sender: 'other',
+      content: '응 아까 밥 먹고 오니까 있더라ㅎㅎ',
+      time: '7:52 PM',
+      type: 'text',
+    },
+    {
+      id: '4',
+      sender: 'other',
+      content: '잘 먹을게 고마워!❤️',
+      time: '7:53 PM',
+      type: 'text',
+    },
+    {
+      id: '5',
+      sender: 'other',
+      time: '7:54 PM',
+      type: 'poke',
+      content: '',
+    },
+    {
+      id: '6',
+      sender: 'me',
+      time: '8:00 PM',
+      type: 'poke',
+      content: '',
+    },
+    {
+      id: '7',
+      sender: 'system',
+      time: '8:00 PM',
+      type: 'system',
+      content: '',
+      systemCategory: 'exit',
+    },
   ]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
   };
-
-  // const alertMsg = () => {
-  //   return;
-  // };
 
   return (
     <Box position="relative" h="full">
@@ -51,12 +83,12 @@ const ChatRoomPage = () => {
       {/* 메시지 영역 */}
       <VStack px={4} gap={3} align="stretch">
         {messages.map(el => (
-          <ChatBubble sender={el?.sender} content={el?.content} time={el?.time} type={el?.type} />
+          <ChatMessageRenderer message={el} />
         ))}
       </VStack>
 
       {/* 퇴장 메시지 */}
-      <SystemMessage type="exit" />
+      {/* <ChatMessageRenderer message={messages[5]} /> */}
 
       {/* 입력창 */}
       <Flex
@@ -80,7 +112,7 @@ const ChatRoomPage = () => {
           placeholder="메시지를 입력하세요"
         ></TextInput>
         <LongButton w="10" h="10">
-          전송
+          보내기
         </LongButton>
         {/* <Input placeholder="메시지를 입력하세요" /> */}
       </Flex>
