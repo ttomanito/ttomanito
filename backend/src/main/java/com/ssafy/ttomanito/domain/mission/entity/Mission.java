@@ -35,6 +35,10 @@ public class Mission {
     @Column(nullable = false, length = 50)
     private String channel;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private MissionType type;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -42,16 +46,20 @@ public class Mission {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    public Mission(String title, String description, String difficulty, String channel) {
+    public Mission(String title, String description, String difficulty, String channel, MissionType type) {
         this.title = title;
         this.description = description;
         this.difficulty = difficulty;
         this.channel = channel;
+        this.type = type;
     }
 
     public List<MissionChannel> getChannelList() {
         return Arrays.stream(channel.split("/"))
                 .map(MissionChannel::valueOf)
                 .toList();
+    }
+    public MissionType getType() {
+        return type;
     }
 }
