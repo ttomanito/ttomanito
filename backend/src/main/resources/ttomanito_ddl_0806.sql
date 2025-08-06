@@ -17,6 +17,10 @@ CREATE TABLE `user` (
                         `status`	VARCHAR(50)	NOT NULL	COMMENT 'ENUM(`ACTIVE`, `WITHDRAWN`)'
 );
 
+-- 1-1) user 테이블의 PK인 user_id에 AUTO_INCREMENT 추가
+ALTER TABLE `user`
+    MODIFY COLUMN `user_id` BIGINT NOT NULL AUTO_INCREMENT;
+
 CREATE TABLE `mission` (
                            `mission_id`	BIGINT	NOT NULL,
                            `title`	VARCHAR(100)	NOT NULL,
