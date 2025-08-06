@@ -62,9 +62,9 @@ public class VoiceChatService {
                 .orElseThrow(() -> new RuntimeException("caller not found"));
 
         // 누가 caller인지에 따라 callee를 assign에서 바로 결정
-        Long receiverId = (callerUserId.equals(assign.getManito().getUserId()))
-                ? assign.getManitee().getUserId()
-                : assign.getManito().getUserId();
+        Long receiverId = ((callerUserId.equals(assign.getManito().getUser()))
+                        ? assign.getManitee().getUser()
+                        : assign.getManito().getUser()).getUserId();
 
         RoomUser ruCallee = roomUserRepository
                 .findByRoomIdAndUserId(roomId, receiverId)

@@ -27,65 +27,57 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChattingController {
 
-    private final ChattingService chattingService;
+    private final ChattingService service;
     private final SimpMessagingTemplate template;
     private final VoiceChatService voiceChatService;
     private final RoomUserRepository roomUserRepository;
     private final VoiceChatRepository voiceChatRepository;
 
-    /** 채팅 방 목록 조회 */
     @GetMapping("/roomlist")
-    public ResponseEntity<List<ChattingRoomDto>> getRoomList(@RequestParam Long userId) {
-        // TODO: chattingService.getRooms(userId)
-        return ResponseEntity.ok(List.of());
+    public ResponseEntity<List<ChattingRoomDto>> getChatRoomList(@RequestParam Long userId) {
+        return ResponseEntity.ok(service.getRooms(userId));
     }
 
-    /** 채팅방 id 생성/조회 */
     @GetMapping("/room")
-    public ResponseEntity<Long> getRoomId(@RequestParam Long manitoAssignmentId) {
-        // TODO: chattingService.getOrCreateRoom(manitoAssignmentId)
-        return ResponseEntity.ok(0L);
+    public ResponseEntity<Long> getChatRoomId(@RequestParam Long manitoAssignmentId) {
+        return ResponseEntity.ok(service.getOrCreateRoom(manitoAssignmentId));
     }
 
-    /** 과거 메시지 조회 */
-    @GetMapping("/room/{roomId}/messages")
-    public ResponseEntity<List<ChatMessageDto>> getHistory(@PathVariable Long roomId) {
-        return ResponseEntity.ok(chattingService.getHistory(roomId));
+    @GetMapping("/room/{chatroomId}/messages")
+    public ResponseEntity<List<ChatMessageDto>> getHistory(@PathVariable Long chatroomId) {
+        return ResponseEntity.ok(service.getHistory(chatroomId));
     }
 
-    /** 메시지 전송 */
-    @PostMapping("/room/{roomId}/message")
+    @PostMapping("/room/{chatroomId}/message")
     public ResponseEntity<ChatMessageDto> sendMessage(
-            @PathVariable Long roomId,
+            @PathVariable Long chatroomId,
             @RequestBody ChatMessageDto payload
     ) {
-        ChatMessageDto saved = chattingService.saveMessage(
-                new ChatMessageDto(roomId, payload.senderRoomUserId(), payload.content(), null)
+        var saved = service.saveMessage(
+                new ChatMessageDto(chatroomId, payload.senderRoomUserId(), payload.content(), null)
         );
-        template.convertAndSend("/topic/chat." + roomId, saved);
+        template.convertAndSend("/topic/chat." + chatroomId, saved);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    /** 채팅방 입장 */
-    @PostMapping("/{roomId}/enter")
-    public ResponseEntity<Void> enterRoom(@PathVariable Long roomId, @RequestParam Long userId) {
-        // TODO: chattingService.enterRoom(roomId, userId)
+    @PostMapping("/{chatroomId}/enter")
+    public ResponseEntity<Void> enterChatRoom(@PathVariable Long chatroomId, @RequestParam Long userId) {
+        service.enterRoom(chatroomId, userId);
         return ResponseEntity.ok().build();
     }
 
-    /** 채팅방 나가기 */
-    @PostMapping("/{roomId}/exit")
-    public ResponseEntity<Void> exitRoom(@PathVariable Long roomId, @RequestParam Long userId) {
-        // TODO: chattingService.exitRoom(roomId, userId)
+    @PostMapping("/{chatroomId}/exit")
+    public ResponseEntity<Void> exitChatRoom(@PathVariable Long chatroomId, @RequestParam Long userId) {
+        service.exitRoom(chatroomId, userId);
         return ResponseEntity.ok().build();
     }
 
-    /** 안읽은 메시지 개수 조회 */
-    @GetMapping("/{roomId}/unread")
+    @GetMapping("/{chatroomId}/unread")
     public ResponseEntity<Integer> getUnreadCount(
-            @PathVariable Long roomId,
+            @PathVariable Long chatroomId,
             @RequestParam Long userId
     ) {
+
         // TODO: chattingService.getUnreadCount(roomId, userId)
         return ResponseEntity.ok(0);
     }
@@ -159,5 +151,6 @@ public class ChattingController {
         Long userId = principal.getUserId();
         voiceChatService.endCall(chatroomId, userId);
         return ResponseEntity.ok().build();
+
     }
 }

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Chat Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h1>1:1 Chat Test</h1>
+<div>
+    <label>Room ID: <input id="roomId" value="1" /></label>
+    <label>My RoomUserId: <input id="myUserId" value="1" /></label>
+    <button id="connectBtn">Connect</button>
+</div>
+<div id="chat">
+    <ul id="messages"></ul>
+    <input id="msgInput" placeholder="Type..." />
+    <button id="sendBtn">Send</button>
+</div>
+<script>
+    let stompClient;
+    document.getElementById('connectBtn').onclick = () => {
+        const roomId = document.getElementById('roomId').value;
+        const socket = new SockJS('/ws/waiting');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, () => {
+            // 과거 히스토리 요청
+            stompClient.subscribe('/user/queue/history', res => {
+                const msgs = JSON.parse(res.body);
+                msgs.forEach(m => addMessage(m));
+            });
+            stompClient.send(`/app/chat.history.${roomId}`, {}, {});
+            // 실시간 구독
+            stompClient.subscribe(`/topic/chat.${roomId}`, res => {
+                const m = JSON.parse(res.body);
+                addMessage(m);
+            });
+        });
+    };
+    document.getElementById('sendBtn').onclick = () => {
+        const roomId = document.getElementById('roomId').value;
+        const sender = document.getElementById('myUserId').value;
+        const content = document.getElementById('msgInput').value;
+        stompClient.send(
+            `/app/chat.send.${roomId}`,
+            {"Content-Type":"application/json"},
+            JSON.stringify({ chattingRoomId: +roomId, senderRoomUserId: +sender, content })
+        );
+        document.getElementById('msgInput').value = '';
+    };
+    function addMessage(m) {
+        const li = document.createElement('li');
+        li.textContent = `[${new Date(m.sentAt).toLocaleTimeString()}] ${m.senderRoomUserId}: ${m.content}`;
+        document.getElementById('messages').append(li);
+    }
+</script>
+</body>
+</html>

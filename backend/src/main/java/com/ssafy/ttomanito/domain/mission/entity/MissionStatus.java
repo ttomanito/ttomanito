@@ -1,6 +1,7 @@
 package com.ssafy.ttomanito.domain.mission.entity;
 
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
+import com.ssafy.ttomanito.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -13,8 +14,6 @@ import java.time.LocalDateTime;
 @Table(name = "mission_status")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
 @EntityListeners(AuditingEntityListener.class)
 public class MissionStatus {
 
@@ -24,8 +23,8 @@ public class MissionStatus {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_user_id", nullable = false)
-    private RoomUser roomUser;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "daily_mission_id", nullable = false)
@@ -36,6 +35,9 @@ public class MissionStatus {
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_user_id", nullable = false)
+    private RoomUser roomUser;
 
     @CreatedDate
     @Column(updatable = false)
@@ -44,10 +46,12 @@ public class MissionStatus {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    public MissionStatus(RoomUser roomUser, DailyMission newDailyMission, boolean b) {
+    // 생성자
+    public MissionStatus(User user,RoomUser roomUser, DailyMission dailyMission, boolean completed) {
+        this.user = user;
         this.roomUser = roomUser;
-        this.dailyMission = newDailyMission;
-        this.completed = b;
+        this.dailyMission = dailyMission;
+        this.completed = completed;
     }
 
     // 도메인 메서드
