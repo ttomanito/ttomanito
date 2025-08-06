@@ -8,6 +8,7 @@ import com.ssafy.ttomanito.domain.chatting.voice.repository.VoiceChatRepository;
 import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.extern.slf4j.XSlf4j;
@@ -16,6 +17,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +33,13 @@ public class VoiceChatService {
     private final VoiceChatRepository voiceChatRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-
+    @Transactional
+    public void cancelAllActiveByUser(Long userId) {
+        int updated = voiceChatRepository.deactivateAllByUserId(userId);
+        if (updated > 0) {
+            log.info("User {}: deactivated {} active VoiceChat records", userId, updated);
+        }
+    }
     @Transactional
     public void startCall(Long chattingRoomId, Long callerUserId) {
         log.info("▶▶ ENTER acceptCall", new RuntimeException("stack trace"));
@@ -71,17 +79,7 @@ public class VoiceChatService {
         voiceChatRepository.save(vcCaller);
         voiceChatRepository.save(vcCallee);
 
-        log.info("▶▶ CALL_REQUEST 브로드캐스트 to /topic/call/{}", receiverId);
-        // 4) Unicast → B에게만 CALL_REQUEST 푸시
-        messagingTemplate.convertAndSend(
-                "/topic/call/" + receiverId,
-                new CallSignalDto(
-                        "CALL_REQUEST",
-                        chattingRoomId,
-                        callerUserId,
-                        ruCaller.getUser().getName()
-                )
-        );
+
     }
 
     /**
@@ -96,32 +94,15 @@ public class VoiceChatService {
 
 
         // 2. 시간 세팅 및 active 설정
-        LocalDateTime now = LocalDateTime.now();
+
         for (VoiceChat vc : voiceChats) {
-            vc.activate(now);
+            vc.activate();
         }
 
         // 3. 저장
         voiceChatRepository.saveAll(voiceChats);
 
-        // ✅ callerId를 받은 거니까 → 나머지 한 명이 receiver
-        Long receiverId = voiceChats.stream()
-                .map(vc -> vc.getRoomUser().getUser().getUserId())
-                .filter(id -> !id.equals(callerId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Receiver not found"));
 
-        // ✅ caller에게 메시지 보내기
-        Map<String, Object> msg = new HashMap<>();
-        msg.put("type", "CALL_ACCEPTED");
-        msg.put("chatroomId", chattingRoomId);
-        msg.put("receiverId", receiverId);  // ✅ 수신자
-        msg.put("callerId", callerId);      // ✅ 발신자
-
-        log.info("▶▶ CALL_ACCEPTED 브로드캐스트 to /topic/call/{}", callerId);
-        messagingTemplate.convertAndSend(
-                "/topic/call/" + callerId,         // UserDestinationPrefix + queue 경로
-                msg       );               // payload);
     }
 
     @Transactional
@@ -137,17 +118,7 @@ public class VoiceChatService {
         }
         voiceChatRepository.saveAll(voiceChats);
 
-        // 3) 발신자(Caller)에게만 CALL_REJECTED 브로드캐스트
-        Map<String,Object> msg = Map.of(
-                "type",       "CALL_REJECTED",
-                "chatroomId", chattingRoomId,
-                "callerId",   callerId
-        );
-        log.info("▶▶ CALL_REJECTED 브로드캐스트 to /topic/call/{}", callerId);
-        messagingTemplate.convertAndSend(
-                "/topic/call/" + callerId,
-                msg
-        );
+
     }
     /** 음성통화 종료 */
     @Transactional
@@ -162,19 +133,8 @@ public class VoiceChatService {
         }
         voiceChatRepository.saveAll(voiceChats);
 
-        // 3) 두 유저 모두에게 CALL_ENDED 브로드캐스트
-        for (VoiceChat vc : voiceChats) {
-            Long targetUserId = vc.getRoomUser().getUser().getUserId();
-            Map<String, Object> msg = Map.of(
-                    "type", "CALL_ENDED",
-                    "chatroomId", chattingRoomId,
-                    "userId", userId  // 누가 종료했는지 알려 주고 싶다면 포함
-            );
-            log.info("▶▶ CALL_ENDED 브로드캐스트 to /topic/call/{}", targetUserId);
-            messagingTemplate.convertAndSend(
-                    "/topic/call/" + targetUserId,
-                    msg
-            );
-        }
+
+
     }
+
 }

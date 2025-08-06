@@ -64,11 +64,14 @@ public class VoiceChat {
         this.isActive = false;
     }
     public void cancel() {
+        this.startedAt = null;
+        this.endedAt   = null;
         this.isActive = false;
-        // endedAt, durationSec는 그대로 둡니다.
+
     }
-    public void activate(LocalDateTime startedAt) {
-        this.startedAt = startedAt;
+    public void activate() {
+        LocalDateTime now = LocalDateTime.now();
+        this.startedAt = now;
         this.isActive = true;
     }
 }

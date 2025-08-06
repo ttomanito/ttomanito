@@ -157,7 +157,6 @@ public class ChattingController {
 
         // 실제 종료 로직 호출
         Long userId = principal.getUserId();
-        log.info("▶▶ Controller.endCall() principal={}, chatroomId={}, userId={}", principal, chatroomId, userId);
         voiceChatService.endCall(chatroomId, userId);
         return ResponseEntity.ok().build();
     }

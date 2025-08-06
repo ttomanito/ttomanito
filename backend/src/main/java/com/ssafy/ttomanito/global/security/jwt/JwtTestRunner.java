@@ -14,7 +14,7 @@ public class JwtTestRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        Long testUserId = 3L;
+        Long testUserId = 5L;
         String fakeUsername = "1"; // 실제로 username은 안 쓰지만 JWT 생성 요구사항 충족용
 
         JwtToken tokens = jwtProvider.generateTokens(testUserId, fakeUsername);
