@@ -1,5 +1,6 @@
 package com.ssafy.ttomanito.config;
 
+import lombok.extern.slf4j.Slf4j;
 import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -27,12 +28,14 @@ import java.util.Objects;
  */
 @Configuration
 @EnableWebSocketMessageBroker
+@Slf4j
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtProvider jwtProvider;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
+
         // 브로커 활성화: 채팅, 게임, 개인 큐
         config.enableSimpleBroker("/topic/chat", "/topic/game", "/queue");
         // 클라이언트 -> 서버 메시지 prefix
@@ -43,6 +46,22 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/ws/chat")
+                .setAllowedOriginPatterns(
+                        "http://localhost:5173",
+                        "http://localhost:8080",
+                        "https://i13b206.p.ssafy.io"
+                )
+                .withSockJS()
+                .setSessionCookieNeeded(true);
+        registry.addEndpoint("/ws/waiting")
+                .setAllowedOriginPatterns(
+                        "http://localhost:5173",
+                        "http://localhost:8080",
+                        "https://i13b206.p.ssafy.io"
+                )
+                .withSockJS()
+                .setSessionCookieNeeded(true);
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns(
                         "http://localhost:5173",
@@ -52,27 +71,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS()
                 .setSessionCookieNeeded(true);
     }
-
-    @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new ChannelInterceptor() {
-            @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-                if (StompCommand.CONNECT.equals(Objects.requireNonNull(accessor).getCommand())) {
-                    String bearer = accessor.getFirstNativeHeader("Authorization");
-                    if (bearer != null && bearer.startsWith("Bearer ")) {
-                        String token = bearer.substring(7);
-                        // 사용자 정보를 파싱해 UserDetails 획득
-                        UserDetails userDetails = jwtProvider.loadUserFromToken(token);
-                        // Authentication 객체 생성
-                        var auth = new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
-                        accessor.setUser(auth);
-                    }
-                }
-                return message;
-            }
-        });
-    }
 }
+

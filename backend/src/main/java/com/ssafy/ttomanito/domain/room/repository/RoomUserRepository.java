@@ -1,5 +1,6 @@
 package com.ssafy.ttomanito.domain.room.repository;
 
+
 import com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
@@ -71,6 +72,34 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
 
     List<RoomUser> findByRoom_RoomId(Long roomId);
 
+
+    /**
+     * Room ID와 User ID로 정확히 한 건의 RoomUser 만 찾습니다.
+     */
+    @Query("""
+        SELECT ru
+        FROM RoomUser ru
+        WHERE ru.room.roomId = :roomId
+          AND ru.user.userId = :userId
+    """)
+    Optional<RoomUser> findByRoomIdAndUserId(
+            @Param("roomId") Long roomId,
+            @Param("userId") Long userId
+    );
+
+    /**
+     * 같은 방(roomId)에 속해 있으면서 userId와 다른 상대 한 명을 찾습니다.
+     */
+    @Query("""
+        SELECT ru
+        FROM RoomUser ru
+        WHERE ru.room.roomId = :roomId
+          AND ru.user.userId <> :userId
+    """)
+    Optional<RoomUser> findOpponent(
+            @Param("roomId") Long roomId,
+            @Param("userId") Long userId
+    );
 //    @Query("""
 //    SELECT ma
 //    FROM ManitoAssignment ma
@@ -95,3 +124,4 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
     Optional<RoomUser> findByRoomRoomIdAndUserUserId(Long roomId, Long userId);
 
 }
+
