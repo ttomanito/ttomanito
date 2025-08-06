@@ -3,39 +3,32 @@ import {
   VStack,
   Text,
   Image,
-  useDisclosure,
   HStack,
-  Flex
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import CommonCard from '@/components/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
-import DoubleButton from '@/components/buttons/DoubleButton';
-import BaseModal from '@/components/modal/BaseModal';
 import ProfileCard from '@/components/profile/ProfileCard';
-import ttoma_questionmark from '@/assets/ttoma_questionmark.svg'
-import ttoma_heart from '@/assets/ttoma_heart.svg'
-import ttoma_mission from '@/assets/ttoma_mission.svg'
-import ttoma_gift from '@/assets/mission_icons/ttoma_gift.svg'
-import easy from '@/assets/mission_icons/stars/easy.svg'
-import missioncard_bg from '@/assets/imgs/missioncard_bg.png'
-const GameHomePage = () => {
-  const startDate = '2025-07-28'; // 방 생성일
-  const endDate = '2025-08-15';  // 방 생성시 설정한 종료일
+import ttoma_questionmark from '@/assets/ttoma_questionmark.svg';
+import { useModalStore } from '@/stores/modalStore';
+import TutorialBody from '@/components/modal/TutorialBody'; // ✨ 1. 새로 만든 TutorialBody를 import
 
-  // ✅ 내부에서 진행 계산 함수 정의
+const GameHomePage = () => {
+  const { openModal, closeModal } = useModalStore();
+
+  // ... (날짜, 미션 관련 로직은 이전과 동일)
+  const startDate = '2025-07-28';
+  const endDate = '2025-08-15';
+
   const { currentDay, totalDays } = useMemo(() => {
     const start = dayjs(startDate);
     const end = dayjs(endDate);
     const now = dayjs();
-
     const total = end.diff(start, 'day') + 1;
     let current = now.diff(start, 'day') + 1;
-
     if (current < 1) current = 1;
     if (current > total) current = total;
-
     return { currentDay: current, totalDays: total };
   }, [startDate, endDate]);
 
@@ -53,28 +46,32 @@ const GameHomePage = () => {
       localStorage.setItem(`mission_revealed_${todayKey}`, 'true');
     }
   };
-  const missionCompleteModal = useDisclosure();
-  const prevMissionModal = useDisclosure();
-  const manitoModal = useDisclosure();
-  const tutorialModal = useDisclosure();
+
+  // ✨ 1. 각 모달에 필요한 데이터를 객체로 미리 정의합니다.
+  const prevMissionModalData = {
+    title: '이전 미션 확인하기',
+    caption: '내가 수행한 미션 목록입니다',
+    body: <Text>7/28: 인사하기<br />7/29: 몰래 간식 주기</Text>,
+  };
+
+  const manitoModalData = {
+    title: '내 마니띠 확인',
+    body: <ProfileCard name="안수진" subtitle="상태메시지" title="내 마니띠" src='{src}' />,
+  };
+
+  const tutorialModalData = {
+    title: '', 
+    // body에 새로 만든 컴포넌트를 넣습니다.
+    body: <TutorialBody />,
+    // footer에 닫기 버튼을 직접 전달합니다.
+    footer: <LongButton onClick={closeModal}>닫기</LongButton>,
+  };
 
   return (
-    <VStack gap={5} align="center" w="full" m={0} p={0}>
-  {/* 배경 전체 */}
-  <Box
-    w="full"
-    bgImage={`url(${missioncard_bg})`}
-    bgSize="cover"
-    bgRepeat="no-repeat"
-    py={6}
-  >
-    <Box maxW="480px" mx="auto" px={4}>
-      <Text textStyle="title_lg" textAlign="center" mb={-5}>
-        오늘의 미션
-      </Text>
-
+    <VStack gap={6} px={4} py={6} align="center">
+      {/* 진행 바 */}
       <Box w="100%">
-        <Text textStyle="body_sm" mb={1} mr={3} textAlign="end">
+        <Text fontSize="sm" color="gray.600" mb={1} textAlign="center">
           {currentDay} / {totalDays}일
         </Text>
         <Box h="10px" bg="gray.200" borderRadius="full" overflow="hidden">
@@ -91,116 +88,55 @@ const GameHomePage = () => {
       <CommonCard
         onClick={handleRevealMission}
         cursor={!isMissionRevealed ? 'pointer' : 'default'}
-        h="360px"
       >
-        <Flex
-          direction="column"
-          justify="center"
-          align="center"
-          h="100%"
-          w="100%"
-          bgImage={isMissionRevealed ? undefined : `url("${missioncard_bg}")`}
-          bgSize="cover"
-          bgRepeat="no-repeat"
-          borderRadius="inherit"
-        >
-          {!isMissionRevealed ? (
-            <>
-              <Text textStyle="title_lg" textAlign="center" mb={2}>???</Text>
-              <Text textStyle="caption_xs_light" textAlign="center">
-                클릭해서 오늘의 미션을 확인해주세요
-              </Text>
-            </>
-          ) : (
-            <>
-              <Image src={easy} alt="난이도" mx="auto" maxW="120px" mb={4} />
-              <Text textStyle="title_ml" textAlign="center" mb={1}>
-                마니띠 몰래 과자 선물하기
-              </Text>
-              <Text textStyle="caption_xs_light" textAlign="center">
-                마니띠 몰래 과자 선물하기
-              </Text>
-              <Image src={ttoma_gift} alt="미션 이미지" mx="auto" maxW="120px" mb={4} />
-              <LongButton onClick={missionCompleteModal.onOpen}>미션 완료!</LongButton>
-            </>
-          )}
-        </Flex>
+        {/* ... 미션 카드 내용 생략 ... */}
+        <Text fontSize="xl" fontWeight="bold" textAlign="center" mb={2}>
+          오늘의 미션
+        </Text>
+        {!isMissionRevealed ? (
+          <>
+            <Text fontSize="4xl" textAlign="center" mb={2}>
+              ???
+            </Text>
+            <Text textAlign="center" color="gray.500">
+              클릭해서 오늘의 미션을 확인하세요
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text fontSize="md" textAlign="center" mb={2}>
+              몰래 과자 선물하기!!
+            </Text>
+            <Image
+              src="/images/bread-mission.png"
+              alt="미션 이미지"
+              mx="auto"
+              maxW="120px"
+              mb={4}
+            />
+            <LongButton onClick={() => alert('미션 완료 처리')}>
+              미션 완료하기
+            </LongButton>
+          </>
+        )}
       </CommonCard>
-    </Box>
-  </Box>
-
 
       {/* 메뉴 카드 */}
-      <VStack gap={3} w="100%" maxW="480px">
-        <CommonCard onClick={prevMissionModal.onOpen}>
-          <HStack gap={2} align="center">
-          <Image src={ttoma_mission} alt="ttoma icon" boxSize="40px" />
-            <VStack gap={1} align="start">
-          <Text textStyle="body_sm">이전 미션 확인하기</Text>
-          <Text textStyle="caption_xs_light">지난 미션 기록을 확인해보세요</Text>
-            </VStack>
-          </HStack>
+      <VStack w="100%" maxW="480px">
+        {/* ✨ 2. onClick 핸들러에서 미리 정의한 객체를 전달합니다. */}
+        <CommonCard onClick={() => openModal(prevMissionModalData)}>
+          이전 미션 확인하기
         </CommonCard>
-        <CommonCard onClick={manitoModal.onOpen}>
-          <HStack gap={2} align="center">
-          <Image src={ttoma_heart} alt="ttoma icon" boxSize="40px" />
-            <VStack gap={1} align="start">
-          <Text textStyle="body_sm">내 마니띠 확인하기</Text>
-          <Text textStyle="caption_xs_light">내 마니띠가 누구인지 다시 확인해보세요</Text>
-            </VStack>
-          </HStack>
+        <CommonCard onClick={() => openModal(manitoModalData)}>
+          내 마니띠 확인하기
         </CommonCard>
-        <CommonCard onClick={tutorialModal.onOpen}>
+        <CommonCard onClick={() => openModal(tutorialModalData)}>
           <HStack gap={2} align="center">
-          <Image src={ttoma_questionmark} alt="ttoma icon" boxSize="40px" />
-            <VStack gap={1} align="start">
-          <Text textStyle="body_sm">튜토리얼 다시 보기</Text>
-          <Text textStyle="caption_xs_light">필요할 때 언제든 튜토리얼을 다시 볼 수 있어요</Text>
-            </VStack>
+            <Image src={ttoma_questionmark} alt="ttoma icon" boxSize="40px" />
+            <Text fontWeight="bold">튜토리얼 다시 보기</Text>
           </HStack>
         </CommonCard>
       </VStack>
-
-      {/* 모달들 */}
-      <BaseModal 
-      open={missionCompleteModal.open}
-      onClose={missionCompleteModal.onClose}
-      title="오늘의 미션을 완료하셨나요?"
-      caption={
-        "미션 수행 결과는 수정이 불가능합니다."
-      }
-      body={<Text textStyle="caption_xs_light" textAlign="center" mt={-5}>신중히 해주세요.</Text>}
-      footer={
-        <DoubleButton
-        leftLabel="취소"
-        rightLabel="확인"
-        onLeftClick={missionCompleteModal.onClose}
-        onRightClick={() => {
-          alert('미션을 완료하였습니다 !')
-          missionCompleteModal.onClose()
-        }}
-        />
-      }
-      />
-      <BaseModal
-        open={prevMissionModal.open}
-        onClose={prevMissionModal.onClose}
-        title="이전 미션 확인하기"
-        caption="내가 수행한 미션 목록입니다"
-        body={<Text>7/28: 인사하기<br />7/29: 몰래 간식 주기</Text>}
-      />
-      <BaseModal
-        open={manitoModal.open}
-        onClose={manitoModal.onClose}
-        title="내 마니띠 확인"
-        body={<ProfileCard name="안수진" subtitle='상태메시지' title="내 마니띠" src='{src}'></ProfileCard>}
-      />
-      <BaseModal
-        open={tutorialModal.open}
-        onClose={tutorialModal.onClose}
-        title="튜토리얼"
-        body={<Text>마니또, 마니띠?</Text>}
-      />
     </VStack>
   );
 };

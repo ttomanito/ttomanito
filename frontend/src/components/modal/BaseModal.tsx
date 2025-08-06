@@ -1,7 +1,5 @@
 import {
   Dialog,
-  DialogBackdrop,
-  DialogPositioner,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -10,62 +8,88 @@ import {
   DialogCloseTrigger,
   CloseButton,
   Text,
-} from "@chakra-ui/react"
-import type { ReactNode } from "react"
-import LongButton from "../buttons/LongButton"
+  Box,
+} from "@chakra-ui/react";
+import { AnimatePresence, motion } from "framer-motion";
+import type { ReactNode } from "react";
+import LongButton from "../buttons/LongButton";
+
+const MotionBox = motion(Box);
 
 interface BaseModalProps {
-  open: boolean
-  onClose: () => void
-  title?: string
-  caption?: string
-  body?: ReactNode
-  footer?: ReactNode
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  caption?: string;
+  body?: ReactNode;
+  footer?: ReactNode;
 }
-const BaseModal = ({ open, onClose, title, caption, body, footer }: BaseModalProps) => {
-  if (!open) return null;
 
+const BaseModal = ({
+  open,
+  onClose,
+  title,
+  caption,
+  body,
+  footer,
+}: BaseModalProps) => {
   return (
-    <Dialog.Root open={open} onOpenChange={(e) => !e.open && onClose()}>
-      <DialogBackdrop
-        bg="blackAlpha.600"
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        zIndex="overlay"
-        onClick={onClose}
-      />
-        <DialogPositioner
-          maxW="480px"
-          position="absolute"  // fixed 대신 absolute 사용
-          top="60%"
-          left="50%"
-          transform="translate(-50%, -50%)"
-          zIndex="modal"
-        >
-        <DialogContent rounded="xl" mx="2" px="6">
-          <DialogHeader flexDir="column" textAlign="center" w="full">
-            <DialogTitle textStyle="modal_title" textAlign="center" w="full">
-              {title ?? "제목 없음"}
-            </DialogTitle>
-            {caption && (
-              <Text textStyle="caption_xs_light">{caption}</Text>
-            )}
-          </DialogHeader>
-          <DialogBody>{body ?? <p>내용 없음</p>}</DialogBody>
-          <DialogFooter>
-            {footer ?? <LongButton onClick={onClose}>확인</LongButton>}
-          </DialogFooter>
-          <DialogCloseTrigger asChild>
-            <CloseButton size="sm" />
-          </DialogCloseTrigger>
-        </DialogContent>
-      </DialogPositioner>
-    </Dialog.Root>
+    <AnimatePresence>
+      {open && (
+        <Dialog.Root open={open} onOpenChange={(e) => !e.open && onClose()}>
+          {/* ✨ 1. 백드롭을 MotionBox로 변경하고 애니메이션 속성을 추가합니다. */}
+          <MotionBox
+            bg="blackAlpha.600"
+            position="absolute"
+            inset="0"
+            zIndex="overlay"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+
+          {/* 모달 내용물 컨테이너 (기존과 동일) */}
+          <MotionBox
+            position="absolute"
+            inset="0"
+            zIndex="modal"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <DialogContent rounded="xl" mx="6" px="4">
+              {title && (
+                <DialogHeader flexDir="column" textAlign="center" w="full">
+                  <DialogTitle textStyle="modal_title" textAlign="center" w="full">
+                    {title}
+                  </DialogTitle>
+                  {caption && (
+                    <Text textStyle="caption_xs_light">{caption}</Text>
+                  )}
+                </DialogHeader>
+              )}
+              
+              <DialogBody>{body ?? <p>내용 없음</p>}</DialogBody>
+
+              <DialogFooter>
+                {footer ?? <LongButton onClick={onClose}>닫기</LongButton>}
+              </DialogFooter>
+
+              <DialogCloseTrigger asChild>
+                <CloseButton size="sm" />
+              </DialogCloseTrigger>
+            </DialogContent>
+          </MotionBox>
+        </Dialog.Root>
+      )}
+    </AnimatePresence>
   );
 };
 
-
-export default BaseModal
+export default BaseModal;

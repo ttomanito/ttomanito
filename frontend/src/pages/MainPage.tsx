@@ -11,9 +11,15 @@ import { FaQuestionCircle } from 'react-icons/fa'
 
 import LongButton from '@/components/buttons/LongButton'
 import detectiveImg from '@/assets/detective_ttoma.svg'
+import { useModalStore } from '@/stores/modalStore';
+import TutorialBody from '@/components/modal/TutorialBody'; 
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate()                  // ⬅️ 내비게이터 초기화
+  const { openModal } = useModalStore()
+  const tutorialModalData = {
+    body: <TutorialBody />
+  };
 
   return (
     <Box
@@ -33,6 +39,12 @@ const MainPage: React.FC = () => {
         right={3}
         zIndex="docked"
         color="accent.500"
+        _hover={{ 
+          color: 'accent.700', 
+          bg: 'transparent' // ✨ 호버 시 배경색을 투명하게 설정
+        }}
+        // ✨ 6. onClick 핸들러에서 openModal을 호출합니다.
+        onClick={() => openModal(tutorialModalData)}
       >
         <FaQuestionCircle style={{ width: '40px', height: '40px' }} />
       </IconButton>

@@ -1,6 +1,6 @@
 // components/layout/AppHeader.tsx
 import { Flex, Image } from '@chakra-ui/react';
-import { useAuth } from '@/stores/auth';
+import { useAuth } from '@/stores/authStore';
 
 const AppHeader = () => {
 

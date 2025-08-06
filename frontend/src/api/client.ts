@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuth } from '@/stores/auth'
+import { useAuth } from '@/stores/authStore'
 /**
  * src/api/client.ts
  * axios 인스턴스 생성
