@@ -17,7 +17,8 @@ import detective_ttoma_img from '@/assets/ttomas/detective_ttoma.svg';
 import logo_ttomanito from '@/assets/ttomas/logo_ttomanito.svg';
 import { useModalStore } from '@/stores/modalStore';
 import BaseModal from '@/components/modal/BaseModal';
-import DevLogoutButton from '@/components/buttons/DevLogoutButton'
+import InstallBanner from '@/components/ui/InstallBanner';
+import DevLogoutButton from '@/components/buttons/DevLogoutButton';
 
 // 왼쪽 텍스트 영역
 const PcMent = () => (
@@ -131,12 +132,14 @@ export default function AppLayout() {
               overflow="hidden"
               bg="white"
             >
+
               <DevLogoutButton />
               {!hideHeader && <AppHeader />}
               <Box as="main" overflowY="auto">
                 <Outlet />
               </Box>
               {!hideBottom && <BottomNav />}
+              <InstallBanner />
             </Container>
           </Box>
         </GridItem>
