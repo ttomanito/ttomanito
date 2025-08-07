@@ -16,6 +16,9 @@ public class ManitoActivity {
     @Column(name = "room_user_id")
     private Long roomUserId;
 
+    @Version
+    Integer version;
+
     /* @MapsId로 FK를 위 roomUserId와 공유 */
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
@@ -33,4 +36,14 @@ public class ManitoActivity {
 
     @Column(name = "poke_count",      nullable = false)
     private Integer pokeCount;
+
+    public void updateCounts(int pokeCount,
+                             int chatCount,
+                             int callTime,
+                             int missionSuccessCount) {
+        this.pokeCount = pokeCount;
+        this.chatCount = chatCount;
+        this.callTime = callTime;
+        this.missionSuccessCount = missionSuccessCount;
+    }
 }

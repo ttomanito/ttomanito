@@ -19,7 +19,7 @@ public interface ManitoActivityRepository extends JpaRepository<ManitoActivity, 
       FROM ManitoActivity a
       WHERE a.roomUser.room.roomId = :roomId
     """)
-    List<ManitoActivity> findByRoomId(@Param("roomId") Long roomId);
+    List<ManitoActivity> findByRoomId(RoomUser roomUser);
 
     /**
      * 1) 특정 방·특정 사용자 통화 시간 합계
@@ -74,6 +74,15 @@ public interface ManitoActivityRepository extends JpaRepository<ManitoActivity, 
       WHERE a.roomUser.room.roomId = :roomId
     """)
     Double avgChatCountByRoom(@Param("roomId") Long roomId);
+
+
+    /** 특정 방 전체 미션 성공 횟수 평균 */
+    @Query("""
+      SELECT COALESCE(AVG(a.missionSuccessCount), 0)
+      FROM ManitoActivity a
+      WHERE a.roomUser.room.roomId = :roomId
+    """)
+    Double avgMissionSuccessCountByRoom(@Param("roomId") Long roomId);
 
     Optional<ManitoActivity> findByRoomUser(RoomUser roomUser);
 }

@@ -38,4 +38,10 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
 
     /** 가장 최근 단일 메시지(새 메시지 알림용) */
     Optional<ChatMessage> findTopByChattingRoomIdOrderBySentAtDesc(Long chattingRoomId);
+
+    long countBySenderRoomUserIdAndSentAtBetween(
+            Long senderRoomUserId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 }
