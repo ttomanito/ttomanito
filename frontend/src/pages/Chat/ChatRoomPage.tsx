@@ -97,9 +97,8 @@ const ChatRoomPage = () => {
         bottom="0"
         left="0"
         right="0"
-        px={4}
-        py={3}
-        gap={2}
+        py={2}
+        gap={1}
         bg="white"
         borderTop="1px solid #ccc"
         zIndex="10"
@@ -115,8 +114,13 @@ const ChatRoomPage = () => {
         >
           <Image src={poke_icon} w={10} />
         </LongButton>
-        <TextInput value={message} onChange={handleChange} placeholder="메시지를 입력하세요" />
-        <LongButton w="10" h="10">
+        <TextInput
+          h="40px"
+          value={message}
+          onChange={handleChange}
+          placeholder="메시지를 입력하세요"
+        />
+        <LongButton w="13" h="10">
           보내기
         </LongButton>
       </Flex>
