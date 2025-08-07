@@ -256,7 +256,7 @@ public class RoomController {
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     @GetMapping("/creator")
-    public ResponseEntity<Boolean> isManager(
+    public ResponseEntity<Boolean> isCreator(
             @AuthenticationPrincipal JwtUserDetails user
     ) {
         boolean isCreator = roomService.checkCreator(user.getUserId());
