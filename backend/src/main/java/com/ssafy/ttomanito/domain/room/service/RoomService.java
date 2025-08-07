@@ -15,8 +15,10 @@ import com.ssafy.ttomanito.domain.room.repository.MissionDayRepository;
 import com.ssafy.ttomanito.domain.room.repository.RoomRepository;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import com.ssafy.ttomanito.domain.user.entity.User;
-import com.ssafy.ttomanito.domain.user.exception.UserNotFoundException;
 import com.ssafy.ttomanito.domain.user.repository.UserRepository;
+import com.ssafy.ttomanito.global.exception.AccessDeniedException;
+import com.ssafy.ttomanito.global.exception.BadRequestException;
+import com.ssafy.ttomanito.global.exception.NotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -27,10 +29,9 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
 public class RoomService {
-
     private final RoomRepository roomRepository;
     private final RoomUserRepository roomUserRepository;
     private final MissionDayRepository missionDayRepository;
@@ -38,19 +39,22 @@ public class RoomService {
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    /* ---------- CRUD ---------- */
 
     public RoomInfoResponse createRoom(CreateRoomRequest req, Long creatorId) {
         // 1) 요청 검증
-        if (req == null) throw new IllegalArgumentException("요청이 잘못되었습니다.");
-        if (req.name() == null || req.name().isBlank())
-            throw new IllegalArgumentException("방 이름은 필수입니다.");
-        if (req.missionDays() == null || req.missionDays().isEmpty())
-            throw new IllegalArgumentException("미션 요일을 하나 이상 선택하세요.");
+        if (req == null) {
+            throw new BadRequestException("요청이 잘못되었습니다.");
+        }
+        if (req.name() == null || req.name().isBlank()) {
+            throw new BadRequestException("방 이름은 필수입니다.");
+        }
+        if (req.missionDays() == null || req.missionDays().isEmpty()) {
+            throw new BadRequestException("미션 요일을 하나 이상 선택하세요.");
+        }
 
         // 2) 방장 User 로드
         User creator = userRepository.findById(creatorId)
-                .orElseThrow(() -> new UserNotFoundException(creatorId));
+                .orElseThrow(() -> new NotFoundException("유저를 찾을 수 없습니다: id=" + creatorId));
 
         // 3) Room 생성 및 저장
         Room room = Room.create(creator, req.name())
@@ -84,8 +88,6 @@ public class RoomService {
         return RoomInfoResponse.from(room, days);
     }
 
-    /* ---------- 비즈니스 ---------- */
-
     public boolean isUserInProgressOrWaiting(Long userId) {
         List<RoomStatus> statuses = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
         return !roomUserRepository.findActiveRoomsForUser(userId, statuses).isEmpty();
@@ -93,14 +95,12 @@ public class RoomService {
 
     public void setUserMessage(Long roomId, Long userId, String message) {
         if (message == null || message.isBlank()) {
-            throw new IllegalArgumentException("메시지는 비어있을 수 없습니다.");
+            throw new BadRequestException("메시지는 비어있을 수 없습니다.");
         }
         RoomUser ru = roomUserRepository
                 .findByRoom_roomIdAndUser_UserId(roomId, userId)
-                .orElseThrow(() -> new EntityNotFoundException("방에 참여하지 않은 사용자입니다."));
-        ru = ru.toBuilder()
-                .statusMessage(message)
-                .build();
+                .orElseThrow(() -> new NotFoundException("방에 참여하지 않은 사용자입니다."));
+        ru = ru.toBuilder().statusMessage(message).build();
         roomUserRepository.save(ru);
     }
 
@@ -108,8 +108,8 @@ public class RoomService {
     public void closeRoomByCreatorId(Long creatorId) {
         Room room = roomRepository
                 .findByCreator_UserIdAndStatus(creatorId, RoomStatus.NOT_STARTED)
-                .orElseThrow(() -> new RuntimeException("진행 중인 대기 방이 없습니다."));
-        room.markAsNone();  // Dirty Checking
+                .orElseThrow(() -> new NotFoundException("진행 중인 대기 방이 없습니다."));
+        room.markAsNone();
 
         messagingTemplate.convertAndSend(
                 "/topic/waiting/" + room.getRoomId(),
@@ -119,12 +119,11 @@ public class RoomService {
                         .build()
         );
     }
-    
 
     public void kick(Long roomId, Long hostId, Long targetUserId) {
         Room room = find(roomId);
         if (!room.getCreator().getUserId().equals(hostId)) {
-            throw new RuntimeException("호스트만 참가자를 강퇴할 수 있습니다.");
+            throw new AccessDeniedException("호스트만 참가자를 강퇴할 수 있습니다.");
         }
         roomUserRepository.deleteByRoom_roomIdAndUser_UserId(roomId, targetUserId);
         messagingTemplate.convertAndSend(
@@ -140,12 +139,11 @@ public class RoomService {
     public void startGame(Long roomId, Long hostId) {
         Room room = find(roomId);
         if (!room.getCreator().getUserId().equals(hostId)) {
-            throw new RuntimeException("호스트만 게임을 시작할 수 있습니다.");
+            throw new AccessDeniedException("호스트만 게임을 시작할 수 있습니다.");
         }
-        // 룸유저 엔티티를 모두 가져와서 랜덤 섞기
         List<RoomUser> participants = roomUserRepository.findByRoom_RoomId(roomId);
         if (participants.size() < 4) {
-            throw new RuntimeException("최소 4명의 참가자가 필요합니다.");
+            throw new BadRequestException("최소 4명의 참가자가 필요합니다.");
         }
         Collections.shuffle(participants);
 
@@ -172,7 +170,7 @@ public class RoomService {
     @Transactional(readOnly = true)
     public Room find(Long roomId) {
         return roomRepository.findById(roomId)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 방입니다: " + roomId));
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 방입니다: id=" + roomId));
     }
 
     public boolean isRoomNotStarted(Long roomId) {

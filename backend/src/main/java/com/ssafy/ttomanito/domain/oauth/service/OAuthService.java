@@ -5,6 +5,7 @@ import java.util.Optional;
 import com.ssafy.ttomanito.domain.oauth.dto.OAuthUserDto;
 import com.ssafy.ttomanito.domain.user.entity.User;
 import com.ssafy.ttomanito.domain.user.repository.UserRepository;
+import com.ssafy.ttomanito.global.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.ssafy.ttomanito.domain.oauth.entity.OAuthIdentity;
@@ -15,20 +16,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class OAuthService {
     private final OAuthRepository oauthRepository;
     private final UserRepository userRepository;
 
-    @Transactional
-    public void createOAuthIdentity(OAuthUserDto oAuthUserDto) {
-        User user = userRepository.findById(oAuthUserDto.userId())
-                .orElseThrow(() -> new RuntimeException("유저가 없습니다. id=" + oAuthUserDto.userId()));
+    public void createOAuthIdentity(OAuthUserDto dto) {
+        User user = userRepository.findById(dto.userId())
+                .orElseThrow(() -> new NotFoundException("유저를 찾을 수 없습니다: id=" + dto.userId()));
 
         OAuthIdentity identity = OAuthIdentity.builder()
                 .user(user)
-                .provider(oAuthUserDto.provider())
-                .providerId(oAuthUserDto.providerId())
+                .provider(dto.provider())
+                .providerId(dto.providerId())
                 .build();
 
         oauthRepository.save(identity);
@@ -39,7 +40,6 @@ public class OAuthService {
         return oauthRepository.findWithUserByProviderIdAndProvider(providerId, provider);
     }
 
-    @Transactional
     public void deleteByUserId(Long userId) {
         oauthRepository.deleteByUserId(userId);
     }

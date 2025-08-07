@@ -1,6 +1,5 @@
 package com.ssafy.ttomanito.global.exception;
 
-
 /**
  * HTTP 404 Not Found (리소스 없음)
  */

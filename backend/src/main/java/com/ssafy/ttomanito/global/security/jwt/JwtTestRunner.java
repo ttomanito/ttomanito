@@ -19,7 +19,7 @@ public class JwtTestRunner implements CommandLineRunner {
 
         JwtToken tokens = jwtProvider.generateTokens(testUserId, fakeUsername);
 
-        System.out.println("✅ AccessToken: " + tokens.getAccessToken());
-        System.out.println("✅ RefreshToken: " + tokens.getRefreshToken());
+//        System.out.println("✅ AccessToken: " + tokens.getAccessToken());
+//        System.out.println("✅ RefreshToken: " + tokens.getRefreshToken());
     }
 }
