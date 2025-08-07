@@ -87,7 +87,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL}
+        VITE_BASE_URL: ${VITE_BASE_URL}
     container_name: nginx
     ports:
       - "80:80"
