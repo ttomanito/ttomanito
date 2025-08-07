@@ -1,7 +1,11 @@
 package com.ssafy.ttomanito.global.exception.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+@Getter
+@AllArgsConstructor
 public enum ErrorCode {
     // 400 Bad Request 계열
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다"),
@@ -20,15 +24,4 @@ public enum ErrorCode {
 
     private final HttpStatus status;
     private final String message;
-
-    ErrorCode(HttpStatus status, String message) {
-        this.status = status;
-        this.message = message;
-    }
-    public HttpStatus getStatus() {
-        return status;
-    }
-    public String getMessage() {
-        return message;
-    }
 }
