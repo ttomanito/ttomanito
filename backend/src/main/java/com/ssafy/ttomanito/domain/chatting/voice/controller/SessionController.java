@@ -1,6 +1,6 @@
 package com.ssafy.ttomanito.domain.chatting.voice.controller;
 
-
+import com.ssafy.ttomanito.domain.chatting.voice.dto.TokenRequest;
 import com.ssafy.ttomanito.domain.chatting.voice.service.OpenViduService;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/openvidu")
+@Tag(name = "OpenVidu", description = "OpenVidu 세션·토큰 관리 API")
 public class SessionController {
 
     private final OpenViduService openViduService;
@@ -24,7 +26,6 @@ public class SessionController {
     public SessionController(OpenViduService openViduService) {
         this.openViduService = openViduService;
     }
-
 
     @Operation(
             summary = "OpenVidu 연결 토큰 발급",
@@ -63,10 +64,4 @@ public class SessionController {
                     .body("Cannot connect to OpenVidu Server");
         }
     }
-
-    // 요청 바디용 DTO
-    public static record TokenRequest(
-            String sessionId,
-            String nickname
-    ) {}
 }

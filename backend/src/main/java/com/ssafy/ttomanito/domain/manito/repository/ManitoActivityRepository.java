@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ManitoActivityRepository extends JpaRepository<ManitoActivity, RoomUser> {
 
@@ -73,4 +74,6 @@ public interface ManitoActivityRepository extends JpaRepository<ManitoActivity, 
       WHERE a.roomUser.room.roomId = :roomId
     """)
     Double avgChatCountByRoom(@Param("roomId") Long roomId);
+
+    Optional<ManitoActivity> findByRoomUser(RoomUser roomUser);
 }
