@@ -132,10 +132,10 @@ public class RoomService {
                 WaitingMessage.builder()
                         .roomId(roomId)
                         .userId(targetUserId)
-                        .type(WaitingMessage.MessageType.EXIT)
+                        .type(WaitingMessage.MessageType.KICK)
                         .build()
         );
-    }
+    }//kick
 
     public void startGame(Long roomId, Long hostId) {
         Room room = find(roomId);
