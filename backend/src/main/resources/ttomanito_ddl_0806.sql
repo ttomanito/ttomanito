@@ -1,6 +1,6 @@
 CREATE DATABASE IF NOT EXISTS `ttomanito`
-    CHARACTER SET = utf8mb4
-    COLLATE = utf8mb4_unicode_ci;
+  CHARACTER SET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 USE `ttomanito`;
 
 CREATE TABLE `mission_status` (
@@ -16,10 +16,6 @@ CREATE TABLE `user` (
                         `joined_at`	DATETIME	NOT NULL,
                         `status`	VARCHAR(50)	NOT NULL	COMMENT 'ENUM(`ACTIVE`, `WITHDRAWN`)'
 );
-
--- 1-1) user 테이블의 PK인 user_id에 AUTO_INCREMENT 추가
-ALTER TABLE `user`
-    MODIFY COLUMN `user_id` BIGINT NOT NULL AUTO_INCREMENT;
 
 CREATE TABLE `mission` (
                            `mission_id`	BIGINT	NOT NULL,
@@ -111,7 +107,7 @@ CREATE TABLE `voice_chat` (
 );
 
 CREATE TABLE `manito_guess` (
-                                `manito_guess_id`	BIGINT	NOT NULL,
+                                `manito_guess`	BIGINT	NOT NULL,
                                 `guess_user_id`	BIGINT	NOT NULL,
                                 `guessed_user_id`	BIGINT	NOT NULL,
                                 `guessed_date`	DATE	NOT NULL,
@@ -169,7 +165,7 @@ ALTER TABLE `voice_chat` ADD CONSTRAINT `PK_VOICE_CHAT` PRIMARY KEY (
     );
 
 ALTER TABLE `manito_guess` ADD CONSTRAINT `PK_MANITO_GUESS` PRIMARY KEY (
-                                                                         `manito_guess_id`
+                                                                         `manito_guess`
     );
 
 ALTER TABLE `notification` ADD CONSTRAINT `PK_NOTIFICATION` PRIMARY KEY (
