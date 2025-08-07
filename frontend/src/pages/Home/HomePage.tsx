@@ -5,10 +5,10 @@ import {
   Image,
   HStack,
   Flex,
-  Spinner, // 로딩 스피너 추가
+  Spinner,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import CommonCard from '@/components/cards/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
@@ -32,9 +32,12 @@ import ttoma_communication from '@/assets/mission_icons/ttoma_communication.svg'
 import ttoma_notes from '@/assets/mission_icons/ttoma_notes.svg';
 import ttoma_observation from '@/assets/mission_icons/ttoma_observation.svg';
 import ttoma_performance from '@/assets/mission_icons/ttoma_performance.svg';
+import { useAuth } from '@/stores/authStore'; 
 
 const GameHomePage = () => {
-  const { roomId } = useParams<{ roomId: string }>();
+  const { roomId, isInGame } = useAuth((s) => s.gameInfo);
+  const hydrated = useAuth((s) => s.hydrated);
+  const navigate = useNavigate();
   const { openModal, closeModal } = useModalStore();
 
   const [room, setRoom] = useState<{
@@ -43,8 +46,7 @@ const GameHomePage = () => {
     missionDays: string[];
   } | null>(null);
 
-  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
-
+  const [isLoading, setIsLoading] = useState(!hydrated);
   const [isMissionRevealed, setIsMissionRevealed] = useState(false);
   const [todayMission, setTodayMission] = useState<Mission | null>(null);
 
@@ -52,7 +54,41 @@ const GameHomePage = () => {
   const todayKey = today.format('YYYY-MM-DD');
   const todayDay = today.format('ddd').toUpperCase();
 
-  // useMemo를 사용하여 room 정보가 변경될 때만 계산
+  // 게임 참여 상태가 아니면 메인 페이지로 리디렉션
+  useEffect(() => {
+    if (hydrated && !isInGame) {
+      alert('참여 중인 게임이 없어 메인 페이지로 이동합니다.');
+      navigate('/', { replace: true }); 
+    }
+  }, [hydrated, isInGame, navigate]);
+
+  useEffect(() => {
+    // 게임에 참여 중이며, roomId가 있을 때만 API를 호출
+    if (hydrated && isInGame && roomId) {
+      const fetchRoomInfo = async () => {
+        setIsLoading(true);
+        try {
+          const data = await getRequest(`/room/${roomId}`);
+          console.log("🏠 room data:", data);
+          setRoom({
+            startDate: data.startDate,
+            endDate: data.endDate,
+            missionDays: data.missionDays,
+          });
+        } catch (err) {
+          console.error('방 정보 가져오기 실패:', err);
+          setRoom(null);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchRoomInfo();
+    } else if (hydrated) {
+      // 재수화는 됐지만, 게임 참여 상태가 아닌 경우 로딩을 중단
+      setIsLoading(false);
+    }
+  }, [hydrated, isInGame, roomId]);
+
   const { currentDay, totalDays } = useMemo(() => {
     if (!room) return { currentDay: 0, totalDays: 0 };
     const start = dayjs(room.startDate);
@@ -62,7 +98,7 @@ const GameHomePage = () => {
     if (current < 1) current = 1;
     if (current > total) current = total;
     return { currentDay: current, totalDays: total };
-  }, [room, today]); // 의존성 배열에 room 추가
+  }, [room, today]);
 
   const isMissionAvailable = useMemo(() => {
     if (!room) return false;
@@ -73,30 +109,8 @@ const GameHomePage = () => {
       today.isBefore(end.add(1, 'day')) &&
       room.missionDays.includes(todayDay)
     );
-  }, [room, todayDay]);
+  }, [room, todayDay, today]);
 
-
-  // API 호출 로직을 useEffect 내부에 정의하고, useEffect의 의존성 배열에 roomId를 추가
-  useEffect(() => {
-    const fetchRoomInfo = async () => {
-      setIsLoading(true); // API 호출 시작 시 로딩 상태 true
-      try {
-        const data = await getRequest(`/room/${roomId}`);
-        console.log("🏠 room data:", data);
-        setRoom({
-          startDate: data.startDate,
-          endDate: data.endDate,
-          missionDays: data.missionDays,
-        });
-      } catch (err) {
-        console.error('방 정보 가져오기 실패:', err);
-        setRoom(null); // 실패 시 null로 상태 초기화
-      } finally {
-        setIsLoading(false); // API 호출 완료 시 로딩 상태 false
-      }
-    };
-    fetchRoomInfo();
-  }, [roomId]); // roomId가 변경될 때만 API를 다시 호출하도록 설정
 
   useEffect(() => {
     const revealed = localStorage.getItem(`mission_revealed_${todayKey}`);
@@ -106,7 +120,7 @@ const GameHomePage = () => {
     if (wasRevealed && !todayMission && isMissionAvailable) {
       fetchTodayMission().then(setTodayMission).catch(console.error);
     }
-  }, [todayKey, isMissionAvailable]);
+  }, [todayKey, isMissionAvailable, todayMission]);
 
   const handleRevealMission = async () => {
     if (isMissionRevealed || !isMissionAvailable) return;
@@ -120,8 +134,7 @@ const GameHomePage = () => {
       alert('미션을 불러오지 못했습니다.');
     }
   };
-  
-  // ... (getDifficultyImage, getTypeImage, Modal Data 등은 생략)
+
   const getDifficultyImage = (difficulty: Mission['difficulty']) => {
     switch (difficulty) {
       case 'EASY': return easy;
@@ -172,11 +185,28 @@ const GameHomePage = () => {
   };
 
   const tutorialModalData = {
-    title: '', 
+    title: '',
     body: <TutorialBody />,
     footer: <LongButton onClick={closeModal}>닫기</LongButton>,
   };
 
+  // 로딩 중이거나, 리디렉션이 아직 실행되지 않았을 때
+  if (isLoading || !isInGame) {
+    return (
+      <Flex justify="center" align="center" h="100vh">
+        <Spinner size="xl" />
+      </Flex>
+    );
+  }
+
+  // API 호출에 실패했거나 방 정보가 없는 경우의 UI
+  if (!room) {
+    return (
+      <Flex justify="center" align="center" h="100vh">
+        <Text textStyle="title_md">게임 정보를 불러오는 데 실패했습니다.</Text>
+      </Flex>
+    );
+  }
 
   return (
     <VStack gap={5} align="center" w="full" m={0} p={0}>
@@ -184,26 +214,18 @@ const GameHomePage = () => {
         <Box maxW="480px" mx="auto" px={4}>
           <Text textStyle="title_lg" textAlign="center" mb={-2}>오늘의 미션</Text>
 
-          {/* 로딩 중일 때 스피너 표시 */}
-          {isLoading ? (
-            <Flex justify="center" align="center" h="100px" mb={6}>
-              <Spinner size="xl" />
-            </Flex>
-          ) : room && (
-            <Box w="100%" mb={6}>
-              <Text textStyle="body_sm" mb={2} mr={3} textAlign="end">
-                {currentDay} / {totalDays}일
-              </Text>
-              <Box h="10px" bg="gray.200" borderRadius="full" overflow="hidden">
-                {/* 진행률 계산 로직을 명확하게 */}
-                <Box h="full" w={`${(currentDay / totalDays) * 100}%`} bg="purple.400" transition="width 0.3s ease" />
-              </Box>
+          <Box w="100%" mb={6}>
+            <Text textStyle="body_sm" mb={2} mr={3} textAlign="end">
+              {currentDay} / {totalDays}일
+            </Text>
+            <Box h="10px" bg="gray.200" borderRadius="full" overflow="hidden">
+              <Box h="full" w={`${totalDays > 0 ? (currentDay / totalDays) * 100 : 0}%`} bg="purple.400" transition="width 0.3s ease" />
             </Box>
-          )}
+          </Box>
 
           <CommonCard
             onClick={handleRevealMission}
-            cursor={!isMissionRevealed ? 'pointer' : 'default'}
+            cursor={isMissionAvailable && !isMissionRevealed ? 'pointer' : 'default'}
             h="360px"
           >
             <Flex direction="column" justify="center" align="center" h="100%" w="100%" bgImage={!isMissionRevealed ? `url("${missioncard_bg_2}")` : undefined} bgSize="cover" bgRepeat="no-repeat" borderRadius="inherit">
