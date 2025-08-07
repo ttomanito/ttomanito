@@ -105,8 +105,17 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
      */
     Optional<RoomUser> findByUserUserIdAndRoomStatus(Long userId, RoomStatus status);
 
-    Optional<RoomUser> findByRoomRoomIdAndUserUserId(Long roomId, Long userId);
-
     // 필요하다면 방 ID + Room.status 로 전체 ACTIVE 멤버 조회
     List<RoomUser> findByRoom_RoomIdAndRoom_Status(Long roomId, RoomStatus status);
+    /**
+     * 방 ID + 여러 상태로 RoomUser 목록 조회
+     */
+    List<RoomUser> findByRoom_RoomIdAndRoom_StatusIn(Long roomId, List<RoomStatus> statuses);
+
+
+    /** 방의 모든 RoomUser(어제 집계 대상 포함) 조회 */
+    List<RoomUser> findByRoom_Status(RoomStatus status);
+
+    /** 방의 특정 상태들인 RoomUser 전체 조회 */
+    List<RoomUser> findByRoom_StatusIn(List<RoomStatus> statuses);
 }
