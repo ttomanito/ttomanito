@@ -31,12 +31,12 @@ const LoginPage: React.FC = () => {
   const handleDevLogin = () => {
     // ... (handleDevLogin 내용은 이전과 동일)
     useAuth.getState().setTokens({
-      accessToken: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwidXNlcm5hbWUiOiLquLjtg5zsnYAiLCJpYXQiOjE3NTQzNTkxMjAsImV4cCI6MTc1NDM2MDAyMH0.kDScLtGaLvTkEosWvLXy7rXJOElY3eCmB-mTRB6iFzY',
-      refreshToken: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwiaWF0IjoxNzU0MzU5MTIwLCJleHAiOjE3NTQ0NDU1MjB9.jCXeYCCKoHB3fRsBSNe3lxTSL-pzOzw1cSFY-BjgbaU',
+      accessToken: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiLqtozsnKTsoJUiLCJpYXQiOjE3NTQ1Mjc4NTksImV4cCI6MTc1NDUyODc1OX0.nlhxoQ1JLfk8gw5Hv04RO-gPA1J342aAWyAl44S2Vwg',
+      refreshToken: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU0NTI3ODU5LCJleHAiOjE3NTQ2MTQyNTl9.lJXLnWXttBzYEz7tGRIAqs5Fte-RnEf56q-_rjCDrYA',
     });
     useAuth.getState().setUser({ id: '2', name: '개발자' });
-    Cookies.set('accessToken', 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwidXNlcm5hbWUiOiLquLjtg5zsnYAiLCJpYXQiOjE3NTQzNTkxMjAsImV4cCI6MTc1NDM2MDAyMH0.kDScLtGaLvTkEosWvLXy7rXJOElY3eCmB-mTRB6iFzY', { expires: 1, path: '/' });
-    Cookies.set('refreshToken', 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwiaWF0IjoxNzU0MzU5MTIwLCJleHAiOjE3NTQ0NDU1MjB9.jCXeYCCKoHB3fRsBSNe3lxTSL-pzOzw1cSFY-BjgbaU', { expires: 7, path: '/' });
+    Cookies.set('accessToken', 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiLqtozsnKTsoJUiLCJpYXQiOjE3NTQ1Mjc4NTksImV4cCI6MTc1NDUyODc1OX0.nlhxoQ1JLfk8gw5Hv04RO-gPA1J342aAWyAl44S2Vwg', { expires: 1, path: '/' });
+    Cookies.set('refreshToken', 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzU0NTI3ODU5LCJleHAiOjE3NTQ2MTQyNTl9.lJXLnWXttBzYEz7tGRIAqs5Fte-RnEf56q-_rjCDrYA', { expires: 7, path: '/' });
     navigate('/main');
   };
 
