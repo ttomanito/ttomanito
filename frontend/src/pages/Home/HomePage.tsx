@@ -93,15 +93,26 @@ const GameHomePage = () => {
   };
 
   useEffect(() => {
-    if (!roomId) return;
-    getRequest(`/room/${roomId}`).then((data) => {
+  const fetchRoomInfo = async () => {
+    try {
+      const data = await getRequest(`/room/${roomId}`);
+      console.log("🏠 room data:", data); // 이 로그 반드시 확인
       setRoom({
         startDate: data.startDate,
         endDate: data.endDate,
         missionDays: data.missionDays,
       });
-    }).catch((err) => console.error('Room 정보 불러오기 실패:', err));
-  }, [roomId]);
+    } catch (err) {
+      console.error('방 정보 가져오기 실패:', err);
+    }
+  };
+
+  fetchRoomInfo();
+}, [roomId]);
+
+  console.log('startDate:', room?.startDate);
+console.log('endDate:', room?.endDate);
+
 
   useEffect(() => {
     const revealed = localStorage.getItem(`mission_revealed_${todayKey}`);
