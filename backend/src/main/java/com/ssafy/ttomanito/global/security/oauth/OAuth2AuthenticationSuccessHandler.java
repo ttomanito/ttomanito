@@ -30,8 +30,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     private final OAuthService oAuthService;
     private final RefreshTokenRepository refreshTokenRepo;
 
-//    @Value("${url.redirect.base}")
-//    private String frontendRedirectUrl;
+    @Value("${url.redirect.base}")
+    private String frontendRedirectUrl;
 
     @Value("${jwt.refresh.time}")
     private long refreshTokenTtlMs;
@@ -66,7 +66,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         response.addCookie(buildCookie("accessToken",  tokens.getAccessToken(),  (int)(jwtProvider.getAccessTokenTtlMs() / 1000)));
         response.addCookie(buildCookie("refreshToken", tokens.getRefreshToken(), (int)(refreshTokenTtlMs / 1000)));
 
-//        response.sendRedirect(frontendRedirectUrl + "/main");
+        response.sendRedirect(frontendRedirectUrl + "/main");
     }
 
     private Cookie buildCookie(String name, String value, int maxAgeSeconds) {
