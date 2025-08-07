@@ -19,6 +19,7 @@ import {
 } from 'react-router-dom';
 import ProfileList from '@/components/lists/ProfileList';
 import { getRequest } from '@/api/requests';
+import { connectStomp } from '@/utils/socket.ts'; // 유틸 함수로 작성 권장
 // import { connectStomp } from '@/utils/socket.ts'; // 유틸 함수로 작성 권장
 // import ttoma_king from '@/assets/ttoma_king.png';
 
@@ -67,6 +68,7 @@ const WaitingRoomPage = () => {
       try {
         // 1. 참여 여부 확인 - 다른 게임 이미 참여 중인 경우 대기 불가.
         const canParticapate = await getRequest('/room/check');
+        console.log(canParticapate);
         if (!canParticapate) {
           // navigate('/home');
           //   return;
@@ -74,6 +76,7 @@ const WaitingRoomPage = () => {
 
         // 2. 방 정보 조회 - 이미 시작/끝인 게임인 경우 참여 불가.
         const roomData = await getRequest<RoomInfo>(`/room/${roomId}`);
+        console.log(roomData);
         setRoomInfo(roomData);
 
         // // 3. 참여자 목록 조회 - 방장이면 왕관 노출
@@ -95,6 +98,18 @@ const WaitingRoomPage = () => {
 
     return () => {
       if (socket) socket.close();
+    };
+  }, [roomId]);
+
+  useEffect(() => {
+    const client = connectStomp(roomId, 2, message => {
+      // 예: 메시지 종류에 따라 처리
+      if (message.type === 'ENTER' || message.type === 'EXIT') {
+        setParticipants(prev => [...message.participants]);
+      }
+    });
+    return () => {
+      client.deactivate(); // 페이지 나가면 연결 종료
     };
   }, [roomId]);
 

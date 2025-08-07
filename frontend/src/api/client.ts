@@ -11,10 +11,18 @@ export const api = axios.create({
 
 // 요청 인터셉터 (개발 모드에서만 콘솔 로그)
 api.interceptors.request.use(config => {
-  //   console.log(config.baseURL);
+  // 예: 로컬스토리지에 저장된 토큰 가져오기
+  const token =
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTMyNDAzLCJleHAiOjE3NTQ1NjEyMDN9.EfcAD_ICxBLszc-FPddWe_S0g-YkdbCsJVmizz45ve0';
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   if (import.meta.env.DEV) {
     console.log('[API REQUEST]', config.method?.toUpperCase(), config.url, config.data || '');
   }
+
   return config;
 });
 
