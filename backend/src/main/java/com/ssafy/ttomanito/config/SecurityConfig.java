@@ -42,9 +42,11 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
+                                "/api/v3/api-docs/**",
                                 "/swagger-ui/**",
+                                "/api/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/swagger-ui/index.html**"
+                                "/api/swagger-ui/index.html**"
                         ).permitAll()
                         .requestMatchers(
                                 "/",
@@ -52,7 +54,10 @@ public class SecurityConfig {
                                 "/login/oauth2/code/**",
                                 "/auth/**"
                         ).permitAll()
-                        .requestMatchers("/notice/**").authenticated()
+
+                     //   .requestMatchers("/notice/**").authenticated()
+                        .requestMatchers("/ws/**", "/ws/signal/**", "/topic/**", "/app/**").permitAll()
+                        .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
@@ -74,9 +79,11 @@ public class SecurityConfig {
         return http.build();
     }
 
+
     @Bean
     public WebSecurityCustomizer webCustomizer() {
         return web -> web.ignoring().requestMatchers(HttpMethod.OPTIONS, "/**");
+
     }
 
     //  CORS 설정 Bean 추가

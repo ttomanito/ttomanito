@@ -215,24 +215,14 @@ ALTER TABLE `chatting_user` ADD CONSTRAINT `FK_room_user_TO_chatting_user_1` FOR
 -- 1) mission 테이블 수정 --------------------------------------------------
 ALTER TABLE `mission`
     CHANGE COLUMN `channels` `channel` VARCHAR(50) NOT NULL
-    COMMENT 'ENUM(\'MEET\', \'CHAT\', \'CALL\')',
-  ADD COLUMN `type` VARCHAR(50) NOT NULL
-    COMMENT 'ENUM(\'GIFT\', \'COMMUNICATION\', \'PERFORMANCE\', \'NOTES\', \'OBSERVATION\')'
-    AFTER `channel`,
-  ADD COLUMN `created_at` DATETIME NOT NULL AFTER `type`,
-  ADD COLUMN `updated_at` DATETIME NULL AFTER `created_at`;
+        COMMENT 'ENUM(\'MEET\', \'CHAT\', \'CALL\')',
+    ADD COLUMN `type` VARCHAR(50) NOT NULL
+        COMMENT 'ENUM(\'GIFT\', \'COMMUNICATION\', \'PERFORMANCE\', \'NOTES\', \'OBSERVATION\')'
+        AFTER `channel`,
+    ADD COLUMN `created_at` DATETIME NOT NULL AFTER `type`,
+    ADD COLUMN `updated_at` DATETIME NULL AFTER `created_at`;
 
 -- 2) daily_mission 테이블 수정 --------------------------------------------
-ALTER TABLE `daily_mission`
-    ADD COLUMN `created_at` DATETIME NOT NULL AFTER `mission_date`,
-  ADD COLUMN `updated_at` DATETIME NULL AFTER `created_at`,
-  ADD CONSTRAINT `FK_DAILY_MISSION_USER`
-    FOREIGN KEY (`manito_id`) REFERENCES `user`(`user_id`),
-  ADD CONSTRAINT `FK_DAILY_MISSION_MISSION`
-    FOREIGN KEY (`mission_id`) REFERENCES `mission`(`mission_id`),
-  ADD CONSTRAINT `FK_DAILY_MISSION_ROOM`
-    FOREIGN KEY (`room_id`) REFERENCES `room`(`room_id`);
-
 
 ALTER TABLE `daily_mission`
     ADD COLUMN `room_id` BIGINT NOT NULL AFTER `mission_id`;
@@ -240,13 +230,13 @@ ALTER TABLE `daily_mission`
 -- 2) created_at, updated_at 컬럼 추가 및 외래키 제약 걸기
 ALTER TABLE `daily_mission`
     ADD COLUMN `created_at` DATETIME NOT NULL AFTER `mission_date`,
-  ADD COLUMN `updated_at` DATETIME NULL AFTER `created_at`,
-  ADD CONSTRAINT `FK_DAILY_MISSION_USER`
-    FOREIGN KEY (`manito_id`)  REFERENCES `user`(`user_id`),
-  ADD CONSTRAINT `FK_DAILY_MISSION_MISSION`
-    FOREIGN KEY (`mission_id`) REFERENCES `mission`(`mission_id`),
-  ADD CONSTRAINT `FK_DAILY_MISSION_ROOM`
-    FOREIGN KEY (`room_id`)    REFERENCES `room`(`room_id`);
+    ADD COLUMN `updated_at` DATETIME NULL AFTER `created_at`,
+    ADD CONSTRAINT `FK_DAILY_MISSION_USER`
+        FOREIGN KEY (`manito_id`)  REFERENCES `user`(`user_id`),
+    ADD CONSTRAINT `FK_DAILY_MISSION_MISSION`
+        FOREIGN KEY (`mission_id`) REFERENCES `mission`(`mission_id`),
+    ADD CONSTRAINT `FK_DAILY_MISSION_ROOM`
+        FOREIGN KEY (`room_id`)    REFERENCES `room`(`room_id`);
 
 
 -- 3) mission_status 테이블 재정의 또는 신규 생성 --------------------------
@@ -272,7 +262,6 @@ CREATE TABLE `mission_status` (
   COLLATE=utf8mb4_unicode_ci;
 
 -- 4) poke_log 테이블 정의 ------------------------------------------------
-DROP TABLE IF EXISTS `poke_log`;
 CREATE TABLE `poke_log` (
                             `poke_id`                BIGINT NOT NULL AUTO_INCREMENT,
                             `manito_id`              BIGINT NOT NULL,

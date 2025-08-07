@@ -23,30 +23,36 @@ public class Mission {
     @Column(name = "mission_id")
     private Long id;
 
-    @Column(nullable = false, length = 255)
+    @Column(name = "title", nullable = false, length = 255)
     private String title;
 
-    @Column(length = 255)
+    @Column(name = "description", length = 255)
     private String description;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "difficulty", nullable = false, length = 50)
     private String difficulty;
 
     @Column(nullable = false, length = 50)
     private String channel;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(name = "type", nullable = false, length = 50)
     private MissionType type;
 
     @CreatedDate
-    @Column(updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false,
+            columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Column(name = "updated_at", nullable = true, updatable = false,
+            columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
-
-    public Mission(String title, String description, String difficulty, String channel, MissionType type) {
+    public Mission(String title,
+                   String description,
+                   String difficulty,
+                   String channel,
+                   MissionType type) {
         this.title = title;
         this.description = description;
         this.difficulty = difficulty;
@@ -59,6 +65,7 @@ public class Mission {
                 .map(MissionChannel::valueOf)
                 .toList();
     }
+
     public MissionType getType() {
         return type;
     }

@@ -13,19 +13,19 @@ import lombok.*;
 public class ManitoActivity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long activityId;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "room_user_id", nullable = false)
     private RoomUser roomUser;
 
-    @Column(nullable = false)
-    private long callTime;               // 발신 통화 시간 (초)
+    @Column(name = "chat_count")
+    private Integer chatCount;
 
-    @Column(nullable = false)
-    private int chatCount;               // 채팅 보낸 횟수
+    @Column(name = "call_time")
+    private Integer callTime;
 
-    @Column(nullable = false)
-    private int missionSuccessCount;     // 미션 수행 횟수
+    @Column(name = "mission_success_count")
+    private Integer missionSuccessCount;
+
+    @Column(name = "poke_count")
+    private Integer pokeCount;
 }
