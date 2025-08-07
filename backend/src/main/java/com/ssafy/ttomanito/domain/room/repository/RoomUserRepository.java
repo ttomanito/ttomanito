@@ -1,6 +1,6 @@
 package com.ssafy.ttomanito.domain.room.repository;
 
-
+import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
@@ -100,28 +100,13 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
             @Param("roomId") Long roomId,
             @Param("userId") Long userId
     );
-//    @Query("""
-//    SELECT ma
-//    FROM ManitoAssignment ma
-//    JOIN ma.room r
-//    JOIN ma.manitee u
-//    WHERE u.userId = :userId
-//      AND r.status = com.ssafy.ttomanito.domain.room.entity.RoomStatus.IN_PROGRESS
-//""")
-//    Optional<ManitoAssignment> findActiveAssignmentByManiteeUserId(@Param("userId") Long userId);
-//
-//    @Query("""
-//    SELECT ru
-//    FROM RoomUser ru
-//    JOIN ru.room r
-//    WHERE ru.user.userId = :userId
-//      AND r.status = com.ssafy.ttomanito.domain.room.entity.RoomStatus.IN_PROGRESS
-//""")
-//    Optional<RoomUser> findActiveRoomUserByUserId(@Param("userId") Long userId);
-//
-//
+    /**
+     * userId 의 사용자가 IN_PROGRESS 상태인 방의 RoomUser 를 한 건 조회
+     */
+    Optional<RoomUser> findByUserUserIdAndRoomStatus(Long userId, RoomStatus status);
 
     Optional<RoomUser> findByRoomRoomIdAndUserUserId(Long roomId, Long userId);
 
+    // 필요하다면 방 ID + Room.status 로 전체 ACTIVE 멤버 조회
+    List<RoomUser> findByRoom_RoomIdAndRoom_Status(Long roomId, RoomStatus status);
 }
-

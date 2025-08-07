@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.List;
 
 @Entity
-@Table(name = "mission")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
