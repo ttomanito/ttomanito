@@ -7,16 +7,17 @@ import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomRepository;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import com.ssafy.ttomanito.domain.user.entity.User;
-import com.ssafy.ttomanito.domain.user.exception.UserNotFoundException;
 import com.ssafy.ttomanito.domain.user.repository.UserRepository;
+import com.ssafy.ttomanito.global.exception.BadRequestException;
+import com.ssafy.ttomanito.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
 public class RoomUserService {
 
     private final RoomUserRepository roomUserRepository;
@@ -30,9 +31,9 @@ public class RoomUserService {
     public void enterWithMessage(Long roomId, Long userId, String message) {
         // 1) Room/User 엔티티 로드 (없으면 예외)
         Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 방입니다: " + roomId));
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 방입니다: " + roomId));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 사용자입니다: " + userId));
 
         // 2) 기존 RoomUser 조회, 없으면 새로 생성
         RoomUser roomUser = roomUserRepository
@@ -64,7 +65,7 @@ public class RoomUserService {
         boolean exists = roomUserRepository
                 .existsByRoom_roomIdAndUser_UserId(roomId, userId);
         if (exists) {
-            throw new IllegalStateException("이미 이 방에 참여했습니다.");
+            throw new BadRequestException("이미 이 방에 참여했습니다.");
         }
     }
 

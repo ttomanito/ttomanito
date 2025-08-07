@@ -10,6 +10,8 @@ import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomRepository;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
+import com.ssafy.ttomanito.global.exception.BadRequestException;
+import com.ssafy.ttomanito.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class ManitoService {
     private final RoomUserRepository roomUserRepository;
@@ -27,71 +30,60 @@ public class ManitoService {
 
     @Transactional(readOnly = true)
     public Long getManiteeId(Long userId) {
-        // 1) 현재 참여 중인 RoomUser 조회
-        RoomUser currentRoomUser = roomUserRepository
+        RoomUser current = roomUserRepository
                 .findActiveRoomsForUser(userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS))
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("참여 중인 방이 없습니다."));
-        Long ruId = currentRoomUser.getRoomUserId();
-        Long roomId = currentRoomUser.getRoom().getRoomId();
+                .stream().findFirst()
+                .orElseThrow(() -> new NotFoundException("참여 중인 방이 없습니다"));
 
-        // 2) ManitoAssignment 조회 (manito 역할)
-        return manitoAssignmentRepository
-                .findByManito_RoomUserIdAndRoom_RoomId(ruId, roomId)
-                .map(a -> a.getManitee().getUser().getUserId())
-                .orElseThrow(() -> new IllegalStateException("마니띠가 배정되지 않았습니다."));
+        ManitoAssignment asg = manitoAssignmentRepository
+                .findByManito_RoomUserIdAndRoom_RoomId(current.getRoomUserId(), current.getRoom().getRoomId())
+                .orElseThrow(() -> new NotFoundException("마니띠가 배정되지 않았습니다"));
+
+        return asg.getManitee().getUser().getUserId();
     }
 
-    @Transactional
     public void guessManito(Long userId, Long guessedUserId) {
-        // 1) 현재 참여 중인 RoomUser 조회
-        RoomUser currentRoomUser = roomUserRepository
+        RoomUser current = roomUserRepository
                 .findActiveRoomsForUser(userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS))
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("현재 참여 중인 마니또 방이 없습니다."));
-        Long ruId = currentRoomUser.getRoomUserId();
-        Long roomId = currentRoomUser.getRoom().getRoomId();
+                .stream().findFirst()
+                .orElseThrow(() -> new BadRequestException("현재 참여 중인 마니또 방이 없습니다"));
 
-        // 2) 실제 매니또(RoomUser) 조회 (현재 사용자는 manitee)
-        ManitoAssignment assignment = manitoAssignmentRepository
-                .findByManitee_RoomUserIdAndRoom_RoomId(ruId, roomId)
-                .orElseThrow(() -> new IllegalStateException("마니또 배정 정보를 찾을 수 없습니다."));
+        ManitoAssignment asg = manitoAssignmentRepository
+                .findByManitee_RoomUserIdAndRoom_RoomId(current.getRoomUserId(), current.getRoom().getRoomId())
+                .orElseThrow(() -> new NotFoundException("마니또 배정 정보를 찾을 수 없습니다"));
 
-        Long realManitoUserId = assignment.getManito().getUser().getUserId();
+        Long real = asg.getManito().getUser().getUserId();
+        boolean correct = real.equals(guessedUserId);
 
-        // 3) 정답 여부 판단
-        boolean isCorrect = realManitoUserId.equals(guessedUserId);
-
-        // 4) 추측 기록 저장
         ManitoGuess guess = ManitoGuess.builder()
                 .guessUserId(userId)
                 .guessedUserId(guessedUserId)
                 .guessedDate(LocalDate.now())
-                .isCorrect(isCorrect)
+                .isCorrect(correct)
                 .build();
         manitoGuessRepository.save(guess);
     }
 
     @Transactional(readOnly = true)
     public List<ManitoGuessHistoryDto> getGuessHistory(Long userId) {
-        List<ManitoGuess> guesses = manitoGuessRepository.findAllByGuessUserId(userId);
-        return guesses.stream()
+        return manitoGuessRepository.findAllByGuessUserId(userId).stream()
                 .map(ManitoGuessHistoryDto::from)
                 .toList();
     }
 
-    @Transactional
     public void finishRoom(Long userId) {
-        RoomUser roomUser = roomUserRepository
+        RoomUser current = roomUserRepository
                 .findActiveRoomsForUser(userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS))
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("참여 중인 방이 없습니다."));
-        Room room = roomRepository.findByRoomIdAndCreator_UserId(roomUser.getRoom().getRoomId(), userId)
-                .orElseThrow(() -> new IllegalStateException("해당 유저가 만든 방을 찾을 수 없습니다."));
-        if (room.getStatus() == RoomStatus.FINISHED) return;
+                .stream().findFirst()
+                .orElseThrow(() -> new BadRequestException("참여 중인 방이 없습니다"));
+
+        Room room = roomRepository
+                .findByRoomIdAndCreator_UserId(current.getRoom().getRoomId(), userId)
+                .orElseThrow(() -> new NotFoundException("해당 유저가 만든 방을 찾을 수 없습니다"));
+
+        if (room.getStatus() == RoomStatus.FINISHED) {
+            throw new BadRequestException("이미 종료된 방입니다");
+        }
         room.finish(LocalDate.now());
     }
 }

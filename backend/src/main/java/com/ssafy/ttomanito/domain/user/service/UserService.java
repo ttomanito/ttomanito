@@ -4,9 +4,9 @@ import com.ssafy.ttomanito.domain.oauth.service.OAuthService;
 import com.ssafy.ttomanito.domain.user.dto.UserDto;
 import com.ssafy.ttomanito.domain.user.entity.User;
 import com.ssafy.ttomanito.domain.user.entity.User.UserStatus;
-import com.ssafy.ttomanito.domain.user.exception.UserNotFoundException;
-import com.ssafy.ttomanito.domain.user.exception.InvalidUserNameException;
 import com.ssafy.ttomanito.domain.user.repository.UserRepository;
+import com.ssafy.ttomanito.global.exception.BadRequestException;
+import com.ssafy.ttomanito.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,15 +14,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository repo;
     private final OAuthService oauthService;
 
     public UserDto register(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new InvalidUserNameException();
+            throw new BadRequestException("유효하지 않은 사용자 이름입니다");
         }
         User user = User.builder()
                 .name(name.trim())
@@ -35,10 +35,10 @@ public class UserService {
 
     public UserDto update(Long userId, String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new InvalidUserNameException();
+            throw new BadRequestException("유효하지 않은 사용자 이름입니다");
         }
         User existing = repo.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다: id=" + userId));
         User updated = existing.toBuilder()
                 .name(name.trim())
                 .build();
@@ -49,26 +49,24 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserDto getMyPage(Long userId) {
         User user = repo.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다: id=" + userId));
         return toDto(user);
     }
 
     public void delete(Long userId) {
         User existing = repo.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다: id=" + userId));
         User withdrawn = existing.toBuilder()
                 .status(UserStatus.WITHDRAWN)
                 .build();
         repo.save(withdrawn);
-
         oauthService.deleteByUserId(userId);
     }
 
     @Transactional(readOnly = true)
     public String getUserName(Long userId) {
         User user = repo.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다: id=" + userId));
         return user.getName();
     }
 

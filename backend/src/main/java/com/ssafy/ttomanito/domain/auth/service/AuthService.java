@@ -10,8 +10,10 @@ import com.ssafy.ttomanito.global.exception.UnauthenticatedException;
 import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class AuthService {
     private final JwtProvider jwtProvider;
