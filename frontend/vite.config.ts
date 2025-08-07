@@ -30,7 +30,6 @@ export default defineConfig({
 
   /* .env 대신 define으로 넘겨야 하는 값이 있다면 이쪽에 */
   define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL),
     global: 'globalThis',
   },
 

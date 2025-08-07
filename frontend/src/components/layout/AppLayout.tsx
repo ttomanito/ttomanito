@@ -1,11 +1,24 @@
-import { Box, Container, Grid, GridItem, Text, Flex, Image } from '@chakra-ui/react';
+import { useRef } from 'react';
+import {
+  Box,
+  Container,
+  Grid,
+  GridItem,
+  Text,
+  Flex,
+  Image,
+  Portal,
+} from '@chakra-ui/react';
 import { Outlet, useLocation, matchPath } from 'react-router-dom';
 import AppHeader from './AppHeader';
 import BottomNav from './BottomNav';
 import bgImage from '@/assets/imgs/profile_bg.png';
-// import bgImage from '@/assets/imgs/background_purple_2.png';
-import detective_ttoma_img from '@/assets/detective_ttoma.svg';
-import logo_ttomanito from '@/assets/logo_ttomanito.svg';
+import detective_ttoma_img from '@/assets/ttomas/detective_ttoma.svg';
+import logo_ttomanito from '@/assets/ttomas/logo_ttomanito.svg';
+import { useModalStore } from '@/stores/modalStore';
+import BaseModal from '@/components/modal/BaseModal';
+import InstallBanner from '@/components/ui/InstallBanner';
+import DevLogoutButton from '@/components/buttons/DevLogoutButton';
 
 // 왼쪽 텍스트 영역
 const PcMent = () => (
@@ -29,7 +42,6 @@ const PcMent = () => (
       <Box pl={10}>
         <Image src={logo_ttomanito} alt="ttomanito logo" mb={2} />
         <Text textStyle="body_md" color="gray.500">
-          <Text textStyle="title_md">두근두근!</Text>
           정해진 날짜에만 열리는 미션!
           <br />
           그 날만큼은 마니띠에게 더 따뜻한
@@ -41,86 +53,75 @@ const PcMent = () => (
   </Flex>
 );
 
+
+
 export default function AppLayout() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const { pathname } = useLocation();
+  const { isModalOpen, closeModal, modalTitle, modalBody, modalCaption, modalFooter } =
+    useModalStore();
 
   const noHeaderPatterns = [
     '/chat/:chatRoomId/call',
     '/',
+    '/main',
     '/room',
     '/login',
     '/register',
+    '/room/:roomId',
     '/manito/:roomId/matching',
   ];
   const noBottomPatterns = [...noHeaderPatterns];
 
-  const hideHeader = noHeaderPatterns.some(pattern =>
-    matchPath({ path: pattern, end: true }, pathname),
+  const hideHeader = noHeaderPatterns.some((pattern) =>
+    matchPath({ path: pattern, end: true }, pathname)
   );
-  const hideBottom = noBottomPatterns.some(pattern =>
-    matchPath({ path: pattern, end: true }, pathname),
+  const hideBottom = noBottomPatterns.some((pattern) =>
+    matchPath({ path: pattern, end: true }, pathname)
   );
 
   return (
-    <Box bgImage={`url(${bgImage})`} bgRepeat="repeat" bgSize="auto" minH="100dvh">
-      {/* lg 이상: 좌우 2단 레이아웃 */}
-      <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} w="100%" h="100dvh">
-        {/* 왼쪽 설명 영역: lg 이상만 표시 */}
-        <GridItem display={{ base: 'none', lg: 'flex' }}>
+    <Box
+      bgImage={`url(${bgImage})`}
+      bgRepeat="repeat"
+      bgSize="auto"
+      minH="100dvh"
+    >
+      <Grid
+        templateColumns={{ base: '1fr', lg: '1fr 1fr' }}
+        w="100%"
+        h="100dvh"
+      >
+        <GridItem display={{ base: 'none', lg: 'flex' }} alignItems="center" justifyContent="flex-start">
           <PcMent />
         </GridItem>
-
-        {/* 오른쪽 앱 화면 */}
-        <GridItem position="relative" display="flex" justifyContent="center" alignItems="center">
-          {/* xs~mobile: 전체 너비 */}
-          <Box display={{ base: 'block', mobile: 'none', lg: 'none' }} w="100%" h="100dvh">
-            <Container
-              maxW="560px"
-              w="full"
-              px={4}
-              display="grid"
-              gridTemplateRows="auto 1fr auto"
-              h="100dvh"
-              overflow="hidden"
-              bg="white"
-            >
-              {!hideHeader && <AppHeader />}
-              <Box as="main" overflowY="auto">
-                <Outlet />
-              </Box>
-              {!hideBottom && <BottomNav />}
-            </Container>
-          </Box>
-
-          {/* mobile~lg: 중앙 고정폭 520px */}
-          <Box display={{ base: 'none', mobile: 'block', lg: 'none' }} w="520px" h="100dvh">
-            <Container
-              maxW="560px"
-              w="full"
-              px={4}
-              display="grid"
-              gridTemplateRows="auto 1fr auto"
-              h="100dvh"
-              overflow="hidden"
-              bg="white"
-            >
-              {!hideHeader && <AppHeader />}
-              <Box as="main" overflowY="auto">
-                <Outlet />
-              </Box>
-              {!hideBottom && <BottomNav />}
-            </Container>
-          </Box>
-
-          {/* lg 이상: 왼쪽 정렬된 앱 화면 (왼쪽 경계가 중앙) */}
+        
+        <GridItem
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          position="relative"
+        >
+          <Portal container={containerRef}>
+            <BaseModal
+              open={isModalOpen}
+              onClose={closeModal}
+              caption={modalCaption}
+              title={modalTitle}
+              body={modalBody}
+              footer={modalFooter}
+            />
+          </Portal>
+          
           <Box
-            position="absolute"
-            left="0"
-            w="520px"
+            ref={containerRef}
+            position="relative"
+            // ✨ 3단계 반응형 너비 설정
+            w={{ base: '375px', xs: '100%', mobile: '520px' }}
             h="100dvh"
-            bg="white"
-            display={{ base: 'none', lg: 'block' }}
           >
+            
             <Container
               maxW="560px"
               w="full"
@@ -129,12 +130,16 @@ export default function AppLayout() {
               gridTemplateRows="auto 1fr auto"
               h="100dvh"
               overflow="hidden"
+              bg="white"
             >
+
+              <DevLogoutButton />
               {!hideHeader && <AppHeader />}
               <Box as="main" overflowY="auto">
                 <Outlet />
               </Box>
               {!hideBottom && <BottomNav />}
+              <InstallBanner />
             </Container>
           </Box>
         </GridItem>
