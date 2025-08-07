@@ -5,6 +5,7 @@ import com.ssafy.ttomanito.domain.room.dto.request.SetUserMessageRequest;
 import com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse;
 import com.ssafy.ttomanito.domain.room.dto.response.RoomInfoResponse;
 import com.ssafy.ttomanito.domain.room.entity.Room;
+import com.ssafy.ttomanito.domain.room.entity.UserRoomStatus;
 import com.ssafy.ttomanito.domain.room.service.RoomService;
 import com.ssafy.ttomanito.domain.room.service.RoomUserService;
 import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
@@ -42,32 +43,23 @@ public class RoomController {
 
 
     @Operation(
-            summary = "사용자 첫 방문 여부 확인",
-            description = "현재 로그인한 사용자가 첫 방문인지 or 대기 중이거나 진행 중인 방에 참여하고 있는지 여부를 확인합니다.",
+            summary = "사용자 상태 여부 확인",
+            description = "현재 로그인한 사용자에 대해 게임중인지 대기방에있는지 아무것도 아닌지 확인",
             security = @SecurityRequirement(name = "bearer-key") // JWT 인증 필요 시
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "정상 처리 (true: 참여 중, false: 미참여)",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = Boolean.class),
-                            examples = {
-                                    @ExampleObject(name = "participating", value = "true"),
-                                    @ExampleObject(name = "notParticipating", value = "false")
-                            }
-                    )
-            ),
+                    description = "대기방에 사용자가 있으면 IN_WAITING, 게임방에 사용자가 있으면 IN_GAME,둘다 없으면 IN_NONE 중 하나 반환-> 이 경우 대기방진입"),
             @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음/만료)"),
-            @ApiResponse(responseCode = "403", description = "인가 실패"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/check")
-    public boolean checkUserInRoom(@Parameter(hidden = true) HttpServletRequest request,
-                                   @AuthenticationPrincipal JwtUserDetails principal) {
+    public ResponseEntity<UserRoomStatus> checkUserInRoom(@Parameter(hidden = true) HttpServletRequest request,
+                                                          @AuthenticationPrincipal JwtUserDetails principal) {
         Long userId = principal.getUserId();
-        return roomService.isUserInProgressOrWaiting(userId);
+        UserRoomStatus status = roomService.getUserRoomStatusEnum(userId);
+        return ResponseEntity.ok(status);
     }
 
     @Operation(
@@ -112,11 +104,11 @@ public class RoomController {
 
     @Operation(
             summary = "방 정보 조회",
-            description = "초대장에 표시될 방 정보를 반환합니다."
+            description = "링크타고 왔을때 방상태 NOT_STARTED확인 / 참가자들이 볼 방 정보를 반환합니다"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "방 정보 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "해당 ID의 방이 존재하지 않음"),
+            @ApiResponse(responseCode = "401", description = "해당 ID의 방이 존재하지 않음"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/{roomId}")
@@ -131,7 +123,7 @@ public class RoomController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "참여자 목록 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "방을 찾을 수 없음"),
+            @ApiResponse(responseCode = "401", description = "방을 찾을 수 없음"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/{roomId}/participants")
@@ -161,7 +153,7 @@ public class RoomController {
         roomUserService.enterWithMessage(roomId, userId, req.message());
     }
 
-    @Operation(
+   /* @Operation(
             summary = "참여자의 참가하기 버튼",
             description = "초대링크 진입 후 참가하기 버튼을 누르면 호출되며, 방 상태 확인 후 입장 준비를 수행합니다.",
             security = @SecurityRequirement(name = "bearer-key")
@@ -188,7 +180,7 @@ public class RoomController {
 
         // 방에 참여할 준비 수행
         roomUserService.prepareEnter(roomId, userId);
-    }
+    }*/
 
     @Operation(
             summary = "참여자의 방 나가기 버튼",

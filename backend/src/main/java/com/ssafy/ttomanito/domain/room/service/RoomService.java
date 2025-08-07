@@ -6,11 +6,7 @@ import com.ssafy.ttomanito.domain.room.dto.request.CreateRoomRequest;
 import com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse;
 import com.ssafy.ttomanito.domain.room.dto.response.RoomInfoResponse;
 import com.ssafy.ttomanito.domain.room.dto.response.WaitingMessage;
-import com.ssafy.ttomanito.domain.room.entity.MissionDay;
-import com.ssafy.ttomanito.domain.room.entity.Room;
-import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
-import com.ssafy.ttomanito.domain.room.entity.RoomUser;
-import com.ssafy.ttomanito.domain.room.entity.Weekday;
+import com.ssafy.ttomanito.domain.room.entity.*;
 import com.ssafy.ttomanito.domain.room.repository.MissionDayRepository;
 import com.ssafy.ttomanito.domain.room.repository.RoomRepository;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
@@ -19,9 +15,11 @@ import com.ssafy.ttomanito.domain.user.exception.UserNotFoundException;
 import com.ssafy.ttomanito.domain.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -74,9 +72,29 @@ public class RoomService {
 
     @Transactional(readOnly = true)
     public List<ParticipantResponse> getParticipants(Long roomId) {
+        // 1) roomId 존재 여부 확인
+        if (!roomRepository.existsById(roomId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Room with id " + roomId + " not found"
+            );
+        }
+
+        // 2) 실제 참가자 조회
         return roomUserRepository.findParticipantsByRoomId(roomId);
     }
+    public UserRoomStatus getUserRoomStatusEnum(Long userId) {
+        List<RoomStatus> statuses = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
+        List<RoomUser> rooms = roomUserRepository.findActiveRoomsForUser(userId, statuses);
 
+        if (rooms.stream().anyMatch(ru -> ru.getRoom().getStatus() == RoomStatus.NOT_STARTED)) {
+            return UserRoomStatus.IN_WAITING;
+        }
+        if (rooms.stream().anyMatch(ru -> ru.getRoom().getStatus() == RoomStatus.IN_PROGRESS)) {
+            return UserRoomStatus.IN_GAME;
+        }
+        return UserRoomStatus.IN_NONE;
+    }
     @Transactional(readOnly = true)
     public RoomInfoResponse getRoomInfo(Long roomId) {
         Room room = find(roomId);
@@ -119,7 +137,7 @@ public class RoomService {
                         .build()
         );
     }
-    
+
 
     public void kick(Long roomId, Long hostId, Long targetUserId) {
         Room room = find(roomId);
@@ -135,7 +153,7 @@ public class RoomService {
                         .type(WaitingMessage.MessageType.KICK)
                         .build()
         );
-    }//kick
+    }
 
     public void startGame(Long roomId, Long hostId) {
         Room room = find(roomId);
