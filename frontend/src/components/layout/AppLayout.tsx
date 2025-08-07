@@ -18,6 +18,8 @@ import logo_ttomanito from '@/assets/ttomas/logo_ttomanito.svg';
 import { useModalStore } from '@/stores/modalStore';
 import BaseModal from '@/components/modal/BaseModal';
 import InstallBanner from '@/components/ui/InstallBanner';
+import DevLogoutButton from '@/components/buttons/DevLogoutButton';
+
 // 왼쪽 텍스트 영역
 const PcMent = () => (
   <Flex
@@ -119,6 +121,7 @@ export default function AppLayout() {
             w={{ base: '375px', xs: '100%', mobile: '520px' }}
             h="100dvh"
           >
+            
             <Container
               maxW="560px"
               w="full"
@@ -129,7 +132,8 @@ export default function AppLayout() {
               overflow="hidden"
               bg="white"
             >
-              
+
+              <DevLogoutButton />
               {!hideHeader && <AppHeader />}
               <Box as="main" overflowY="auto">
                 <Outlet />
