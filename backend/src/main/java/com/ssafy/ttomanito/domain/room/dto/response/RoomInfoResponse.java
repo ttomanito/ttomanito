@@ -2,7 +2,6 @@ package com.ssafy.ttomanito.domain.room.dto.response;
 
 import com.ssafy.ttomanito.domain.room.entity.Room;
 import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
-import com.ssafy.ttomanito.domain.room.entity.UserRoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.Weekday;
 
 import java.time.LocalDate;

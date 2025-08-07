@@ -1,5 +1,10 @@
 package com.ssafy.ttomanito.domain.room.socket;
 
+import com.ssafy.ttomanito.domain.room.dto.response.WaitingEventMessage;
+import com.ssafy.ttomanito.domain.room.dto.response.WaitingMessage;
+import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
+import com.ssafy.ttomanito.domain.room.entity.RoomUser;
+import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,9 +12,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketEventListener {
 
     private final SimpMessageSendingOperations messagingTemplate;
+    private final RoomUserRepository roomUserRepository;
 
     /**
      * key: sessionId
@@ -37,11 +43,22 @@ public class WebSocketEventListener {
 
         log.info("🔴 DISCONNECT: user {} disconnected, session: {}", userId, sessionId);
 
-        // ✅ EXIT 메시지 브로드캐스트는 유지해도 됨 (단, 프론트에서 잘 받아서 제거만 하면 됨)
-        messagingTemplate.convertAndSend("/topic/waiting/leave",
-                new WaitingEventMessage(null, userId, "EXIT")); // ⚠️ 필요 시 roomId 붙이는 것도 가능
+        // 1) NOT_STARTED, IN_PROGRESS 상태인 방을 기존 메서드로 조회
+        List<RoomStatus> activeStatuses = List.of(
+                RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS
+        );
+        List<RoomUser> activeRooms = roomUserRepository
+                .findActiveRoomsForUser(userId, activeStatuses);
+
+        // 2) 각 RoomUser에서 roomId만 꺼내서 EXIT 이벤트 브로드캐스트
+        for (RoomUser ru : activeRooms) {
+            Long roomId = ru.getRoom().getRoomId();
+
+            messagingTemplate.convertAndSend(
+                    "/topic/waiting/" + roomId,
+                    new WaitingEventMessage(roomId, userId, WaitingMessage.MessageType.EXIT)  // ← 이 한 줄만으로 OK
+            );
+        }
     }
 
-    // 내부 전송용 메시지 클래스 (프론트에 JSON으로 보낼 객체)
-    public record WaitingEventMessage(Long roomId, Long userId, String type) {}
 }

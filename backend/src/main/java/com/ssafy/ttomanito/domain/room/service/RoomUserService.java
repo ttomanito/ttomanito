@@ -78,13 +78,13 @@ public class RoomUserService {
     }
 
     /**
-     * 대기방에서 퇴장 처리
+     * 대기방에서 나가기
      */
     public void exit(Long roomId, Long userId) {
         roomUserRepository.deleteByRoom_roomIdAndUser_UserId(roomId, userId);
 
         // 퇴장 이벤트 브로드캐스트
-        WaitingEventMessage evt = new WaitingEventMessage(roomId, userId, "EXIT");
+        WaitingEventMessage evt = new WaitingEventMessage(roomId, userId, WaitingMessage.MessageType.EXIT);
         messagingTemplate.convertAndSend("/topic/waiting/" + roomId, evt);
     }
 }
