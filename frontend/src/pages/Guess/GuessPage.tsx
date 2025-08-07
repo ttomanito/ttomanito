@@ -185,22 +185,18 @@ const GuessPage = () => {
           </Button>
         </Flex>
 
-        {usersToGuess.length > 0 ? (
-          usersToGuess.map((participant) => (
-            <Box
-              key={participant.userId}
-              border={!hasGuessedToday && selectedId === participant.userId ? '3px solid #A48AFB' : '1px solid #e2e2e2'}
-              borderRadius="lg"
-              onClick={() => handleSelect(participant.userId)}
-              cursor={hasGuessedToday ? 'default' : 'pointer'}
-              bg={!hasGuessedToday && selectedId === participant.userId ? 'purple.50' : 'white'}
-            >
-              <ProfileListItem name={participant.name} statusMessage={participant.statusMessage} />
-            </Box>
-          ))
-        ) : (
-          <Text textAlign="center" color="gray.500" py={10}>추측할 다른 참여자가 없습니다.</Text>
-        )}
+        {usersToGuess.map((participant) => (
+  <Box
+    key={participant.userId}
+    border={!hasGuessedToday && selectedId === participant.userId ? '3px solid #A48AFB' : '1px solid #e2e2e2'}
+    borderRadius="lg"
+    onClick={() => handleSelect(participant.userId)}
+    cursor={hasGuessedToday ? 'default' : 'pointer'}
+    bg={!hasGuessedToday && selectedId === participant.userId ? 'purple.50' : 'white'}
+  >
+    <ProfileListItem name={participant.name} statusMessage={participant.statusMessage} />
+  </Box>
+))}
 
         <LongButton onClick={handleConfirm} disabled={hasGuessedToday || usersToGuess.length === 0}>
           {hasGuessedToday ? '오늘은 이미 추측 완료' : '확인'}
