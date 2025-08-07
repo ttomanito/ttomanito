@@ -11,9 +11,6 @@ import java.util.Optional;
 
 @Repository
 public interface ChattingRepository extends JpaRepository<ChattingRoom, Long> {
-
-
-
     @EntityGraph(attributePaths = "manitoAssignment")
     Optional<ChattingRoom> findWithAssignmentByChattingRoomId(Long chattingRoomId);
 }

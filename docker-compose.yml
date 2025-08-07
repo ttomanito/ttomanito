@@ -49,6 +49,8 @@ services:
       ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
       ME_CONFIG_BASICAUTH_USERNAME: ssafy
       ME_CONFIG_BASICAUTH_PASSWORD: ssafy
+    networks:
+      - app-network
 
 
   backend:
@@ -77,6 +79,8 @@ services:
       SPRING_PORT: ${SPRING_PORT}
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
       JWT_SECRET: ${JWT_SECRET}
+      OPENVIDU_URL: ${OPENVIDU_URL}
+      OPENVIDU_SECRET: ${OPENVIDU_SECRET}
     networks:
       - app-network
 
@@ -85,7 +89,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL}
+        VITE_BASE_URL: ${VITE_BASE_URL}
     container_name: nginx
     ports:
       - "80:80"
@@ -104,8 +108,8 @@ services:
     container_name: openvidu-server-kms
     restart: always
     environment:
+      OPENVIDU_PUBLICURL: ${OPENVIDU_URL}
       OPENVIDU_SECRET: ${OPENVIDU_SECRET}
-      OPENVIDU_PUBLICURL: ${VITE_API_URL}
     ports:
       - "4443:4443"
     networks:

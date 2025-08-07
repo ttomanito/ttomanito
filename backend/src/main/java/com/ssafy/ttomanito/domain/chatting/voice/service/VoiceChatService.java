@@ -25,6 +25,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class VoiceChatService {
 
@@ -33,14 +34,6 @@ public class VoiceChatService {
     private final VoiceChatRepository voiceChatRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @Transactional
-    public void cancelAllActiveByUser(Long userId) {
-        int updated = voiceChatRepository.deactivateAllByUserId(userId);
-        if (updated > 0) {
-            log.info("User {}: deactivated {} active VoiceChat records", userId, updated);
-        }
-    }
-    @Transactional
     public void startCall(Long chattingRoomId, Long callerUserId) {
         log.info("▶▶ ENTER acceptCall", new RuntimeException("stack trace"));
 
@@ -70,42 +63,29 @@ public class VoiceChatService {
                 .findByRoomIdAndUserId(roomId, receiverId)
                 .orElseThrow(() -> new RuntimeException("callee not found"));
 
-
-
-
         // 3) 두 사람 모두에 대해 voice_chat 레코드 생성
         VoiceChat vcCaller = VoiceChat.start(cr, ruCaller);
         VoiceChat vcCallee = VoiceChat.start(cr, ruCallee);
         voiceChatRepository.save(vcCaller);
         voiceChatRepository.save(vcCallee);
-
-
     }
 
     /**
      * 수신자가 수락 버튼을 눌렀을 때
      */
-
-    @Transactional
     public void acceptCall(Long chattingRoomId, Long callerId) {
         // 1. chattingRoomId가 같은 voice_chat 2건 조회
         List<VoiceChat> voiceChats = voiceChatRepository.findByChattingRoom_ChattingRoomId(chattingRoomId);
 
-
-
         // 2. 시간 세팅 및 active 설정
-
         for (VoiceChat vc : voiceChats) {
             vc.activate();
         }
 
         // 3. 저장
         voiceChatRepository.saveAll(voiceChats);
-
-
     }
 
-    @Transactional
     public void rejectCall(Long chattingRoomId, Long callerId) {
         log.info("▶▶ CALL_REJECTED 브로드캐스트 to /topic/call/{}", callerId);
         // 1) 같은 채팅룸의 두 건 조회
@@ -117,11 +97,9 @@ public class VoiceChatService {
             vc.cancel();  // isActive=false
         }
         voiceChatRepository.saveAll(voiceChats);
-
-
     }
+
     /** 음성통화 종료 */
-    @Transactional
     public void endCall(Long chattingRoomId, Long userId) {
         // 1) 같은 채팅룸의 두 건 조회
         List<VoiceChat> voiceChats = voiceChatRepository
@@ -132,9 +110,5 @@ public class VoiceChatService {
             vc.endNow();
         }
         voiceChatRepository.saveAll(voiceChats);
-
-
-
     }
-
 }
