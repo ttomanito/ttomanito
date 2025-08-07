@@ -11,21 +11,5 @@ public interface ManitoAssignmentRepository extends JpaRepository<ManitoAssignme
     Optional<ManitoAssignment> findByManito_RoomUserId(Long manitoRoomUserId);
     Optional<ManitoAssignment> findByManitee_RoomUserId(Long maniteeRoomUserId);
 
-//    void deleteByRoom_RoomId(Long roomId);
-//    Optional<ManitoAssignment> findByRoom_RoomIdAndManitee_User_UserId(Long roomId, Long userId);
-//    // 룸ID + 마니또 UserPK 기준
-//    Optional<ManitoAssignment> findByRoom_RoomIdAndManito_User_UserId(Long roomId, Long userId);
-
-
-//    boolean existsByManitee_RoomUserIdAndManito_RoomUserIdAndRoom_RoomId(
-//            Long maniteeRuId, Long manitoRuId, Long roomId);
-
-//    Optional<ManitoAssignment> findByManito_RoomUserId(Long ruId);
-//    Optional<ManitoAssignment> findByManitee_RoomUserId(Long ruId);
-//
-    /* ────────── 단순 userId 기준 조회 ────────── */
-
-
-
 }
 
