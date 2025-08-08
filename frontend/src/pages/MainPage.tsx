@@ -2,18 +2,23 @@ import React from 'react'
 import {
   Box,
   VStack,
-  Image,
   Container,
   IconButton,
+  AspectRatio,
 } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'     // ⬅️ 추가
 import { FaQuestionCircle } from 'react-icons/fa'
 
 import LongButton from '@/components/buttons/LongButton'
-import detectiveImg from '@/assets/detective_ttoma.svg'
+import { useModalStore } from '@/stores/modalStore';
+import TutorialBody from '@/components/modal/TutorialBody'; 
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate()                  // ⬅️ 내비게이터 초기화
+  const { openModal } = useModalStore()
+  const tutorialModalData = {
+    body: <TutorialBody />
+  };
 
   return (
     <Box
@@ -33,6 +38,12 @@ const MainPage: React.FC = () => {
         right={3}
         zIndex="docked"
         color="accent.500"
+        _hover={{ 
+          color: 'accent.700', 
+          bg: 'transparent' // ✨ 호버 시 배경색을 투명하게 설정
+        }}
+        // ✨ 6. onClick 핸들러에서 openModal을 호출합니다.
+        onClick={() => openModal(tutorialModalData)}
       >
         <FaQuestionCircle style={{ width: '40px', height: '40px' }} />
       </IconButton>
@@ -49,13 +60,27 @@ const MainPage: React.FC = () => {
         pb={12}
       >
         <VStack gap={12} w="full" align="center">
+          
           {/* 탐정 또마니또 이미지 크게 */}
-          <Image
-            src={detectiveImg}
-            alt="탐정 또마니또"
-            w="100%"
-            maxW="100%"
-          />
+<Box w="100%" h="500px">
+  <AspectRatio ratio={9 / 10} w="100%" h="100%">
+    <video
+      src="/videos/demo-video.mp4"
+      autoPlay
+      loop
+      muted
+      playsInline
+      controls={false} // ❌ 없어도 됨, 명시적으로 false 주면 확실
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        borderRadius: '12px',
+        pointerEvents: 'none', // 👈 클릭 방지
+      }}
+    />
+  </AspectRatio>
+</Box>
 
           {/* 버튼 두 개 */}
           <VStack gap={4} w="full">

@@ -31,7 +31,8 @@ const ProfileListItem: React.FC<ProfileListItemProps> = ({ name, statusMessage }
 
       <Box textAlign="left">
         <Text textStyle="body_sm">{name}</Text>
-        <Text textStyle="caption_xs_md">{statusMessage}</Text>
+        <Text textStyle="caption_xs_light">{statusMessage}</Text>
+        
       </Box>
     </Flex>
   );

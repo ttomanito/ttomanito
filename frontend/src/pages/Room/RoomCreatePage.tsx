@@ -10,15 +10,15 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/App.css';
 import { addDays } from 'date-fns';
-import CommonCard from '@/components/CommonCard';
-import TextInput from '@/components/TextInput';
+import CommonCard from '@/components/cards/CommonCard';
+import TextInput from '@/components/inputs/TextInput';
 import LongButton from '@/components/buttons/LongButton';
 import type { LongButtonProps } from '@/components/buttons/LongButton';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 import { ko } from 'date-fns/locale';
 import { format } from 'date-fns';
-import DateInput from '@/components/DateInput';
+import DateInput from '@/components/inputs/DateInput';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/api/client';  // api 인스턴스 import
 

@@ -17,18 +17,17 @@ function lazyImport<P = unknown>(
 
 // === Pages ===
 const MainPage = lazyImport(() => import('@/pages/MainPage')); // /
-const SignupPage = lazyImport(() => import('@/pages/Auth/SignupPage')); // /auth/SignupPage
-const LoginPage = lazyImport(() => import('@/pages/Auth/LoginPage')); // /auth/LoginPage
+const LoginPage = lazyImport(() => import('@/pages/User/LoginPage')); // /auth/LoginPage
 const RoomCreatePage = lazyImport(() => import('@/pages/Room/RoomCreatePage')); // /room
 const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage')); // /room/:roomId
 const MatchingPage = lazyImport(() => import('@/pages/Room/MatchingPage')); // /manito/:roomId/matching
-const HomePage = lazyImport(() => import('@/pages/HomePage')); // /home
+const HomePage = lazyImport(() => import('@/pages/Home/HomePage')); // /home
 const ChatListPage = lazyImport(() => import('@/pages/Chat/ChatListPage')); // /chat
 const ChatRoomPage = lazyImport(() => import('@/pages/Chat/ChatRoomPage')); // /chat/:chatRoomId
 const CallPage = lazyImport(() => import('@/pages/Chat/CallPage')); // /chat/:chatRoomId/call
 const GuessPage = lazyImport(() => import('@/pages/Guess/GuessPage')); // /guess
-const RankingPage = lazyImport(() => import('@/pages/RankingPage')); // /rank
-const ProfilePage = lazyImport(() => import('@/pages/User/ProfilePage')); // /user/update
+const RankingPage = lazyImport(() => import('@/pages/Rank/RankingPage')); // /rank
+const EditProfile = lazyImport(() => import('@/pages/User/EditProfilePage')); // /user/update
 const ReportListPage = lazyImport(() => import('@/pages/Report/ReportListPage')); // /report/reportlist
 const ReportDetailPage = lazyImport(() => import('@/pages/Report/ReportDetailPage')); // /report/reportdetail/:reportId
 
@@ -47,7 +46,6 @@ export default function AppRoutes() {
           <Route element={<RequireAuth />}>
             <Route path="/"                      element={<MainPage />} />
             <Route path="/main"                  element={<MainPage />} />
-            <Route path="/register"                element={<SignupPage />} />
             <Route path="/room"                    element={<RoomCreatePage />} />
             <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
             <Route path="/chat/:chatRoomId/call"   element={<CallPage />} />
@@ -56,7 +54,7 @@ export default function AppRoutes() {
             <Route path="/chat/:chatRoomId"        element={<ChatRoomPage />} />
             <Route path="/guess"                   element={<GuessPage />} />
             <Route path="/rank"                    element={<RankingPage />} />
-            <Route path="/user/update"             element={<ProfilePage />} />
+            <Route path="/user/update"             element={<EditProfile />} />
             <Route path="/report/reportlist"       element={<ReportListPage />} />
             <Route path="/test"                    element={<TestPage />} />
           </Route>

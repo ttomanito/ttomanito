@@ -1,6 +1,6 @@
 // src/routes/RequireAuth.tsx
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { useAuth } from '@/stores/auth'
+import { useAuth } from '@/stores/authStore'
 import Loading from '@/routes/Loading'
 
 export default function RequireAuth() {

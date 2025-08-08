@@ -1,10 +1,10 @@
 import { Flex, HStack, Image, Box, type FlexProps } from '@chakra-ui/react';
 import { Link, useLocation } from 'react-router-dom';
 
-import homeIcon from '@/assets/homicon.svg';
-import chatIcon from '@/assets/chaticon.svg';
-import guessIcon from '@/assets/guessicon.svg';
-import rankingIcon from '@/assets/rankingicon.svg';
+import homeIcon from '@/assets/nav_icons/homeicon.svg';
+import chatIcon from '@/assets/nav_icons/chaticon.svg';
+import guessIcon from '@/assets/nav_icons/guessicon.svg';
+import rankingIcon from '@/assets/nav_icons/rankingicon.svg';
 
 type NavItem = {
   to: string;
