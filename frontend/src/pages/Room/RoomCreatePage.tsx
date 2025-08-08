@@ -20,7 +20,7 @@ import { ko } from 'date-fns/locale';
 import { format } from 'date-fns';
 import DateInput from '@/components/inputs/DateInput';
 import { useNavigate } from 'react-router-dom';
-import { api } from '@/api/client';  // api 인스턴스 import
+import { postRequest } from '@/api/requests'; 
 
 const korToEngDay = {
   '월': 'MON',
@@ -63,14 +63,14 @@ const RoomCreatePage = () => {
     const deadline = dayjs(endDate).format('YYYY-MM-DD');
 
     try {
-      // 여기서 api 인스턴스 사용 (토큰 자동 헤더 포함)
-      const res = await api.post('/room', {
+      // 👇 2. api.post 대신 postRequest를 사용합니다.
+      const res = await postRequest('/room', {
         name: groupName,
-        deadline,
+        deadline: deadline,
         missionDays,
       });
 
-      const { roomId } = res.data;
+      const { roomId } = res;
       navigate(`/room/${roomId}`);
     } catch (err) {
       console.error(err);

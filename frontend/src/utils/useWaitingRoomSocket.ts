@@ -1,162 +1,136 @@
-// src/hooks/useWaitingRoomSocket.ts
+// src/utils/useWaitingRoomSocket.ts
+import { useState, useRef, useEffect, useCallback } from 'react'
+import SockJS from 'sockjs-client'
+import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs'
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import SockJS from 'sockjs-client';
-import { Client, type IMessage } from '@stomp/stompjs';
-
-// 참가자 정보에 대한 타입 정의
 export interface Participant {
-  userId: number | string;
-  statusMessage?: string;
-  // 필요에 따라 닉네임, 프로필 이미지 등 추가 가능
+  userId: number | string
+  statusMessage?: string
 }
-
-// 서버와 주고받을 메시지 타입 정의
-export type MessageType = 'ENTER' | 'EXIT' | 'CLOSE' | 'START' | 'KICK';
-
-// 서버로 메시지를 보낼 때 사용할 데이터 형식
+export type MessageType = 'ENTER' | 'EXIT' | 'CLOSE' | 'START' | 'KICK'
 export interface MessagePayload {
-  roomId: number | string;
-  userId: number | string;
-  [key: string]: any; // statusMessage, targetUserId 등 추가 속성 허용
+  roomId: number | string
+  userId: number | string
+  [key: string]: any
 }
 
-/**
- * 대기실 웹소켓 관리를 위한 React Custom Hook
- */
 export const useWaitingRoomSocket = () => {
-  // --- 상태 (State) ---
-  const stompClient = useRef<Client | null>(null);
-  const [connected, setConnected] = useState(false);
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [lastMessage, setLastMessage] = useState<any>(null);
+  const stompClient = useRef<Client | null>(null)
+  const topicSubRef = useRef<StompSubscription | null>(null) // 👈 구독 핸들 저장
+  const [connected, setConnected] = useState(false)
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const [lastMessage, setLastMessage] = useState<any>(null)
 
-  // --- 내부 로직 (Private Logic) ---
-  
-  /**
-   * 서버로부터 메시지를 수신했을 때의 콜백 함수
-   */
+  const normalizeId = (v: number | string) => String(v)
+
   const onMessageReceived = useCallback((message: IMessage) => {
     try {
-      const body = JSON.parse(message.body);
-      setLastMessage(body); // 마지막 메시지 업데이트
+      const body = JSON.parse(message.body)
+      setLastMessage(body)
 
-      console.log('메시지 수신:', body);
-
-      // 메시지 타입에 따라 참가자 목록 상태 변경
       switch (body.type as MessageType) {
         case 'ENTER':
           setParticipants(prev => {
-            const existingIndex = prev.findIndex(p => p.userId === body.userId);
-            if (existingIndex > -1) {
-              // 정보 업데이트
-              const newParticipants = [...prev];
-              newParticipants[existingIndex] = { ...newParticipants[existingIndex], ...body };
-              return newParticipants;
-            } else {
-              // 새로 추가
-              return [...prev, { userId: body.userId, statusMessage: body.statusMessage }];
+            const uid = normalizeId(body.userId)
+            const idx = prev.findIndex(p => normalizeId(p.userId) === uid)
+            if (idx > -1) {
+              const next = [...prev]
+              next[idx] = { ...next[idx], ...body }
+              return next
             }
-          });
-          break;
-
+            return [...prev, { userId: body.userId, statusMessage: body.statusMessage }]
+          })
+          break
         case 'EXIT':
         case 'KICK':
-          setParticipants(prev => prev.filter(p => p.userId !== body.userId));
-          break;
-
+          setParticipants(prev => prev.filter(p => normalizeId(p.userId) !== normalizeId(body.userId)))
+          break
         case 'START':
-          console.log('게임이 시작되었습니다!');
-          // 여기에 게임 시작 관련 로직 (e.g., navigate('/game'))
-          break;
-
+          console.log('게임 시작!')
+          break
         case 'CLOSE':
-          console.log('방이 닫혔습니다.');
-          // 연결 종료 로직은 disconnect 함수에서 처리
-          break;
+          console.log('방 닫힘')
+          break
       }
-    } catch (error) {
-      console.error('메시지 처리 중 오류 발생:', error);
+    } catch (e) {
+      console.error('메시지 처리 오류:', e)
     }
-  }, []);
+  }, [])
 
-  // --- 외부 노출 메소드 (Public Methods) ---
-
-  /**
-   * 웹소켓 연결을 시작합니다.
-   */
   const connect = useCallback((roomId: number | string, initialParticipants: Participant[] = []) => {
     if (stompClient.current?.active) {
-      console.warn('이미 웹소켓에 연결되어 있습니다.');
-      return;
+      console.warn('이미 연결됨')
+      return
     }
 
-    setParticipants(initialParticipants);
-    
+    setParticipants(initialParticipants)
+
     const client = new Client({
-      brokerURL: 'wss://i13b206.p.ssafy.io/ws/waiting', // wss 사용 권장
+      // SockJS를 쓰면 brokerURL 지정하지 않는 것이 권장
+      // brokerURL: 'wss://i13b206.p.ssafy.io/ws/waiting',
       webSocketFactory: () => new SockJS('https://i13b206.p.ssafy.io/ws/waiting'),
       reconnectDelay: 5000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
       onConnect: () => {
-        setConnected(true);
-        console.log('✅ 웹소켓 연결 성공');
+        setConnected(true)
+        console.log('✅ 웹소켓 연결 성공')
 
-        // 방 주제(topic) 구독
-        client.subscribe(`/topic/waiting/${roomId}`, onMessageReceived);
+        // 이전 구독이 남아있다면 안전하게 해제
+        topicSubRef.current?.unsubscribe()
+        topicSubRef.current = client.subscribe(`/topic/waiting/${roomId}`, onMessageReceived)
+      },
+      onWebSocketClose: () => {
+        setConnected(false)
       },
       onStompError: (frame) => {
-        console.error('Broker reported error: ' + frame.headers['message']);
-        console.error('Additional details: ' + frame.body);
-        setConnected(false);
+        console.error('STOMP error:', frame.headers['message'], frame.body)
+        setConnected(false)
       },
-    });
+    })
 
-    client.activate();
-    stompClient.current = client;
+    stompClient.current = client
+    client.activate()
+  }, [onMessageReceived])
 
-  }, [onMessageReceived]);
+  const disconnect = useCallback(async () => {
+    // 구독 먼저 해제
+    try { topicSubRef.current?.unsubscribe() } catch {}
+    topicSubRef.current = null
 
-  /**
-   * 웹소켓 연결을 종료합니다.
-   */
-  const disconnect = useCallback(() => {
-    if (stompClient.current?.active) {
-      stompClient.current.deactivate();
+    const client = stompClient.current
+    stompClient.current = null
+
+    if (client?.active) {
+      try {
+        await client.deactivate() // 비동기 완료 보장
+      } catch (e) {
+        console.warn('deactivate 실패 무시:', e)
+      }
     }
-    setConnected(false);
-    setParticipants([]);
-    console.log('🔌 웹소켓 연결이 종료되었습니다.');
-  }, []);
+    setConnected(false)
+    setParticipants([])
+    console.log('🔌 웹소켓 연결 종료')
+  }, [])
 
-  /**
-   * 서버로 메시지를 전송합니다.
-   */
   const sendMessage = useCallback((type: MessageType, payload: MessagePayload) => {
-    if (!stompClient.current?.active) {
-      console.error('웹소켓이 연결되지 않아 메시지를 보낼 수 없습니다.');
-      return;
+    const client = stompClient.current
+    if (!client?.active) {
+      console.error('연결 안 됨: 메시지 전송 불가')
+      return
     }
-
-    const destination = '/app/waiting/message';
-    stompClient.current.publish({
-      destination,
+    client.publish({
+      destination: '/app/waiting/message',
       body: JSON.stringify({ type, ...payload }),
-    });
-  }, []);
+    })
+  }, [])
 
-  // 컴포넌트 언마운트 시 자동으로 연결 종료
   useEffect(() => {
     return () => {
-      disconnect();
-    };
-  }, [disconnect]);
+      // 언마운트 시 정리
+      void disconnect()
+    }
+  }, [disconnect])
 
-  return {
-    connected,
-    participants,
-    lastMessage,
-    connect,
-    disconnect,
-    sendMessage,
-  };
-};
+  return { connected, participants, lastMessage, connect, disconnect, sendMessage }
+}
