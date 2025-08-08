@@ -13,37 +13,62 @@ import { FaQuestionCircle } from 'react-icons/fa'
 import Cookies from 'js-cookie'
 import LongButton from '@/components/buttons/LongButton'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/stores/authStore' // ✅ 임시 로그인용 스토어 접근
+import { useAuth } from '@/stores/authStore'
 import main_page_logo from '@/assets/ttomas/main_page_logo.svg'
-
-import TutorialBody from '@/components/modal/TutorialBody'; // ✨ 1. TutorialBody 컴포넌트 import
-import { useModalStore } from '@/stores/modalStore'; // ✨ 2. Zustand 스토어 import
+import TutorialBody from '@/components/modal/TutorialBody'
+import { useModalStore } from '@/stores/modalStore'
+import { jwtParser } from '@/utils/jwtparser'
 
 /** 카카오 로그인 전용 페이지 (/login) */
 const LoginPage: React.FC = () => {
-  const navigate = useNavigate();
-  // ✨ 3. openModal, closeModal 함수를 스토어에서 가져옵니다.
-  const { openModal } = useModalStore();
-  // ✨ 4. useState는 더 이상 필요 없으므로 제거합니다.
-  // const [isTutorialOpen, setIsTutorialOpen] = useState(false)
+  const navigate = useNavigate()
+  const { openModal, closeModal } = useModalStore()
 
-  // 개발용 임시 로그인 함수
-  const handleDevLogin = () => {
-    // ... (handleDevLogin 내용은 이전과 동일)
-    useAuth.getState().setTokens({
-      accessToken: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwidXNlcm5hbWUiOiLquLjtg5zsnYAiLCJpYXQiOjE3NTQzNTkxMjAsImV4cCI6MTc1NDM2MDAyMH0.kDScLtGaLvTkEosWvLXy7rXJOElY3eCmB-mTRB6iFzY',
-      refreshToken: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwiaWF0IjoxNzU0MzU5MTIwLCJleHAiOjE3NTQ0NDU1MjB9.jCXeYCCKoHB3fRsBSNe3lxTSL-pzOzw1cSFY-BjgbaU',
-    });
-    useAuth.getState().setUser({ id: '2', name: '개발자' });
-    Cookies.set('accessToken', 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwidXNlcm5hbWUiOiLquLjtg5zsnYAiLCJpYXQiOjE3NTQzNTkxMjAsImV4cCI6MTc1NDM2MDAyMH0.kDScLtGaLvTkEosWvLXy7rXJOElY3eCmB-mTRB6iFzY', { expires: 1, path: '/' });
-    Cookies.set('refreshToken', 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwiaWF0IjoxNzU0MzU5MTIwLCJleHAiOjE3NTQ0NDU1MjB9.jCXeYCCKoHB3fRsBSNe3lxTSL-pzOzw1cSFY-BjgbaU', { expires: 7, path: '/' });
-    navigate('/main');
-  };
+  // 개발용 액세스 토큰 목록
+  const devTokens: string[] = [
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.l8SbHlasPMm1WkP2xSuTC3xBuhTtPOytejGpiByCal8',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.Ci2nd3YJucqv_fR-EtgLLmQwcWTHbEzd8km94HmUqxM',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzIiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.na_XUDhhyVrlow307Voz8U2SKG8XexQl5uGqYP8hHz4',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.zW6Td3CfzB8bU0Lv7Cjq95BDI5gOj4mFJS8MuB2bPiw',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.D2aUll__uJGb0UIWgI9PxBXWtXZ3F_PExFjzFMNMZic',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.8T5jNvwc9xqAF_nBtmHBSYYiUfD_es09mCgS3BHIVNE',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.pWnRxPUCEGusgdFXZ-EiNPiR6vq4F-SUpPyzvQc-nWQ',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.f5pJ5cdpupSXhmtkSTA8kTrvpgh4V50bzGo3yUpE9OY',
+  ]
 
-  // ✨ 5. 튜토리얼 모달에 필요한 데이터를 객체로 정의합니다.
-  const tutorialModalData = {
-    body: <TutorialBody />
-  };
+  // 선택한 토큰으로 로그인 처리
+  const handleDevLoginWithToken = (token: string) => {
+    closeModal()
+    const claims = jwtParser(token)
+    useAuth.getState().setTokens({ accessToken: token, refreshToken: token })
+    useAuth.getState().setUser({ id: claims.sub, name: claims.username })
+    Cookies.set('accessToken', token, { expires: 1, path: '/' })
+    Cookies.set('refreshToken', token, { expires: 7, path: '/' })
+    navigate('/main')
+  }
+
+  // 개발자 로그인 선택 모달 오픈
+  const showDevLoginModal = () => {
+    openModal({
+      title: '개발자 로그인 선택',
+      body: (
+        <VStack gap={3} align="stretch">
+          {devTokens.map((token, idx) => (
+            <LongButton key={idx} onClick={() => handleDevLoginWithToken(token)}>
+              {`User ${idx + 1}`}
+            </LongButton>
+          ))}
+          <Text textStyle="caption_xs_light" color="gray.500" textAlign="center">
+            1번방 = 대기방('NOT_STARTED') : 방장 1번 - 참여자 1   / 2,3,4 는 아직 참여 안함
+2번방 = 게임방('IN_PROGRESS') : 방장 5번 - 참여자 5,6,7,8
+          </Text>
+        </VStack>
+      ),
+    })
+  }
+
+  // 튜토리얼 모달 데이터
+  const tutorialModalData = { body: <TutorialBody /> }
 
   return (
     <Box
@@ -63,11 +88,7 @@ const LoginPage: React.FC = () => {
         right={3}
         zIndex="docked"
         color="accent.500"
-        _hover={{ 
-          color: 'accent.700', 
-          bg: 'transparent' // ✨ 호버 시 배경색을 투명하게 설정
-        }}
-        // ✨ 6. onClick 핸들러에서 openModal을 호출합니다.
+        _hover={{ color: 'accent.700', bg: 'transparent' }}
         onClick={() => openModal(tutorialModalData)}
       >
         <FaQuestionCircle style={{ width: '40px', height: '40px' }} />
@@ -80,9 +101,7 @@ const LoginPage: React.FC = () => {
         {/* 카카오 로그인 버튼 */}
         <LongButton
           w="full"
-          onClick={() =>
-            (window.location.href = '/api/oauth2/authorization/kakao')
-          }
+          onClick={() => (window.location.href = '/api/oauth2/authorization/kakao')}
           bg="#FEE500"
           color="black"
           _hover={{ bg: '#FFEB33' }}
@@ -94,17 +113,15 @@ const LoginPage: React.FC = () => {
           </HStack>
         </LongButton>
 
-        {/* 💻 개발용 임시 로그인 버튼 */}
+        {/* 💻 개발용 로그인 선택 버튼 */}
         {import.meta.env.DEV && (
-          <LongButton w="full" onClick={handleDevLogin} bg="gray.200">
-            <Text>💻 개발용 로그인 (임시 토큰)</Text>
+          <LongButton w="full" onClick={showDevLoginModal} bg="gray.200">
+            <Text>💻 개발자 로그인 선택</Text>
           </LongButton>
         )}
       </VStack>
-      
-      {/* ✨ 7. 페이지 내에서 직접 모달을 렌더링하는 코드를 제거합니다. */}
     </Box>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage
