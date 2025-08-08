@@ -87,15 +87,45 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                 </HStack>
 
                 <VStack align="stretch" gap={1}>
-                  <Button variant="ghost" justifyContent="flex-start" py={6} textStyle="title_md" onClick={() => openModal(tutorialModalData)}>
+                  <Button
+                    variant="ghost"
+                    justifyContent="flex-start"
+                    py={6}
+                    textStyle="title_md"
+                    onClick={() => {
+                      openModal(tutorialModalData);
+                      close(); // 메뉴 닫기
+                    }}
+                  >
                     튜토리얼 확인하기
                   </Button>
-                  <Button variant="ghost" justifyContent="flex-start" py={6} textStyle="title_md" onClick={() => navigate('/report/reportlist')}>
+
+                  <Button
+                    variant="ghost"
+                    justifyContent="flex-start"
+                    py={6}
+                    textStyle="title_md"
+                    onClick={() => {
+                      navigate('/report/reportlist');
+                      close(); // 메뉴 닫기
+                    }}
+                  >
                     보고서 보러가기
                   </Button>
-                  <Button variant="ghost" justifyContent="flex-start" py={6} textStyle="title_md" onClick={() => navigate('/user/update')}>
+
+                  <Button
+                    variant="ghost"
+                    justifyContent="flex-start"
+                    py={6}
+                    textStyle="title_md"
+                    onClick={() => {
+                      navigate('/user/update');
+                      close(); // 메뉴 닫기
+                    }}
+                  >
                     회원 정보 수정
                   </Button>
+
                 </VStack>
               </VStack>
 
