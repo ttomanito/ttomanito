@@ -1,191 +1,107 @@
-import {
-  Box,
-  Text,
-  VStack,
-  HStack,
-  Button,
-  Flex,
-  // Image
-} from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import 'react-datepicker/dist/react-datepicker.css';
-import '@/App.css';
-import CommonCard from '@/components/cards/CommonCard';
-import dayjs from 'dayjs';
-import 'dayjs/locale/ko';
-import {
-  // useNavigate,
-  useParams,
-} from 'react-router-dom';
+import { Box, Text, Button, VStack } from '@chakra-ui/react';
+import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { getRequest, postRequest } from '@/api/requests';
+
 import ProfileList from '@/components/lists/ProfileList';
-import { getRequest } from '@/api/requests';
-import { connectStomp } from '@/utils/socket.ts'; // 유틸 함수로 작성 권장
-// import { connectStomp } from '@/utils/socket.ts'; // 유틸 함수로 작성 권장
-// import ttoma_king from '@/assets/ttoma_king.png';
+import { useWaitingRoomSocket, type Participant } from '@/utils/useWaitingRoomSocket';
 
-interface Participant {
-  name: string;
-  statusMessage: string;
-}
+import { useAuth } from '@/stores/authStore';
 
-interface RoomInfo {
-  roomId: number;
-  creatorId: number;
-  name: string;
-  status: 'NONE' | 'NOT_STARTED' | 'IN_PROGRESS' | 'FINISHED';
-  startDate: string;
-  endDate: string;
-  deadline: string;
-  missionDays: ('MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN')[];
-}
+const WaitingRoomPageSimple = () => {
+  const { roomId } = useParams<{ roomId: string }>();
 
-const WaitingRoomPage = () => {
-  // const navigate = useNavigate();
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const myUserId = useAuth((state) => state.user?.id);
 
-  dayjs.locale('ko');
+  const { connected, participants, connect, disconnect, sendMessage } = useWaitingRoomSocket();
 
-  const dayOptions = ['월', '화', '수', '목', '금', '토', '일'];
-  const dayMapEngToKor: Record<string, string> = {
-    MON: '월',
-    TUE: '화',
-    WED: '수',
-    THU: '목',
-    FRI: '금',
-    SAT: '토',
-    SUN: '일',
+  // '참여하기' 버튼 클릭 시 실행
+  const handleEnterRoom = async () => {
+    if (!roomId || !myUserId || connected) return;
+
+    try {
+      const initialParticipants = await getRequest<Participant[]>(`/room/${roomId}/participants`);
+      
+      connect(roomId, initialParticipants);
+
+    } catch (err) {
+      console.error('방 입장 실패:', err);
+      alert('방 입장에 실패했습니다.');
+    }
   };
 
-  const { roomId } = useParams<{ roomId: string }>();
-  const [roomInfo, setRoomInfo] = useState<RoomInfo | null>(null);
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [socket] = useState<WebSocket | null>(null);
+  // '나가기' 버튼 클릭 시 실행
+  const handleLeaveRoom = async () => {
+    if (!roomId || !myUserId || !connected) return;
 
+    try {
+      // 1. 서버에 DB 상태 변경을 위한 API 요청 (HTTP POST)
+      await postRequest(`/room/${roomId}/exit`);
+
+      // 2. 다른 클라이언트에게 실시간 알림 (WebSocket)
+      sendMessage('EXIT', { roomId, userId: myUserId });
+
+      // 3. 내 소켓 연결 종료
+      disconnect();
+
+    } catch (err) {
+      console.error('나가기 처리 중 오류 발생:', err);
+      alert('나가기 요청에 실패했습니다.');
+    }
+  };
+  // 연결 성공 시 'ENTER' 메시지 자동 전송
   useEffect(() => {
-    if (!roomId) return;
+    if (connected && roomId && myUserId) {
+      sendMessage('ENTER', { roomId, userId: myUserId });
+    }
+  }, [connected, roomId, myUserId, sendMessage]);
 
-    const initializeRoom = async () => {
-      try {
-        // 1. 참여 여부 확인 - 다른 게임 이미 참여 중인 경우 대기 불가.
-        const canParticapate = await getRequest('/room/check');
-        console.log(canParticapate);
-        if (!canParticapate) {
-          // navigate('/home');
-          //   return;
-        }
-
-        // 2. 방 정보 조회 - 이미 시작/끝인 게임인 경우 참여 불가.
-        const roomData = await getRequest<RoomInfo>(`/room/${roomId}`);
-        console.log(roomData);
-        setRoomInfo(roomData);
-
-        // // 3. 참여자 목록 조회 - 방장이면 왕관 노출
-        const participantData = await getRequest<Participant[]>(`/room/${roomId}/participants`);
-        setParticipants(
-          participantData?.map(el => {
-            return {
-              name: el.name,
-              statusMessage: el.statusMessage,
-            };
-          }),
-        );
-      } catch (err) {
-        console.error(err);
+  // 페이지 이탈 시 자동 연결 종료
+  useEffect(() => {
+    return () => {
+      if (connected && roomId && myUserId) {
+        sendMessage('EXIT', { roomId, userId: myUserId });
+        disconnect();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId, connected, myUserId]);
 
-    initializeRoom();
-
-    return () => {
-      if (socket) socket.close();
-    };
-  }, [roomId]);
-
-  useEffect(() => {
-    // const accessToken = localStorage.getItem('accessToken');
-    const client = connectStomp(localStorage.getItem('accessToken'), roomId, 2, message => {
-      // 예: 메시지 종류에 따라 처리
-      if (message.type === 'ENTER' || message.type === 'EXIT') {
-        setParticipants(prev => [...message.participants]);
-      }
-    });
-    return () => {
-      client.deactivate(); // 페이지 나가면 연결 종료
-    };
-  }, [roomId]);
-
-  useEffect(() => {
-    const converted = roomInfo?.missionDays?.map(eng => dayMapEngToKor[eng]).filter(Boolean); // 영어 → 한글 변환
-    setSelectedDays(converted ?? []); // 예: ["월", "수", "금"]
-  }, [roomInfo]);
+  const profileListData = participants.map((p: Participant) => ({
+    name: `User ID: ${p.userId}`,
+    statusMessage: p.statusMessage || '대기 중...',
+  }));
 
   return (
-    <Box p={4}>
-      <Text textStyle="title_md" mb={2} textAlign="start">
-        {roomInfo?.name}
-      </Text>
-      {/* 기간 설정 */}
-      <Flex gap={2}>
-        <CommonCard w="full">
-          <Box w="full">
-            <Text textStyle="body_sm" textAlign="start">
-              시작일
-            </Text>
-            <Box borderRadius="xl" mt={2}>
-              <Text textStyle="caption_sm" textAlign="start">
-                {/* {roomInfo?.startDate} */}
-                {dayjs().format('YY.MM.DD')}
-              </Text>
-            </Box>
-          </Box>
-        </CommonCard>
-        <CommonCard w="full">
-          <Box w="full">
-            <Text textStyle="body_sm" textAlign="start">
-              종료일
-            </Text>
-            <Box borderRadius="xl" mt={2}>
-              <Text textStyle="caption_sm" textAlign="start">
-                {dayjs(roomInfo?.endDate).format('YY.MM.DD')}
-              </Text>
-            </Box>
-          </Box>
-        </CommonCard>
-      </Flex>
-
-      {/* 미션 수행 요일 */}
-      <CommonCard mt={4}>
-        <VStack align="start">
-          <Text textStyle="body_sm" textAlign="start">
-            미션 수행 요일
+    <Box p={4} borderWidth="1px" borderRadius="lg">
+      <VStack gap={4} align="stretch">
+        <Box>
+          <Text fontSize="2xl" fontWeight="bold">
+            대기실 (Room ID: {roomId})
           </Text>
-          <HStack wrap="wrap">
-            {dayOptions.map(day => (
-              <Button
-                key={day}
-                size="sm"
-                variant="outline"
-                borderColor={selectedDays.includes(day) ? 'accent.800' : 'gray.500'}
-                color={selectedDays.includes(day) ? 'white' : 'gray.600'}
-                borderWidth="1.5px"
-                borderRadius="lg"
-                bg={selectedDays.includes(day) ? 'accent.800' : 'white'}
-                disabled
-              >
-                {day}
-              </Button>
-            ))}
-          </HStack>
-        </VStack>
-      </CommonCard>
+          <Text>내 ID: {myUserId || '로그인 필요'}</Text>
+          <Text>연결 상태: {connected ? '✅ 연결됨' : '❌ 끊어짐'}</Text>
+        </Box>
 
-      {/* 참여자 리스트 */}
-      <Text textStyle="title_md" mt={8} mb={2} textAlign="start">
-        참여자
-      </Text>
-      <ProfileList data={participants} />
+        {!connected ? (
+          <Button colorScheme="green" onClick={handleEnterRoom} disabled={!myUserId}>
+            참여하기
+          </Button>
+        ) : (
+          <Button colorScheme="red" onClick={handleLeaveRoom}>
+            나가기
+          </Button>
+        )}
+
+        <Box>
+          <Text fontSize="lg" fontWeight="semibold">
+            참가자 목록 ({participants.length}명)
+          </Text>
+          <ProfileList data={profileListData} />
+        </Box>
+      </VStack>
     </Box>
   );
 };
 
-export default WaitingRoomPage;
+export default WaitingRoomPageSimple;
