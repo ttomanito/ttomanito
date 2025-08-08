@@ -6,6 +6,6 @@ import java.util.List;
 
 public record CreateRoomRequest(
         String name,
-        LocalDate deadline,          // = room.endDate
+        LocalDate endDate,          // = room.endDate
         List<Weekday> missionDays
 ) {}

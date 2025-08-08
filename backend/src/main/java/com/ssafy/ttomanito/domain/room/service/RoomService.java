@@ -1,9 +1,5 @@
 package com.ssafy.ttomanito.domain.room.service;
 
-import com.ssafy.ttomanito.domain.chatting.room.entity.ChattingRoom;
-import com.ssafy.ttomanito.domain.chatting.room.repository.ChattingRoomRepository;
-import com.ssafy.ttomanito.domain.chatting.user.entity.ChattingUser;
-import com.ssafy.ttomanito.domain.chatting.user.repository.ChattingUserRepository;
 import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import com.ssafy.ttomanito.domain.manito.repository.ManitoAssignmentRepository;
 import com.ssafy.ttomanito.domain.room.dto.request.CreateRoomRequest;
@@ -36,8 +32,6 @@ import java.util.*;
 public class RoomService {
     private final RoomRepository roomRepository;
     private final RoomUserRepository roomUserRepository;
-    private final ChattingRoomRepository chattingRoomRepository;
-    private final ChattingUserRepository chattingUserRepository;
     private final MissionDayRepository missionDayRepository;
     private final ManitoAssignmentRepository manitoAssignmentRepository;
     private final UserRepository userRepository;
@@ -63,7 +57,7 @@ public class RoomService {
         // 3) Room 생성 및 저장
         Room room = Room.create(creator, req.name())
                 .toBuilder()
-                .endDate(req.deadline())
+                .endDate(req.endDate())
                 .build();
         room = roomRepository.save(room);
 
@@ -108,7 +102,24 @@ public class RoomService {
         List<Weekday> days = missionDayRepository.findWeekdaysByRoomId(roomId);
         return RoomInfoResponse.from(room, days);
     }
-    
+
+    public boolean isUserInProgressOrWaiting(Long userId) {
+        List<RoomStatus> statuses = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
+        return !roomUserRepository.findActiveRoomsForUser(userId, statuses).isEmpty();
+    }
+
+    public void setUserMessage(Long roomId, Long userId, String message) {
+        if (message == null || message.isBlank()) {
+            throw new BadRequestException("메시지는 비어있을 수 없습니다.");
+        }
+        RoomUser ru = roomUserRepository
+                .findByRoom_roomIdAndUser_UserId(roomId, userId)
+                .orElseThrow(() -> new NotFoundException("방에 참여하지 않은 사용자입니다."));
+        ru = ru.toBuilder().statusMessage(message).build();
+        roomUserRepository.save(ru);
+    }
+
+
     public void closeRoomByCreatorId(Long creatorId) {
         Room room = roomRepository
                 .findByCreator_UserIdAndStatus(creatorId, RoomStatus.NOT_STARTED)
@@ -141,18 +152,11 @@ public class RoomService {
         );
     }
 
-    @Transactional
     public void startGame(Long roomId, Long hostId) {
         Room room = find(roomId);
         if (!room.getCreator().getUserId().equals(hostId)) {
             throw new AccessDeniedException("호스트만 게임을 시작할 수 있습니다.");
         }
-
-        // 이미 시작된 방 재시작 방지 (선택)
-        if (room.getStatus() == RoomStatus.IN_PROGRESS || room.getStatus() == RoomStatus.FINISHED) {
-            throw new BadRequestException("이미 시작되었거나 종료된 방입니다.");
-        }
-
         List<RoomUser> participants = roomUserRepository.findByRoom_RoomId(roomId);
         if (participants.size() < 4) {
             throw new BadRequestException("최소 4명의 참가자가 필요합니다.");
@@ -169,41 +173,24 @@ public class RoomService {
         );
         room.start(LocalDate.now());
 
-        // 1) 마니또-마니띠 배정 (순환)
-        List<ManitoAssignment> assignments = new ArrayList<>(participants.size());
+        // 매니또 할당 (순환 교대 방식)
         for (int i = 0; i < participants.size(); i++) {
             RoomUser manito = participants.get(i);
             RoomUser manitee = participants.get((i + 1) % participants.size());
-
-            ManitoAssignment assignment = ManitoAssignment.create(manito, manitee, room);
-            assignments.add(assignment);
+            manitoAssignmentRepository.save(
+                    ManitoAssignment.create(manito, manitee, room)
+            );
         }
-        manitoAssignmentRepository.saveAll(assignments);
-
-        // 2) 매칭마다 채팅방 생성
-        List<ChattingRoom> rooms = assignments.stream()
-                .map(ChattingRoom::create)
-                .toList();
-        chattingRoomRepository.saveAll(rooms);
-
-        // 3) 각 채팅방마다 채팅유저 2명(마니또, 마니띠) 생성
-        List<ChattingUser> chattingUsers = new ArrayList<>(rooms.size() * 2);
-        for (int i = 0; i < rooms.size(); i++) {
-            ChattingRoom cr = rooms.get(i);
-            ManitoAssignment a = assignments.get(i);
-
-            // 마니또 유저
-            chattingUsers.add(ChattingUser.create(cr, a.getManito()));
-            // 마니띠 유저
-            chattingUsers.add(ChattingUser.create(cr, a.getManitee()));
-        }
-        chattingUserRepository.saveAll(chattingUsers);
     }
 
     @Transactional(readOnly = true)
     public Room find(Long roomId) {
         return roomRepository.findById(roomId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 방입니다: id=" + roomId));
+    }
+
+    public boolean isRoomNotStarted(Long roomId) {
+        return find(roomId).getStatus() == RoomStatus.NOT_STARTED;
     }
 
     public boolean checkCreator(Long userId) {
