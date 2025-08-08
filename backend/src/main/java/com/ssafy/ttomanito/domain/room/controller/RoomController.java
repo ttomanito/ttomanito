@@ -244,7 +244,7 @@ public class RoomController {
 
     @Operation(
             summary = "방장 여부 확인",
-            description = "해당 방에서 로그인 사용자가 방장인지 확인합니다.",
+            description = "로그인 사용자가 방장인지 확인합니다.",
             security = @SecurityRequirement(name = "bearer-key")
     )
     @ApiResponses({
