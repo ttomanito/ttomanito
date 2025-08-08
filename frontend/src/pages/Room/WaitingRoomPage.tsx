@@ -10,7 +10,7 @@ import {
 import { useEffect, useState } from 'react';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/App.css';
-import CommonCard from '@/components/CommonCard';
+import CommonCard from '@/components/cards/CommonCard';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 import {
@@ -102,7 +102,8 @@ const WaitingRoomPage = () => {
   }, [roomId]);
 
   useEffect(() => {
-    const client = connectStomp(roomId, 2, message => {
+    // const accessToken = localStorage.getItem('accessToken');
+    const client = connectStomp(localStorage.getItem('accessToken'), roomId, 2, message => {
       // 예: 메시지 종류에 따라 처리
       if (message.type === 'ENTER' || message.type === 'EXIT') {
         setParticipants(prev => [...message.participants]);
