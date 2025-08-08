@@ -55,6 +55,8 @@ interface PastMission {
 }
 
 const GameHomePage = () => {
+  // ✨ MODIFIED: useAuth 스토어에서 roomId와 isInGame 상태를 가져옵니다.
+  const { roomId, isInGame } = useAuth((s) => s.gameInfo);
   const hydrated = useAuth((s) => s.hydrated);
   const { openModal, closeModal } = useModalStore();
 
@@ -85,16 +87,22 @@ const GameHomePage = () => {
   const todayKey = today.format('YYYY-MM-DD');
   const todayDay = today.format('ddd').toUpperCase();
 
-  // 데이터 로딩 useEffect (하드코딩된 roomId="16" 사용)
+  // ✨ MODIFIED: 데이터 로딩 useEffect를 useAuth 상태와 연동합니다.
   useEffect(() => {
-    const testRoomId = "16";
-    if (hydrated) {
+    // zustand-persist가 로드되기 전에는 실행하지 않습니다.
+    if (!hydrated) {
+      return;
+    }
+
+    // 게임에 참여 중이고, roomId가 있을 때만 데이터를 불러옵니다.
+    if (isInGame && roomId) {
       const fetchGameData = async () => {
         setIsPageLoading(true);
         try {
+          // Promise.all을 사용해 방 정보와 참여자 목록을 동시에 가져옵니다.
           const [roomData, participantsData] = await Promise.all([
-            getRequest(`/room/${testRoomId}`),
-            getRequest<Participant[]>(`/room/${testRoomId}/participants`),
+            getRequest(`/room/${roomId}`), // 하드코딩된 ID 대신 스토어의 roomId 사용
+            getRequest<Participant[]>(`/room/${roomId}/participants`),
           ]);
           setRoom(roomData);
           setParticipants(participantsData);
@@ -107,8 +115,11 @@ const GameHomePage = () => {
         }
       };
       fetchGameData();
+    } else {
+      // 게임에 참여 중이 아니면 로딩을 중단합니다.
+      setIsPageLoading(false);
     }
-  }, [hydrated]);
+  }, [hydrated, roomId, isInGame]); // 스토어 상태 변경 시 다시 실행
 
   // 게임 진행률 계산
   const { currentDay, totalDays } = useMemo(() => {
@@ -157,7 +168,7 @@ const GameHomePage = () => {
     }
   }, [todayKey, isMissionAvailable, todayMission]);
 
-  // 미션 확인 핸들러
+  // 핸들러 함수들 (내부 로직 변경 없음)
   const handleRevealMission = async () => {
     if (isMissionRevealed || !isMissionAvailable) return;
     try {
@@ -171,15 +182,12 @@ const GameHomePage = () => {
     }
   };
 
-  // 미션 완료 핸들러
   const handleCompleteMission = async () => {
     if (!todayMission?.missionStatusId) {
       alert('미션 정보를 찾을 수 없어 완료 처리할 수 없습니다.');
       return;
     }
     try {
-      // 프록시 설정을 사용하지 않는 경우, 전체 URL을 사용해야 합니다.
-      // CORS 에러가 발생한다면 서버 측 설정이 필요합니다.
       await patchRequest(`/manito/mission/${todayMission.missionStatusId}/success`, {});
       alert('미션을 완료하였습니다!');
       localStorage.setItem(`mission_completed_${todayKey}`, 'true');
@@ -191,16 +199,13 @@ const GameHomePage = () => {
     }
   };
   
-  // 마니띠 확인 핸들러
   const handleShowManito = async () => {
     openModal(manitoModalData);
     setIsFetchingManito(true);
     setManitoProfile(null);
-
     try {
       const { manitoId } = await getRequest<{ manitoId: number }>(`/manito/my-manito`);
       const foundManito = participants.find(p => p.userId === manitoId);
-
       if (foundManito) {
         setManitoProfile(foundManito);
       } else {
@@ -215,7 +220,6 @@ const GameHomePage = () => {
     }
   };
 
-  // 이전 미션 목록 확인 핸들러
   const handleShowPastMissions = async () => {
     openModal({
       title: '이전 미션 확인하기',
@@ -224,7 +228,6 @@ const GameHomePage = () => {
     });
     setIsFetchingMissions(true);
     setPastMissions([]);
-
     try {
       const missionList = await getRequest<PastMission[]>('/manito/mission/missionlist');
       setPastMissions(missionList);
@@ -237,7 +240,6 @@ const GameHomePage = () => {
     }
   };
 
-  // 미션 난이도/타입별 이미지 반환 함수
   const getDifficultyImage = (difficulty: Mission['difficulty']) => {
     switch (difficulty) {
       case 'EASY': return easy;
@@ -259,24 +261,16 @@ const GameHomePage = () => {
     }
   };
 
-  // 모달 Body 컴포넌트들
+  // 모달 Body 컴포넌트들 (내부 로직 변경 없음)
   const ManitoProfileModalBody = () => {
-    if (isFetchingManito) {
-      return <Flex justify="center" align="center" h="150px"><Spinner size="lg" /></Flex>;
-    }
-    if (manitoProfile) {
-      return <ProfileCard title="내 마니띠" name={manitoProfile.name} subtitle={manitoProfile.statusMessage} src={manitoProfile.profileImageUrl || ttoma_profile} />;
-    }
+    if (isFetchingManito) return <Flex justify="center" align="center" h="150px"><Spinner size="lg" /></Flex>;
+    if (manitoProfile) return <ProfileCard title="내 마니띠" name={manitoProfile.name} subtitle={manitoProfile.statusMessage} src={manitoProfile.profileImageUrl || ttoma_profile} />;
     return null;
   };
 
   const PastMissionsModalBody = () => {
-    if (isFetchingMissions) {
-      return <Flex justify="center" align="center" h="200px"><Spinner size="lg" /></Flex>;
-    }
-    if (pastMissions.length === 0) {
-      return <Flex justify="center" align="center" h="100px"><Text textStyle="body_md">아직 수행한 미션이 없습니다.</Text></Flex>;
-    }
+    if (isFetchingMissions) return <Flex justify="center" align="center" h="200px"><Spinner size="lg" /></Flex>;
+    if (pastMissions.length === 0) return <Flex justify="center" align="center" h="100px"><Text textStyle="body_md">아직 수행한 미션이 없습니다.</Text></Flex>;
     return (
       <VStack gap={2} maxH="400px" overflowY="auto">
         {pastMissions.map((mission) => (
@@ -286,28 +280,28 @@ const GameHomePage = () => {
     );
   };
 
-  // 모달 데이터 정의
+  // 모달 데이터 정의 (내부 로직 변경 없음)
   const missionCompleteModalData = {
     title: '오늘의 미션을 완료하셨나요?',
     caption: '미션 수행 결과는 수정이 불가능합니다.\n 신중히 선택해주세요.',
     body: (''),
     footer: ( <DoubleButton leftLabel="취소" rightLabel="확인" onLeftClick={closeModal} onRightClick={handleCompleteMission} /> ),
   };
+  const manitoModalData = { title: '내 마니띠 확인', body: <ManitoProfileModalBody />, };
+  const tutorialModalData = { title: '', body: <TutorialBody />, footer: <LongButton onClick={closeModal}>닫기</LongButton>, };
 
-  const manitoModalData = {
-    title: '내 마니띠 확인',
-    body: <ManitoProfileModalBody />,
-  };
-
-  const tutorialModalData = {
-    title: '',
-    body: <TutorialBody />,
-    footer: <LongButton onClick={closeModal}>닫기</LongButton>,
-  };
-
-  // 렌더링 가드
-  if (isPageLoading || !room) {
+  // ✨ MODIFIED: 렌더링 가드 로직을 개선합니다.
+  if (isPageLoading) {
     return ( <Flex justify="center" align="center" h="100vh"><Spinner size="xl" /></Flex> );
+  }
+
+  // 로딩이 끝났지만, 게임에 참여중이 아니거나 방 정보를 못 불러온 경우
+  if (!isInGame || !room) {
+    return (
+      <Flex justify="center" align="center" h="100vh">
+        <Text textStyle="title_sm">참여중인 게임이 없거나,정보를 불러올 수 없습니다.</Text>
+      </Flex>
+    );
   }
 
   // UI 렌더링
