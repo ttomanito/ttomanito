@@ -62,7 +62,7 @@ public class RoomService {
         // 3) Room 생성 및 저장
         Room room = Room.create(creator, req.name())
                 .toBuilder()
-                .endDate(req.deadline())
+                .endDate(req.endDate())
                 .build();
         room = roomRepository.save(room);
 
@@ -142,19 +142,12 @@ public class RoomService {
         );
     }
 
-    @Transactional
     public void startGame(Long roomId, Long hostId) {
         log.info("[방] 게임 시작 시도 - 방ID={}, 호스트ID={}", roomId, hostId);
         Room room = find(roomId);
         if (!room.getCreator().getUserId().equals(hostId)) {
             throw new AccessDeniedException("호스트만 게임을 시작할 수 있습니다.");
         }
-
-        // 이미 시작된 방 재시작 방지 (선택)
-        if (room.getStatus() == RoomStatus.IN_PROGRESS || room.getStatus() == RoomStatus.FINISHED) {
-            throw new BadRequestException("이미 시작되었거나 종료된 방입니다.");
-        }
-
         List<RoomUser> participants = roomUserRepository.findByRoom_RoomId(roomId);
         log.debug("[방] 참가자 수 = {}", participants.size());
         if (participants.size() < 4) {
@@ -172,14 +165,13 @@ public class RoomService {
         );
         room.start(LocalDate.now());
 
-        // 1) 마니또-마니띠 배정 (순환)
-        List<ManitoAssignment> assignments = new ArrayList<>(participants.size());
+        // 매니또 할당 (순환 교대 방식)
         for (int i = 0; i < participants.size(); i++) {
             RoomUser manito = participants.get(i);
             RoomUser manitee = participants.get((i + 1) % participants.size());
-
-            ManitoAssignment assignment = ManitoAssignment.create(manito, manitee, room);
-            assignments.add(assignment);
+            manitoAssignmentRepository.save(
+                    ManitoAssignment.create(manito, manitee, room)
+            );
         }
         manitoAssignmentRepository.saveAll(assignments);
 

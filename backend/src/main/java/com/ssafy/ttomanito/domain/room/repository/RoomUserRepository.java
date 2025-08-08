@@ -30,7 +30,8 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
      */
     @Query("""
             SELECT new com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse(
-                u.userId,         
+                u.userId,       
+                ru.roomUserId,  
                 u.name,           
                 ru.statusMessage,  
                 r.creator.userId    
