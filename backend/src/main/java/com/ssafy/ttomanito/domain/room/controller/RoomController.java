@@ -118,7 +118,7 @@ public class RoomController {
 
     @Operation(
             summary = "참여자 목록 조회",
-            description = "대기방의 참여자 목록을 반환합니다."
+            description = "참여자 목록을 반환합니다."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ParticipantResponse.class))),
