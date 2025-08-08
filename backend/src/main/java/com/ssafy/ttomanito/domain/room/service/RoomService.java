@@ -142,12 +142,19 @@ public class RoomService {
         );
     }
 
+    @Transactional
     public void startGame(Long roomId, Long hostId) {
         log.info("[방] 게임 시작 시도 - 방ID={}, 호스트ID={}", roomId, hostId);
+
         Room room = find(roomId);
         if (!room.getCreator().getUserId().equals(hostId)) {
             throw new AccessDeniedException("호스트만 게임을 시작할 수 있습니다.");
         }
+        // 이미 시작/종료된 방 방지 (권장)
+        if (room.getStatus() == RoomStatus.IN_PROGRESS || room.getStatus() == RoomStatus.FINISHED) {
+            throw new BadRequestException("이미 시작되었거나 종료된 방입니다.");
+        }
+
         List<RoomUser> participants = roomUserRepository.findByRoom_RoomId(roomId);
         log.debug("[방] 참가자 수 = {}", participants.size());
         if (participants.size() < 4) {
@@ -165,13 +172,12 @@ public class RoomService {
         );
         room.start(LocalDate.now());
 
-        // 매니또 할당 (순환 교대 방식)
+        // 1) 마니또-마니띠 배정 (순환)
+        List<ManitoAssignment> assignments = new ArrayList<>(participants.size());
         for (int i = 0; i < participants.size(); i++) {
-            RoomUser manito = participants.get(i);
+            RoomUser manito  = participants.get(i);
             RoomUser manitee = participants.get((i + 1) % participants.size());
-            manitoAssignmentRepository.save(
-                    ManitoAssignment.create(manito, manitee, room)
-            );
+            assignments.add(ManitoAssignment.create(manito, manitee, room));
         }
         manitoAssignmentRepository.saveAll(assignments);
 
@@ -186,17 +192,16 @@ public class RoomService {
         for (int i = 0; i < rooms.size(); i++) {
             ChattingRoom cr = rooms.get(i);
             ManitoAssignment a = assignments.get(i);
-
-            // 마니또 유저
-            chattingUsers.add(ChattingUser.create(cr, a.getManito()));
-            // 마니띠 유저
-            chattingUsers.add(ChattingUser.create(cr, a.getManitee()));
+            chattingUsers.add(ChattingUser.create(cr, a.getManito()));  // 마니또
+            chattingUsers.add(ChattingUser.create(cr, a.getManitee())); // 마니띠
         }
+        chattingUserRepository.saveAll(chattingUsers);
+
         log.info("[방] 매칭 완료 - 매칭개수={}, 채팅방개수={}, 채팅유저개수={}",
                 assignments.size(), rooms.size(), chattingUsers.size());
         log.debug("[웹소켓] 대기방 브로드캐스트 - /topic/waiting/{} (시작)", roomId);
-        chattingUserRepository.saveAll(chattingUsers);
     }
+
 
     @Transactional(readOnly = true)
     public Room find(Long roomId) {
