@@ -37,6 +37,21 @@ services:
     restart: always
     networks:
       - app-network
+  
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: ssafy
+      ME_CONFIG_BASICAUTH_PASSWORD: ssafy
+    networks:
+      - app-network
+
 
   backend:
     build:
@@ -64,6 +79,8 @@ services:
       SPRING_PORT: ${SPRING_PORT}
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
       JWT_SECRET: ${JWT_SECRET}
+      OPENVIDU_URL: ${OPENVIDU_URL}
+      OPENVIDU_SECRET: ${OPENVIDU_SECRET}
     networks:
       - app-network
 
@@ -72,7 +89,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL}
+        VITE_BASE_URL: ${VITE_BASE_URL}
     container_name: nginx
     ports:
       - "80:80"
@@ -84,6 +101,33 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /etc/ssl/certs:/etc/ssl/certs:ro
     restart: always
+    networks:
+      - app-network
+  openvidu-server-kms:
+    image: openvidu/openvidu-server-kms:2.20.0
+    container_name: openvidu-server-kms
+    restart: always
+    environment:
+      OPENVIDU_PUBLICURL: ${OPENVIDU_URL}
+      OPENVIDU_SECRET: ${OPENVIDU_SECRET}
+    ports:
+      - "4443:4443"
+    networks:
+      - app-network
+
+  coturn:
+    image: instrumentisto/coturn
+    container_name: coturn
+    restart: always
+    command:
+      - --listening-port=3478
+      - --realm=${TURN_REALM}
+      - --user=${TURN_USER}:${TURN_PASS}
+      - --lt-cred-mech
+      - --no-cli
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
     networks:
       - app-network
 

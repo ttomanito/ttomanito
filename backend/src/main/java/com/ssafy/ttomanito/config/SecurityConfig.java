@@ -1,5 +1,8 @@
 package com.ssafy.ttomanito.config;
 
+import com.ssafy.ttomanito.global.security.filter.JwtAuthenticationFilter;
+import com.ssafy.ttomanito.global.security.oauth.OAuth2AuthenticationSuccessHandler;
+import com.ssafy.ttomanito.global.security.oauth.SocialUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,10 +16,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import com.ssafy.ttomanito.global.security.filter.JwtAuthenticationFilter;
-import com.ssafy.ttomanito.global.security.oauth.OAuth2AuthenticationSuccessHandler;
-import com.ssafy.ttomanito.global.security.oauth.SocialUserService;
 
 import java.util.List;
 
@@ -42,9 +41,11 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
+                                "/api/v3/api-docs/**",
                                 "/swagger-ui/**",
+                                "/api/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/swagger-ui/index.html**"
+                                "/api/swagger-ui/index.html**"
                         ).permitAll()
                         .requestMatchers(
                                 "/",
@@ -52,7 +53,10 @@ public class SecurityConfig {
                                 "/login/oauth2/code/**",
                                 "/auth/**"
                         ).permitAll()
-                        .requestMatchers("/notice/**").authenticated()
+
+                        //   .requestMatchers("/notice/**").authenticated()
+                        .requestMatchers("/ws/**", "/ws/signal/**", "/topic/**", "/app/**").permitAll()
+                        .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
@@ -74,9 +78,11 @@ public class SecurityConfig {
         return http.build();
     }
 
+
     @Bean
     public WebSecurityCustomizer webCustomizer() {
         return web -> web.ignoring().requestMatchers(HttpMethod.OPTIONS, "/**");
+
     }
 
     //  CORS 설정 Bean 추가

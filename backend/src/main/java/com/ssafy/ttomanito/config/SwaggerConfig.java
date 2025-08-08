@@ -3,14 +3,13 @@ package com.ssafy.ttomanito.config;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 
 import java.util.List;
 
@@ -40,7 +39,7 @@ public class SwaggerConfig {
                 .addSecurityItem(new SecurityRequirement().addList("bearer-key"))
                 .servers(List.of(
                         new Server().url("http://localhost:8080").description("로컬 서버"),
-                        new Server().url(baseUrl + "/api").description("배포 서버")
+                        new Server().url("https://i13b206.p.ssafy.io" + "/api").description("배포 서버")
                 ))
                 .info(new Info()
                         .title("API Test")

@@ -25,6 +25,19 @@ public class RedisConfig {
     @Value("${spring.data.redis.port}")
     private int port;
 
+    private static RedisTemplate<String, Boolean> getStringBooleanRedisTemplate(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+
+        RedisTemplate<String, Boolean> template = new RedisTemplate<>();
+        template.setConnectionFactory(redisConnectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(serializer);
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(serializer);
+        template.setDefaultSerializer(serializer);
+        return template;
+    }
+
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
@@ -45,18 +58,5 @@ public class RedisConfig {
         );
 
         return getStringBooleanRedisTemplate(redisConnectionFactory, objectMapper);
-    }
-
-    private static RedisTemplate<String, Boolean> getStringBooleanRedisTemplate(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
-        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
-
-        RedisTemplate<String, Boolean> template = new RedisTemplate<>();
-        template.setConnectionFactory(redisConnectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(serializer);
-        template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(serializer);
-        template.setDefaultSerializer(serializer);
-        return template;
     }
 }
