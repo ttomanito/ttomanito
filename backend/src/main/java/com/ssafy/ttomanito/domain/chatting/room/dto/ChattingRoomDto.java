@@ -7,4 +7,5 @@ public record ChattingRoomDto(
         Long manitoAssignmentId,
         String lastMessage,
         LocalDateTime lastMessageTime
-) {}
+) {
+}

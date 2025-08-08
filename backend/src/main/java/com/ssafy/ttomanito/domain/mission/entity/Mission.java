@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.List;
 
 @Entity
-@Table(name = "mission")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
@@ -49,6 +48,7 @@ public class Mission {
     @Column(name = "updated_at", nullable = true, updatable = false,
             columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
+
     public Mission(String title,
                    String description,
                    String difficulty,

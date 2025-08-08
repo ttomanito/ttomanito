@@ -8,6 +8,7 @@ import com.ssafy.ttomanito.global.security.userdetails.JwtUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/chat")
 @RequiredArgsConstructor
+@Tag(name = "채팅", description = "채팅 관련 API")
 public class ChattingController {
 
     private final ChattingService service;

@@ -1,19 +1,31 @@
 package com.ssafy.ttomanito.domain.poke.repository;
 
 import com.ssafy.ttomanito.domain.poke.entity.PokeLog;
-import com.ssafy.ttomanito.domain.room.entity.RoomUser;
-import com.ssafy.ttomanito.domain.user.entity.User;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.time.LocalDate;
 
+@Repository
 public interface PokeLogRepository extends JpaRepository<PokeLog, Long> {
-    // 내가 찌른 마니또들
 
-    // 나를 마니띠로 한 assignment를 기준으로 찔림 기록
-    List<PokeLog> findByAssignment_Manito(User manito);
-
-    // 나를 마니또로 한 사람들 (내가 찔린 경우)
-    List<PokeLog> findByAssignment_Manitee(User manitee);
-
+    /**
+     * 주어진 RoomUser별, 특정 날짜의 Poke 수를 집계하여 반환
+     *
+     * @param roomUserId RoomUser 엔티티의 PK
+     * @param date       집계 대상 날짜 (YYYY-MM-DD)
+     * @return 해당 날짜의 Poke 수 합계
+     */
+    @Query("""
+              SELECT COALESCE(COUNT(pl), 0)
+              FROM PokeLog pl
+              WHERE pl.roomUser.roomUserId = :roomUserId
+                AND FUNCTION('DATE', pl.createdAt) = :date
+            """)
+    Long sumPokeCountByRoomUserAndDate(
+            @Param("roomUserId") Long roomUserId,
+            @Param("date") LocalDate date
+    );
 }

@@ -2,13 +2,12 @@ package com.ssafy.ttomanito.domain.notice.controller;
 
 import com.ssafy.ttomanito.domain.notice.dto.NoticeResponse;
 import com.ssafy.ttomanito.domain.notice.service.NoticeService;
+import com.ssafy.ttomanito.global.security.userdetails.JwtUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import com.ssafy.ttomanito.global.security.userdetails.JwtUserDetails;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,96 +17,107 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-@Tag(name = "알림 API", description = "알림 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/notice")
+@Tag(name = "알림", description = "알림 관련 API")
 public class NoticeController {
 
     private final NoticeService noticeService;
 
-
-    @Operation(
-            summary = "알림 목록 조회", description = "로그인한 사용자의 알림 목록을 조회합니다."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "알림 목록 조회 성공"), @ApiResponse(responseCode = "401", description = "인증 실패 (JWT 토큰 만료 또는 누락)"),
-            @ApiResponse(responseCode = "500", description = "서버 오류")
+    @Operation(summary = "알림 목록 조회", description = "로그인한 사용자의 읽지 않은 알림 목록을 반환합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "알림 목록 조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @GetMapping
-    public List<NoticeResponse> getNoticeList(
-            @Parameter(hidden = true) HttpServletRequest request,
-            @AuthenticationPrincipal JwtUserDetails principal
+    public ResponseEntity<List<NoticeResponse>> getNoticeList(
+            @Parameter(hidden = true) @AuthenticationPrincipal JwtUserDetails user
     ) {
-        return noticeService.getNotices(principal.getUserId());
+        List<NoticeResponse> list = noticeService.getNotices(user.getUserId());
+        return ResponseEntity.ok(list);
     }
 
+    @Operation(summary = "전체 알림 읽음 처리", description = "모든 알림을 읽음 상태로 변경합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "읽음 처리 성공"),
+            @ApiResponse(responseCode = "404", description = "읽지 않은 알림이 없습니다"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @PatchMapping("/check")
-    @Operation(summary = "전체 알림 읽음 처리", description = "해당 사용자의 모든 알림을 읽음 상태로 변경합니다.")
-    public void markAllAsRead(
-            @Parameter(hidden = true) @AuthenticationPrincipal JwtUserDetails principal
+    public ResponseEntity<Void> markAllAsRead(
+            @Parameter(hidden = true) @AuthenticationPrincipal JwtUserDetails user
     ) {
-        noticeService.markAllAsRead(principal.getUserId());
+        noticeService.markAllAsRead(user.getUserId());
+        return ResponseEntity.ok().build();
     }
 
-    @Operation(
-            summary = "알림 전체 삭제", description = "로그인한 사용자의 알림을 모두 삭제합니다."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "알림 전체 삭제 성공"), @ApiResponse(responseCode = "401", description = "인증 실패 (JWT 토큰 누락 또는 만료)"),
-            @ApiResponse(responseCode = "500", description = "서버 오류")
+    @Operation(summary = "알림 전체 삭제", description = "모든 알림을 삭제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "삭제 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @DeleteMapping("/delete")
-    public void deleteAll(
-            @Parameter(hidden = true) HttpServletRequest request,
-            @AuthenticationPrincipal JwtUserDetails principal
+    public ResponseEntity<Void> deleteAll(
+            @Parameter(hidden = true) @AuthenticationPrincipal JwtUserDetails user
     ) {
-        noticeService.deleteAllNotices(principal.getUserId());
+        noticeService.deleteAllNotices(user.getUserId());
+        return ResponseEntity.noContent().build();
     }
 
-    @Operation(
-            summary = "콕 찌르기 알림", description = "마니또가 마니띠를 콕 찌르면, 해당 마니띠에게 알림을 전송합니다."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "콕 찌르기 알림 전송 성공"), @ApiResponse(responseCode = "401", description = "인증 실패"),
-            @ApiResponse(responseCode = "404", description = "마니또 또는 마니띠 정보 없음"), @ApiResponse(responseCode = "500", description = "서버 오류")
+    @Operation(summary = "콕 찌르기 알림 전송", description = "마니또가 마니띠를 콕 찌르면 해당 유저에게 알림을 생성합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "알림 생성 성공"),
+            @ApiResponse(responseCode = "404", description = "참여 중인 방 또는 마니또 정보가 없습니다"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @PostMapping("/poke")
-    public void createPokeNotice(@AuthenticationPrincipal JwtUserDetails principal) {
-        noticeService.createPokeNotice(principal.getUserId());
+    public ResponseEntity<Void> createPokeNotice(
+            @Parameter(hidden = true) @AuthenticationPrincipal JwtUserDetails user
+    ) {
+        noticeService.createPokeNotice(user.getUserId());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-
-    @Operation(
-            summary = "마니또 추측 알림", description = "마니띠가 마니또를 추측하면, 마니또에게 알림을 전송합니다."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "추측 알림 전송 성공"), @ApiResponse(responseCode = "401", description = "인증 실패"),
-            @ApiResponse(responseCode = "404", description = "마니또 정보 없음"), @ApiResponse(responseCode = "500", description = "서버 오류")
+    @Operation(summary = "추측 알림 전송", description = "마니띠가 마니또를 추측하면 해당 유저에게 알림을 생성합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "알림 생성 성공"),
+            @ApiResponse(responseCode = "404", description = "참여 중인 방 또는 마니또 정보가 없습니다"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @PostMapping("/guess")
-    public void createGuessNotice(@AuthenticationPrincipal JwtUserDetails principal) {
-        noticeService.createGuessNotice(principal.getUserId());
+    public ResponseEntity<Void> createGuessNotice(
+            @Parameter(hidden = true) @AuthenticationPrincipal JwtUserDetails user
+    ) {
+        noticeService.createGuessNotice(user.getUserId());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @Operation(summary = "게임 종료 알림 전송", description = "해당 방의 모든 유저에게 게임 종료 알림(FINISHED)을 보냅니다.")
-    @ApiResponse(responseCode = "200", description = "게임 종료 알림 전송 완료")
+    @Operation(summary = "게임 종료 알림 전송", description = "해당 방의 모든 유저에게 게임 종료 알림을 전송합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "알림 전송 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 방의 사용자가 없습니다"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @PostMapping("/{roomId}/finish")
-    public ResponseEntity<Void> sendFinishNotices(@PathVariable("roomId") Long roomId) {
+    public ResponseEntity<Void> sendFinishNotices(
+            @Parameter(description = "방 ID", required = true) @PathVariable Long roomId
+    ) {
         noticeService.createFinishNoticeForRoom(roomId);
         return ResponseEntity.ok().build();
     }
 
-    @Operation(
-            summary = "사용자 탈퇴 알림 전송", description = "탈퇴한 사용자의 마니또 및 마니띠에게 탈퇴 알림(EXIT)을 전송합니다."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "탈퇴 알림 전송 완료"), @ApiResponse(responseCode = "401", description = "인증 실패"),
-            @ApiResponse(responseCode = "404", description = "마니또/마니띠 정보 없음"), @ApiResponse(responseCode = "500", description = "서버 오류")
+    @Operation(summary = "탈퇴 알림 전송", description = "탈퇴한 사용자의 마니또/마니띠에게 탈퇴 알림을 전송합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "알림 전송 성공"),
+            @ApiResponse(responseCode = "404", description = "참여 중인 방 또는 마니또/마니띠 정보가 없습니다"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @PostMapping("/exit")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void sendExitNotices(@AuthenticationPrincipal JwtUserDetails principal) {
-        noticeService.createExitNotices(principal.getUserId());
+    public ResponseEntity<Void> sendExitNotices(
+            @Parameter(hidden = true) @AuthenticationPrincipal JwtUserDetails user
+    ) {
+        noticeService.createExitNotices(user.getUserId());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

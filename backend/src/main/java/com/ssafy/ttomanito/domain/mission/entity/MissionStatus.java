@@ -3,7 +3,9 @@ package com.ssafy.ttomanito.domain.mission.entity;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -47,7 +49,7 @@ public class MissionStatus {
     private LocalDateTime updatedAt;
 
     // 생성자
-    public MissionStatus(User user,RoomUser roomUser, DailyMission dailyMission, boolean completed) {
+    public MissionStatus(User user, RoomUser roomUser, DailyMission dailyMission, boolean completed) {
         this.user = user;
         this.roomUser = roomUser;
         this.dailyMission = dailyMission;

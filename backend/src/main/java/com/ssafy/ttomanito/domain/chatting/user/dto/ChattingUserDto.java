@@ -7,4 +7,5 @@ public record ChattingUserDto(
         Long roomUserId,
         Integer unreadCount,
         LocalDateTime lastReadTime
-) {}
+) {
+}
