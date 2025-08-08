@@ -74,7 +74,8 @@ export default function AppLayout() {
     '/login',
     '/register',
     '/room/:roomId',
-    '/manito/:roomId/matching',];
+    '/manito/:roomId/matching',
+    '/user/update'];
 
   const hideHeader = noHeaderPatterns.some((pattern) =>
     matchPath({ path: pattern, end: true }, pathname)
