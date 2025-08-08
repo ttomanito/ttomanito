@@ -1,11 +1,6 @@
 package com.ssafy.ttomanito.domain.chatting.voice.service;
 
-import io.openvidu.java.client.ConnectionProperties;
-import io.openvidu.java.client.OpenVidu;
-import io.openvidu.java.client.OpenViduJavaClientException;
-import io.openvidu.java.client.OpenViduHttpException;
-import io.openvidu.java.client.Session;
-import io.openvidu.java.client.SessionProperties;
+import io.openvidu.java.client.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +40,7 @@ public class OpenViduService {
 
     /**
      * 주어진 세션에 대해 Connection(token)을 생성합니다.
+     *
      * @param session 기존 또는 새로 생성된 OpenVidu 세션
      * @param data    클라이언트에 전달할 메타데이터(예: nickname)
      * @return 발급된 connection token

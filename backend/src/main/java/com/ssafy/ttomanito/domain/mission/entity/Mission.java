@@ -48,6 +48,7 @@ public class Mission {
     @Column(name = "updated_at", nullable = true, updatable = false,
             columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
+
     public Mission(String title,
                    String description,
                    String difficulty,

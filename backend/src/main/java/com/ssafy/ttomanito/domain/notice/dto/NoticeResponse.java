@@ -3,8 +3,6 @@ package com.ssafy.ttomanito.domain.notice.dto;
 import com.ssafy.ttomanito.domain.notice.entity.Notice;
 import com.ssafy.ttomanito.domain.notice.entity.NoticeType;
 
-import java.time.LocalDateTime;
-
 public record NoticeResponse(
         Long noticeId,              // 알림 고유 ID
         NoticeType type,            // 알림 종류 (GUESS, EXIT, etc)

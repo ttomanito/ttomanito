@@ -19,13 +19,10 @@ import com.ssafy.ttomanito.domain.user.repository.UserRepository;
 import com.ssafy.ttomanito.global.exception.AccessDeniedException;
 import com.ssafy.ttomanito.global.exception.BadRequestException;
 import com.ssafy.ttomanito.global.exception.NotFoundException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -90,6 +87,7 @@ public class RoomService {
         // 2) 실제 참가자 조회
         return roomUserRepository.findParticipantsByRoomId(roomId);
     }
+
     public UserRoomStatus getUserRoomStatusEnum(Long userId) {
         List<RoomStatus> statuses = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
         List<RoomUser> rooms = roomUserRepository.findActiveRoomsForUser(userId, statuses);
@@ -102,13 +100,14 @@ public class RoomService {
         }
         return UserRoomStatus.IN_NONE;
     }
+
     @Transactional(readOnly = true)
     public RoomInfoResponse getRoomInfo(Long roomId) {
         Room room = find(roomId);
         List<Weekday> days = missionDayRepository.findWeekdaysByRoomId(roomId);
         return RoomInfoResponse.from(room, days);
     }
-    
+
     public void closeRoomByCreatorId(Long creatorId) {
         Room room = roomRepository
                 .findByCreator_UserIdAndStatus(creatorId, RoomStatus.NOT_STARTED)

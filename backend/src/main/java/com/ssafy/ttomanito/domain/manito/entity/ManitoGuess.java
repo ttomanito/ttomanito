@@ -1,7 +1,10 @@
 package com.ssafy.ttomanito.domain.manito.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
@@ -51,8 +54,5 @@ public class ManitoGuess {
 
     public void markIncorrect() {
         this.isCorrect = false;
-    }
-    public Boolean getIsCorrect() {
-        return isCorrect;
     }
 }

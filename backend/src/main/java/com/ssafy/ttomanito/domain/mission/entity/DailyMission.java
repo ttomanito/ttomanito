@@ -1,7 +1,6 @@
 package com.ssafy.ttomanito.domain.mission.entity;
 
 import com.ssafy.ttomanito.domain.room.entity.Room;
-import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -47,9 +46,10 @@ public class DailyMission {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
-    public DailyMission(User manito, Room room,Mission mission, LocalDate missionDate) {
+
+    public DailyMission(User manito, Room room, Mission mission, LocalDate missionDate) {
         this.manito = manito;
-        this.room =room;
+        this.room = room;
         this.mission = mission;
         this.missionDate = missionDate;
     }

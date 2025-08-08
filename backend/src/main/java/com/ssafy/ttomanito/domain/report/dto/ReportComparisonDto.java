@@ -7,11 +7,11 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ReportComparisonDto {
     private double avgCallTime;
-    private long   myCallTime;
+    private long myCallTime;
 
     private double avgChatCount;
-    private int    myChatCount;
+    private int myChatCount;
 
     private double avgPokeCount;
-    private int    myPokeCount;
+    private int myPokeCount;
 }

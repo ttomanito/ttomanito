@@ -38,6 +38,7 @@ public class VoiceChat {
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
+
     /* ── 정적 팩토리 ───────────────────────── */
     public static VoiceChat start(ChattingRoom room, RoomUser user) {
         return VoiceChat.builder()
@@ -63,12 +64,14 @@ public class VoiceChat {
         // 3) 비활성화
         this.isActive = false;
     }
+
     public void cancel() {
         this.startedAt = null;
-        this.endedAt   = null;
+        this.endedAt = null;
         this.isActive = false;
 
     }
+
     public void activate() {
         LocalDateTime now = LocalDateTime.now();
         this.startedAt = now;

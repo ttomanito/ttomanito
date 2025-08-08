@@ -1,10 +1,9 @@
 package com.ssafy.ttomanito.global.security.token;
 
 import com.ssafy.ttomanito.global.security.jwt.JwtResolver;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
-import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.TimeUnit;
 
@@ -19,9 +18,9 @@ public class TokenRevocationService {
         // 1) 토큰에서 만료시간(exp) 클레임을 읽어서 TTL 계산
 
         var claims = jwtResolver.getClaims(rawToken);
-        long nowMs    = System.currentTimeMillis();
-        long expMs    = claims.getExpiration().getTime();
-        long ttlMs    = Math.max(expMs - nowMs, 0L);
+        long nowMs = System.currentTimeMillis();
+        long expMs = claims.getExpiration().getTime();
+        long ttlMs = Math.max(expMs - nowMs, 0L);
 
         // 2) Redis에 키로 저장 (value는 아무 값이나 OK)
         String key = REVOKED_TOKEN_KEY_PREFIX + rawToken;

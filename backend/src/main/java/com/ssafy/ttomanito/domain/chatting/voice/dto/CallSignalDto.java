@@ -5,4 +5,5 @@ public record CallSignalDto(
         Long chatroomId,
         Long callerId,
         String callerNickname
-) {}
+) {
+}

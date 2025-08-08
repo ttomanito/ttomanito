@@ -4,5 +4,6 @@ public record ParticipantResponse(
         Long userId,
         String name,          // 참가자 이름 (user.name)
         String statusMessage, // 상태메시지
-        Long  creatorId       // 방을 만든 사람 ID (room.createId)
-) {}
+        Long creatorId       // 방을 만든 사람 ID (room.createId)
+) {
+}

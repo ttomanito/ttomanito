@@ -7,4 +7,5 @@ public record ChatMessageDto(
         Long senderRoomUserId,
         String content,
         LocalDateTime sentAt
-) {}
+) {
+}

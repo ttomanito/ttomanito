@@ -43,16 +43,16 @@ public class DailyActivityScheduler {
         ZoneId zone = ZoneId.of("Asia/Seoul");
         LocalDate yesterday = LocalDate.now(zone).minusDays(1);
         LocalDateTime start = yesterday.atStartOfDay();
-        LocalDateTime end   = start.plusDays(1);
+        LocalDateTime end = start.plusDays(1);
         // 1) 어제 진행 중이었던 모든 RoomUser 조회 (진행 중인 방, 종료된 방)
         List<RoomUser> participants = roomUserRepo.findByRoom_StatusIn(
                 List.of(RoomStatus.IN_PROGRESS, RoomStatus.FINISHED)
         );
 
         for (RoomUser ru : participants) {
-            Long roomId    = ru.getRoom().getRoomId();
-            Long userId    = ru.getUser().getUserId();
-            Long ruId      = ru.getRoomUserId();  // PK
+            Long roomId = ru.getRoom().getRoomId();
+            Long userId = ru.getUser().getUserId();
+            Long ruId = ru.getRoomUserId();  // PK
 
             // ① 찌르기 합계 (어제)
             long pokeCount = pokeLogRepo
