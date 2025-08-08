@@ -1,27 +1,19 @@
 package com.ssafy.ttomanito.domain.chatting.voice.service;
 
 import com.ssafy.ttomanito.domain.chatting.room.entity.ChattingRoom;
-import com.ssafy.ttomanito.domain.chatting.room.repository.ChattingRepository;
-import com.ssafy.ttomanito.domain.chatting.voice.dto.CallSignalDto;
+import com.ssafy.ttomanito.domain.chatting.room.repository.ChattingRoomRepository;
 import com.ssafy.ttomanito.domain.chatting.voice.entity.VoiceChat;
 import com.ssafy.ttomanito.domain.chatting.voice.repository.VoiceChatRepository;
 import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.extern.slf4j.XSlf4j;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -29,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class VoiceChatService {
 
-    private final ChattingRepository chattingRepository;
+    private final ChattingRoomRepository chattingRoomRepository;
     private final RoomUserRepository roomUserRepository;
     private final VoiceChatRepository voiceChatRepository;
     private final SimpMessagingTemplate messagingTemplate;
@@ -43,7 +35,7 @@ public class VoiceChatService {
         }
 
         // 1) 채팅방 → ManitoAssignment → 룸 ID
-        ChattingRoom cr = chattingRepository
+        ChattingRoom cr = chattingRoomRepository
                 .findWithAssignmentByChattingRoomId(chattingRoomId)
                 .orElseThrow(() -> new RuntimeException("채팅방을 찾을 수 없습니다."));
         ManitoAssignment assign = cr.getManitoAssignment();
@@ -56,8 +48,8 @@ public class VoiceChatService {
 
         // 누가 caller인지에 따라 callee를 assign에서 바로 결정
         Long receiverId = ((callerUserId.equals(assign.getManito().getUser()))
-                        ? assign.getManitee().getUser()
-                        : assign.getManito().getUser()).getUserId();
+                ? assign.getManitee().getUser()
+                : assign.getManito().getUser()).getUserId();
 
         RoomUser ruCallee = roomUserRepository
                 .findByRoomIdAndUserId(roomId, receiverId)
@@ -99,7 +91,9 @@ public class VoiceChatService {
         voiceChatRepository.saveAll(voiceChats);
     }
 
-    /** 음성통화 종료 */
+    /**
+     * 음성통화 종료
+     */
     public void endCall(Long chattingRoomId, Long userId) {
         // 1) 같은 채팅룸의 두 건 조회
         List<VoiceChat> voiceChats = voiceChatRepository
