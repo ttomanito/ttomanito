@@ -27,7 +27,7 @@ const ChatRoomPage = lazyImport(() => import('@/pages/Chat/ChatRoomPage')); // /
 const CallPage = lazyImport(() => import('@/pages/Chat/CallPage')); // /chat/:chatRoomId/call
 const GuessPage = lazyImport(() => import('@/pages/Guess/GuessPage')); // /guess
 const RankingPage = lazyImport(() => import('@/pages/Rank/RankingPage')); // /rank
-const ProfilePage = lazyImport(() => import('@/pages/User/ProfilePage')); // /user/update
+const EditProfile = lazyImport(() => import('@/pages/User/EditProfilePage')); // /user/update
 const ReportListPage = lazyImport(() => import('@/pages/Report/ReportListPage')); // /report/reportlist
 const ReportDetailPage = lazyImport(() => import('@/pages/Report/ReportDetailPage')); // /report/reportdetail/:reportId
 
@@ -48,15 +48,15 @@ export default function AppRoutes() {
             <Route path="/main" element={<MainPage />} />
             <Route path="/room" element={<RoomCreatePage />} />
             <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
-            <Route path="/chat/:chatRoomId/call" element={<CallPage />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/chat" element={<ChatListPage />} />
-            <Route path="/chat/:chatRoomId" element={<ChatRoomPage />} />
-            <Route path="/guess" element={<GuessPage />} />
-            <Route path="/rank" element={<RankingPage />} />
-            <Route path="/user/update" element={<ProfilePage />} />
-            <Route path="/report/reportlist" element={<ReportListPage />} />
-            <Route path="/test" element={<TestPage />} />
+            <Route path="/chat/:chatRoomId/call"   element={<CallPage />} />
+            <Route path="/home"                    element={<HomePage />} />
+            <Route path="/chat"                    element={<ChatListPage />} />
+            <Route path="/chat/:chatRoomId"        element={<ChatRoomPage />} />
+            <Route path="/guess"                   element={<GuessPage />} />
+            <Route path="/rank"                    element={<RankingPage />} />
+            <Route path="/user/update"             element={<EditProfile />} />
+            <Route path="/report/reportlist"       element={<ReportListPage />} />
+            <Route path="/test"                    element={<TestPage />} />
           </Route>
         </Route>
       </Routes>
