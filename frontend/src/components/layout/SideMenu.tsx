@@ -1,4 +1,4 @@
-// src/components/layout/SideMenu.tsx
+// src/components/layout/SideMenu.tsxss
 import {
   Box,
   VStack,
@@ -6,7 +6,6 @@ import {
   Image,
   IconButton,
   Button,
-  Text,
   CloseButton,
   Portal,
 } from '@chakra-ui/react';
@@ -15,10 +14,16 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logoSvg from '@/assets/ttomas/main_page_logo.svg';
 import { useAuth } from '@/stores/authStore';
+import TutorialBody from '@/components/modal/TutorialBody'
+import { useModalStore } from '@/stores/modalStore'
+import { useNavigate } from 'react-router-dom'
 
 const MotionBox = motion(Box);
 
 const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) => {
+  const navigate = useNavigate()  
+  const { openModal } = useModalStore()
+  const tutorialModalData = { body: <TutorialBody /> }
   const [isOpen, setIsOpen] = useState(false);
   const logout = useAuth((s) => s.logout);
 
@@ -80,13 +85,13 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                 </HStack>
 
                 <VStack align="stretch" gap={1}>
-                  <Button variant="ghost" justifyContent="flex-start" py={6} textStyle="title_md">
+                  <Button variant="ghost" justifyContent="flex-start" py={6} textStyle="title_md" onClick={() => openModal(tutorialModalData)}>
                     튜토리얼 확인하기
                   </Button>
-                  <Button variant="ghost" justifyContent="flex-start" py={6} textStyle="title_md">
-                    결과 확인
+                  <Button variant="ghost" justifyContent="flex-start" py={6} textStyle="title_md" onClick={() => navigate('/report/reportlist')}>
+                    보고서 보러가기
                   </Button>
-                  <Button variant="ghost" justifyContent="flex-start" py={6} textStyle="title_md">
+                  <Button variant="ghost" justifyContent="flex-start" py={6} textStyle="title_md" onClick={() => navigate('/user/update')}>
                     회원 정보 수정
                   </Button>
                 </VStack>
