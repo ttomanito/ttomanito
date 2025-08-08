@@ -1,115 +1,189 @@
-import { Box, Button, Flex, Text, VStack, HStack, Clipboard, Icon } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
-import FramedCard from '@/components/ui/FramedCard';
-import { LuShare2 } from 'react-icons/lu';
-import { toaster } from '@/components/ui/toastStore';
+import {
+  Box,
+  Text,
+  VStack,
+  HStack,
+  Button,
+  Flex,
+  // Image
+} from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import 'react-datepicker/dist/react-datepicker.css';
+import '@/App.css';
+import CommonCard from '@/components/cards/CommonCard';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+import {
+  // useNavigate,
+  useParams,
+} from 'react-router-dom';
+import ProfileList from '@/components/lists/ProfileList';
+import { getRequest } from '@/api/requests';
+import { connectStomp } from '@/utils/socket.ts'; // 유틸 함수로 작성 권장
+// import { connectStomp } from '@/utils/socket.ts'; // 유틸 함수로 작성 권장
+// import ttoma_king from '@/assets/ttoma_king.png';
+
+interface Participant {
+  name: string;
+  statusMessage: string;
+}
+
+interface RoomInfo {
+  roomId: number;
+  creatorId: number;
+  name: string;
+  status: 'NONE' | 'NOT_STARTED' | 'IN_PROGRESS' | 'FINISHED';
+  startDate: string;
+  endDate: string;
+  deadline: string;
+  missionDays: ('MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN')[];
+}
 
 const WaitingRoomPage = () => {
-  const navigate = useNavigate();
-  const inviteUrl = 'https://tomanito.app/invite/12345';
+  // const navigate = useNavigate();
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
-  const handleJoin = () => {
-    navigate('/home');
+  dayjs.locale('ko');
+
+  const dayOptions = ['월', '화', '수', '목', '금', '토', '일'];
+  const dayMapEngToKor: Record<string, string> = {
+    MON: '월',
+    TUE: '화',
+    WED: '수',
+    THU: '목',
+    FRI: '금',
+    SAT: '토',
+    SUN: '일',
   };
 
-  return (
-    <Box px={4} py={6} maxW="400px" mx="auto">
-      <Text fontSize="2xl" fontWeight="bold" textAlign="center" mb={4}>
-        또마니또
-      </Text>
+  const { roomId } = useParams<{ roomId: string }>();
+  const [roomInfo, setRoomInfo] = useState<RoomInfo | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [socket] = useState<WebSocket | null>(null);
 
-      <FramedCard header="그룹 이름" accent="#cdbbff" mb={4}>
-        <HStack justify="space-between" gap={4} mb={2}>
-          <VStack gap={0}>
-            <Text fontSize="sm" color="gray.500">
+  useEffect(() => {
+    if (!roomId) return;
+
+    const initializeRoom = async () => {
+      try {
+        // 1. 참여 여부 확인 - 다른 게임 이미 참여 중인 경우 대기 불가.
+        const canParticapate = await getRequest('/room/check');
+        console.log(canParticapate);
+        if (!canParticapate) {
+          // navigate('/home');
+          //   return;
+        }
+
+        // 2. 방 정보 조회 - 이미 시작/끝인 게임인 경우 참여 불가.
+        const roomData = await getRequest<RoomInfo>(`/room/${roomId}`);
+        console.log(roomData);
+        setRoomInfo(roomData);
+
+        // // 3. 참여자 목록 조회 - 방장이면 왕관 노출
+        const participantData = await getRequest<Participant[]>(`/room/${roomId}/participants`);
+        setParticipants(
+          participantData?.map(el => {
+            return {
+              name: el.name,
+              statusMessage: el.statusMessage,
+            };
+          }),
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    initializeRoom();
+
+    return () => {
+      if (socket) socket.close();
+    };
+  }, [roomId]);
+
+  useEffect(() => {
+    // const accessToken = localStorage.getItem('accessToken');
+    const client = connectStomp(localStorage.getItem('accessToken'), roomId, 2, message => {
+      // 예: 메시지 종류에 따라 처리
+      if (message.type === 'ENTER' || message.type === 'EXIT') {
+        setParticipants(prev => [...message.participants]);
+      }
+    });
+    return () => {
+      client.deactivate(); // 페이지 나가면 연결 종료
+    };
+  }, [roomId]);
+
+  useEffect(() => {
+    const converted = roomInfo?.missionDays?.map(eng => dayMapEngToKor[eng]).filter(Boolean); // 영어 → 한글 변환
+    setSelectedDays(converted ?? []); // 예: ["월", "수", "금"]
+  }, [roomInfo]);
+
+  return (
+    <Box p={4}>
+      <Text textStyle="title_md" mb={2} textAlign="start">
+        {roomInfo?.name}
+      </Text>
+      {/* 기간 설정 */}
+      <Flex gap={2}>
+        <CommonCard w="full">
+          <Box w="full">
+            <Text textStyle="body_sm" textAlign="start">
               시작일
             </Text>
-            <Text fontWeight="bold">07/25</Text>
-          </VStack>
-          <VStack gap={0}>
-            <Text fontSize="sm" color="gray.500">
+            <Box borderRadius="xl" mt={2}>
+              <Text textStyle="caption_sm" textAlign="start">
+                {/* {roomInfo?.startDate} */}
+                {dayjs().format('YY.MM.DD')}
+              </Text>
+            </Box>
+          </Box>
+        </CommonCard>
+        <CommonCard w="full">
+          <Box w="full">
+            <Text textStyle="body_sm" textAlign="start">
               종료일
             </Text>
-            <Text fontWeight="bold">07/25</Text>
-          </VStack>
-        </HStack>
-        <Text fontSize="sm" color="gray.500" mb={1}>
-          미션 수행 요일
-        </Text>
-        <HStack gap={2}>
-          {['월', '수', '금'].map(day => (
-            <Box key={day} px={2} py={1} bg="#f3e8ff" borderRadius="md" fontWeight="bold">
-              {day}
+            <Box borderRadius="xl" mt={2}>
+              <Text textStyle="caption_sm" textAlign="start">
+                {dayjs(roomInfo?.endDate).format('YY.MM.DD')}
+              </Text>
             </Box>
-          ))}
-        </HStack>
-      </FramedCard>
+          </Box>
+        </CommonCard>
+      </Flex>
 
-      <FramedCard header="참여자" accent="#a4b8fb" mb={4}>
-        <HStack justify="space-between" mb={2}>
-          <Text fontWeight="bold">참여자</Text>
-          <Text color="gray.500">5명</Text>
-        </HStack>
-        <VStack gap={2} align="stretch">
-          <Box border="2px solid #a4b8fb" borderRadius="md" p={2}>
-            <Flex justify="space-between">
-              <Box>
-                <Text fontWeight="bold">이지혜</Text>
-                <Text fontSize="xs" color="gray.500">
-                  테니스팡
-                </Text>
-              </Box>
-              <Box bg="#a4b8fb" color="white" fontSize="xs" px={2} py={1} borderRadius="full">
-                방장
-              </Box>
-            </Flex>
-          </Box>
-          <Box border="2px solid #beadff" borderRadius="md" p={2}>
-            <Text fontWeight="bold">길태은</Text>
-            <Text fontSize="xs" color="gray.500">
-              길셰프
-            </Text>
-          </Box>
-          <Box border="1px solid #ccc" borderRadius="md" p={2}>
-            <Text fontWeight="bold">우지연</Text>
-            <Text fontSize="xs" color="gray.500">
-              안녕하세요
-            </Text>
-          </Box>
-          <Box border="1px solid #ccc" borderRadius="md" p={2}>
-            <Text fontWeight="bold">양준하</Text>
-            <Text fontSize="xs" color="gray.500">
-              양
-            </Text>
-          </Box>
+      {/* 미션 수행 요일 */}
+      <CommonCard mt={4}>
+        <VStack align="start">
+          <Text textStyle="body_sm" textAlign="start">
+            미션 수행 요일
+          </Text>
+          <HStack wrap="wrap">
+            {dayOptions.map(day => (
+              <Button
+                key={day}
+                size="sm"
+                variant="outline"
+                borderColor={selectedDays.includes(day) ? 'accent.800' : 'gray.500'}
+                color={selectedDays.includes(day) ? 'white' : 'gray.600'}
+                borderWidth="1.5px"
+                borderRadius="lg"
+                bg={selectedDays.includes(day) ? 'accent.800' : 'white'}
+                disabled
+              >
+                {day}
+              </Button>
+            ))}
+          </HStack>
         </VStack>
-      </FramedCard>
+      </CommonCard>
 
-      <HStack gap={3} mt={4}>
-        <Clipboard.Root
-          value={inviteUrl}
-          onCopy={() =>
-            toaster.create({
-              title: '복사 완료!',
-              description: inviteUrl,
-              type: 'success',
-              duration: 2000,
-              closable: true,
-            })
-          }
-        >
-          <Clipboard.Trigger asChild>
-            <Button colorScheme="purple" variant="outline" flex={1}>
-              <Icon as={LuShare2} boxSize={4} mr={2} />
-              <Clipboard.CopyText>링크 복사</Clipboard.CopyText>
-            </Button>
-          </Clipboard.Trigger>
-        </Clipboard.Root>
-
-        <Button colorScheme="blackAlpha" flex={1} onClick={handleJoin}>
-          시작하기
-        </Button>
-      </HStack>
+      {/* 참여자 리스트 */}
+      <Text textStyle="title_md" mt={8} mb={2} textAlign="start">
+        참여자
+      </Text>
+      <ProfileList data={participants} />
     </Box>
   );
 };

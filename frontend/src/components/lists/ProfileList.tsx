@@ -1,10 +1,12 @@
 import { VStack } from '@chakra-ui/react';
 import ProfileListItem from './ProfileListItem';
+import type { ReactNode } from 'react';
 
 interface Profile {
   name: string;
   statusMessage: string;
   profileImageUrl?: string;
+  rightSideChild?: ReactNode;
 }
 
 interface ProfileListProps {
