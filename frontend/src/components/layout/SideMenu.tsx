@@ -32,15 +32,17 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
   return (
     <>
       {/* 메뉴 버튼 */}
+      <Box p={2}>
       <IconButton
         aria-label="메뉴 열기"
-        boxSize="60px"
+        boxSize="40px"
         variant="ghost"
         onClick={() => setIsOpen(true)}
       >
         <TiThMenu style={{ width: '40px', height: '40px' }} />
+        
       </IconButton>
-
+      </Box>
       {/* 사이드 메뉴 및 백드롭 */}
       <AnimatePresence>
         {isOpen && containerRef.current && (

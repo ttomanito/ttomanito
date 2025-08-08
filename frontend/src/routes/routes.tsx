@@ -27,7 +27,7 @@ const ChatRoomPage = lazyImport(() => import('@/pages/Chat/ChatRoomPage')); // /
 const CallPage = lazyImport(() => import('@/pages/Chat/CallPage')); // /chat/:chatRoomId/call
 const GuessPage = lazyImport(() => import('@/pages/Guess/GuessPage')); // /guess
 const RankingPage = lazyImport(() => import('@/pages/Rank/RankingPage')); // /rank
-const EditProfile = lazyImport(() => import('@/pages/User/EditProfile')); // /user/update
+const EditProfile = lazyImport(() => import('@/pages/User/EditProfilePage')); // /user/update
 const ReportListPage = lazyImport(() => import('@/pages/Report/ReportListPage')); // /report/reportlist
 const ReportDetailPage = lazyImport(() => import('@/pages/Report/ReportDetailPage')); // /report/reportdetail/:reportId
 
