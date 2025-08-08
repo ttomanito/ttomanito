@@ -41,7 +41,7 @@ public class WebSocketEventListener {
 
         if (userId == null) return;
 
-        log.info("🔴 DISCONNECT: user {} disconnected, session: {}", userId, sessionId);
+        log.info("[웹소켓] 연결 종료 - 세션ID={}, 사용자ID={}", sessionId, userId);
 
         // 1) NOT_STARTED, IN_PROGRESS 상태인 방을 기존 메서드로 조회
         List<RoomStatus> activeStatuses = List.of(
@@ -53,7 +53,7 @@ public class WebSocketEventListener {
         // 2) 각 RoomUser에서 roomId만 꺼내서 EXIT 이벤트 브로드캐스트
         for (RoomUser ru : activeRooms) {
             Long roomId = ru.getRoom().getRoomId();
-
+            log.debug("[웹소켓] 연결 종료 브로드캐스트 - 방ID={}, 사용자ID={}", roomId, userId);
             messagingTemplate.convertAndSend(
                     "/topic/waiting/" + roomId,
                     new WaitingEventMessage(roomId, userId, WaitingMessage.MessageType.EXIT)  // ← 이 한 줄만으로 OK

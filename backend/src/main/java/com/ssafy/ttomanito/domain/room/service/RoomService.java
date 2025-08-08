@@ -20,6 +20,7 @@ import com.ssafy.ttomanito.global.exception.AccessDeniedException;
 import com.ssafy.ttomanito.global.exception.BadRequestException;
 import com.ssafy.ttomanito.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.*;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -142,6 +144,7 @@ public class RoomService {
 
     @Transactional
     public void startGame(Long roomId, Long hostId) {
+        log.info("[방] 게임 시작 시도 - 방ID={}, 호스트ID={}", roomId, hostId);
         Room room = find(roomId);
         if (!room.getCreator().getUserId().equals(hostId)) {
             throw new AccessDeniedException("호스트만 게임을 시작할 수 있습니다.");
@@ -153,6 +156,7 @@ public class RoomService {
         }
 
         List<RoomUser> participants = roomUserRepository.findByRoom_RoomId(roomId);
+        log.debug("[방] 참가자 수 = {}", participants.size());
         if (participants.size() < 4) {
             throw new BadRequestException("최소 4명의 참가자가 필요합니다.");
         }
@@ -196,6 +200,9 @@ public class RoomService {
             // 마니띠 유저
             chattingUsers.add(ChattingUser.create(cr, a.getManitee()));
         }
+        log.info("[방] 매칭 완료 - 매칭개수={}, 채팅방개수={}, 채팅유저개수={}",
+                assignments.size(), rooms.size(), chattingUsers.size());
+        log.debug("[웹소켓] 대기방 브로드캐스트 - /topic/waiting/{} (시작)", roomId);
         chattingUserRepository.saveAll(chattingUsers);
     }
 
