@@ -26,7 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry config) {
 
         // 브로커 활성화: 채팅, 게임, 개인 큐
-        config.enableSimpleBroker("/topic/chat", "/topic/game", "/queue");
+        config.enableSimpleBroker("/topic/chat", "/topic/waiting", "/queue");
         // 클라이언트 -> 서버 메시지 prefix
         config.setApplicationDestinationPrefixes("/app");
         // 서버 -> 특정 사용자 메시지 prefix
