@@ -18,10 +18,14 @@ import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import com.ssafy.ttomanito.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
@@ -157,14 +161,32 @@ public class ChattingService {
         );
     }
 
-    @Transactional(readOnly = true)
-    public List<ChatMessageDto> getHistory(Long chatRoomId) {
-        return chatMsgRepo.findTop50ByChattingRoomIdOrderBySentAtAsc(chatRoomId).stream()
+    public List<ChatMessageDto> getHistory(Long chatRoomId, LocalDateTime before) {
+        List<ChatMessage> msgs;
+
+        Pageable pg = PageRequest.of(0, 50, Sort.by("sentAt").descending());
+        if (before == null) {
+            // 최초: 가장 최근 50개
+            msgs = chatMsgRepo.findTop50ByChattingRoomIdOrderBySentAtDesc(chatRoomId);
+        } else {
+            // 이전 50개
+            msgs = chatMsgRepo.findByChattingRoomIdAndSentAtBefore(chatRoomId, before, pg);
+        }
+
+        if (msgs.isEmpty()) {
+            return List.of();
+        }
+
+        // 화면에선 오름차순(과거→최신) 으로 보여주기 위해 뒤집기
+        Collections.reverse(msgs);
+
+        return msgs.stream()
                 .map(m -> new ChatMessageDto(
                         m.getChattingRoomId(),
                         m.getSenderRoomUserId(),
                         m.getContent(),
-                        m.getSentAt()))
+                        m.getSentAt()
+                ))
                 .collect(Collectors.toList());
     }
 

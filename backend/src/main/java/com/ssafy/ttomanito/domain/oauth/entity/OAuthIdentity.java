@@ -1,8 +1,8 @@
 package com.ssafy.ttomanito.domain.oauth.entity;
 
 import com.ssafy.ttomanito.domain.user.entity.User;
-import lombok.*;
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "oauth_identity")
@@ -34,8 +34,8 @@ public class OAuthIdentity {
 
         public static OAuthProvider from(String registrationId) {
             return switch (registrationId.toLowerCase()) {
-                case "kakao"  -> KAKAO;
-                case "naver"  -> NAVER;
+                case "kakao" -> KAKAO;
+                case "naver" -> NAVER;
                 case "google" -> GOOGLE;
                 default -> throw new IllegalArgumentException("Unknown OAuthProvider: " + registrationId);
             };

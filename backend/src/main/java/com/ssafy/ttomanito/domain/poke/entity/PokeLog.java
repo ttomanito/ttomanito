@@ -9,6 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "poke_log")
 @Getter
@@ -30,7 +31,6 @@ public class PokeLog {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manitee_id", nullable = false)
     private User manitee;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manito_assignment_id", nullable = false)

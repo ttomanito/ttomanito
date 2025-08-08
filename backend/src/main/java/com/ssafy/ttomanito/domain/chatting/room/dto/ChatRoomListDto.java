@@ -5,4 +5,5 @@ import com.ssafy.ttomanito.domain.chatting.user.dto.ChatRoomWithUserDto;
 public record ChatRoomListDto(
         ChatRoomWithUserDto manito,
         ChatRoomWithUserDto manitee
-) {}
+) {
+}

@@ -1,9 +1,6 @@
 package com.ssafy.ttomanito.global.exception.handler;
 
-import com.ssafy.ttomanito.global.exception.BusinessException;
-import com.ssafy.ttomanito.global.exception.BadRequestException;
-import com.ssafy.ttomanito.global.exception.NotFoundException;
-import com.ssafy.ttomanito.global.exception.UnauthenticatedException;
+import com.ssafy.ttomanito.global.exception.*;
 import com.ssafy.ttomanito.global.exception.dto.ExceptionResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +29,17 @@ public class GlobalExceptionHandler {
         ExceptionResponse body = new ExceptionResponse(
                 String.valueOf(status.value()),
                 ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(status).body(body);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ExceptionResponse> handleAccessDenied(AccessDeniedException ex) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        ExceptionResponse body = new ExceptionResponse(
+                String.valueOf(status.value()),
+                "권한이 없습니다",
                 LocalDateTime.now()
         );
         return ResponseEntity.status(status).body(body);

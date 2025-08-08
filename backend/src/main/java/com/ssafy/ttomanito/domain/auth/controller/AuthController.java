@@ -3,9 +3,9 @@ package com.ssafy.ttomanito.domain.auth.controller;
 import com.ssafy.ttomanito.domain.auth.dto.AccessTokenResponse;
 import com.ssafy.ttomanito.domain.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +18,13 @@ import org.springframework.web.util.WebUtils;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")
-@Tag(name = "Auth", description = "인증 API")
+@Tag(name = "인증", description = "인증 API")
 public class AuthController {
 
     private final AuthService authService;
 
     @Operation(
-            summary = "Refresh Access Token",
+            summary = "리프레시 토큰 -> 액세스 토큰",
             description = "리프레시 토큰으로 액세스 토큰을 재발급합니다."
     )
     @ApiResponses({

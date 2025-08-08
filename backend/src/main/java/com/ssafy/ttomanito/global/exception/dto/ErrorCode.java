@@ -13,6 +13,9 @@ public enum ErrorCode {
     // 401 Unauthorized
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다"),
 
+    // 403 Forbidden
+    FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다"),
+
     // 404 Not Found
     NOT_FOUND(HttpStatus.NOT_FOUND, "리소스를 찾을 수 없습니다"),
 

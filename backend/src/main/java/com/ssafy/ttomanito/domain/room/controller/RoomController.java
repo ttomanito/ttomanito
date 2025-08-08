@@ -4,34 +4,34 @@ import com.ssafy.ttomanito.domain.room.dto.request.CreateRoomRequest;
 import com.ssafy.ttomanito.domain.room.dto.request.SetUserMessageRequest;
 import com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse;
 import com.ssafy.ttomanito.domain.room.dto.response.RoomInfoResponse;
-import com.ssafy.ttomanito.domain.room.entity.Room;
+import com.ssafy.ttomanito.domain.room.entity.UserRoomStatus;
 import com.ssafy.ttomanito.domain.room.service.RoomService;
 import com.ssafy.ttomanito.domain.room.service.RoomUserService;
 import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
 import com.ssafy.ttomanito.global.security.userdetails.JwtUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
-import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import java.util.List;
 
 @Slf4j
 @RestController
 @RequestMapping("/room")
 @RequiredArgsConstructor
+@Tag(name = "방", description = "방 관리 API")
 public class RoomController {
 
     private final RoomService roomService;
@@ -42,233 +42,220 @@ public class RoomController {
 
 
     @Operation(
-            summary = "사용자 첫 방문 여부 확인",
-            description = "현재 로그인한 사용자가 첫 방문인지 or 대기 중이거나 진행 중인 방에 참여하고 있는지 여부를 확인합니다.",
+            summary = "사용자 상태 여부 확인",
+            description = "현재 로그인한 사용자에 대해 게임중인지 대기방에있는지 아무것도 아닌지 확인",
             security = @SecurityRequirement(name = "bearer-key") // JWT 인증 필요 시
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "정상 처리 (true: 참여 중, false: 미참여)",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = Boolean.class),
-                            examples = {
-                                    @ExampleObject(name = "participating", value = "true"),
-                                    @ExampleObject(name = "notParticipating", value = "false")
-                            }
-                    )
-            ),
+                    description = "대기방에 사용자가 있으면 IN_WAITING, 게임방에 사용자가 있으면 IN_GAME,둘다 없으면 IN_NONE 중 하나 반환-> 이 경우 대기방진입"),
             @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음/만료)"),
-            @ApiResponse(responseCode = "403", description = "인가 실패"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/check")
-    public boolean checkUserInRoom(@Parameter(hidden = true) HttpServletRequest request,
-                                   @AuthenticationPrincipal JwtUserDetails principal) {
+    public ResponseEntity<UserRoomStatus> checkUserInRoom(@Parameter(hidden = true) HttpServletRequest request,
+                                                          @AuthenticationPrincipal JwtUserDetails principal) {
         Long userId = principal.getUserId();
-        return roomService.isUserInProgressOrWaiting(userId);
+        UserRoomStatus status = roomService.getUserRoomStatusEnum(userId);
+        return ResponseEntity.ok(status);
+
     }
+
 
     @Operation(
             summary = "방 생성",
-            description = "사용자가 새로운 방을 생성하며 방장이 됩니다. 생성된 방 정보를 반환합니다.",
+            description = "새 방을 생성하고 생성된 방 정보를 반환합니다.",
             security = @SecurityRequirement(name = "bearer-key")
     )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음/만료)"),
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "생성 성공", content = @Content(schema = @Schema(implementation = RoomInfoResponse.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "인가 실패"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+            @ApiResponse(responseCode = "500", description = "서버 오류")
     })
-  @PostMapping
-  public ResponseEntity<?> create(@RequestBody CreateRoomRequest req,
-                                  HttpServletRequest request,
-                                  @AuthenticationPrincipal JwtUserDetails principal) {
-        Long userId = principal.getUserId();
-
-        RoomInfoResponse response = roomService.createRoom(req, userId);
-        return ResponseEntity.ok(response);
-  }
-
-    @Operation(
-            summary = "방장 퇴장 (방 종료)",
-            description = "방장이 방을 종료합니다. 방 상태는 NOT-STARTED 에서 NONE 으로 수정되며 JWT 인증이 필요하며 WebSocket으로 방이 종료된 것에 대해 메시지를 브로드캐스트합니다.",
-            security = @SecurityRequirement(name = "bearer-key")
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "방이 정상적으로 종료되었습니다."),
-            @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음/만료)"),
-            @ApiResponse(responseCode = "403", description = "인가 실패"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-    })
- @PostMapping("/exit")
- public ResponseEntity<?> hostExit(HttpServletRequest request,
-                                   @AuthenticationPrincipal JwtUserDetails principal) {
-        Long userId = principal.getUserId();
-
-        roomService.closeRoomByCreatorId(userId);
-        return ResponseEntity.ok("Room closed by host.");
- }
-
-    @Operation(
-            summary = "방 정보 조회",
-            description = "초대장에 표시될 방 정보를 반환합니다."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "방 정보 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "해당 ID의 방이 존재하지 않음"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-    })
-    @GetMapping("/{roomId}")
-    public RoomInfoResponse info(@PathVariable Long roomId) {
-        return roomService.getRoomInfo(roomId);
+    @PostMapping
+    public ResponseEntity<RoomInfoResponse> create(
+            @RequestBody CreateRoomRequest req,
+            @AuthenticationPrincipal JwtUserDetails user
+    ) {
+        RoomInfoResponse resp = roomService.createRoom(req, user.getUserId());
+        return ResponseEntity.ok(resp);
     }
 
     @Operation(
-            summary = "대기방에서의 참여자 목록 조회",
-            description = "roomId 기준 참가자 정보를 반환합니다."
-
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "참여자 목록 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "방을 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-    })
-    @GetMapping("/{roomId}/participants")
-    public List<ParticipantResponse> participants(@PathVariable Long roomId) {
-        return roomService.getParticipants(roomId);
-    }
-
-    @Operation(
-            summary = "상태 메시지 작성 및 입장 처리",
-            description = "사용자가 방에 입장하면서 상태 메시지를 함께 등록하며 WebSocket으로 방 참여에 대해 브로드캐스트합니다.",
+            summary = "방 종료 (방장만)",
+            description = "방장이 방을 종료하고 상태는 NOT_STARTED -> NONE, WebSocket으로 브로드캐스트합니다.",
             security = @SecurityRequirement(name = "bearer-key")
     )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "상태 메시지 등록 및 입장 처리 완료"),
-            @ApiResponse(responseCode = "400", description = "요청 값이 유효하지 않음"),
-            @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음/만료)"),
-            @ApiResponse(responseCode = "403", description = "인가 실패"),
-            @ApiResponse(responseCode = "404", description = "방 또는 사용자 정보를 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "종료 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    @PostMapping("/{roomId}/message")
-    public void setUserMessage(@PathVariable Long roomId,
-                               HttpServletRequest request,
-                               @RequestBody SetUserMessageRequest req,
-                               @AuthenticationPrincipal JwtUserDetails principal) {
-        Long userId = principal.getUserId();
-        roomUserService.enterWithMessage(roomId, userId, req.message());
-    }
-
-    @Operation(
-            summary = "참여자의 참가하기 버튼",
-            description = "초대링크 진입 후 참가하기 버튼을 누르면 호출되며, 방 상태 확인 후 입장 준비를 수행합니다.",
-            security = @SecurityRequirement(name = "bearer-key")
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "입장 준비 완료"),
-            @ApiResponse(responseCode = "400", description = "방 상태가 NOT_STARTED가 아님"),
-            @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음/만료)"),
-            @ApiResponse(responseCode = "403", description = "인가 실패"),
-            @ApiResponse(responseCode = "404", description = "방을 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-    })
-    @PostMapping("/{roomId}/enter")
-    public void prepareEnter(@PathVariable Long roomId,
-                             HttpServletRequest request,
-                             @AuthenticationPrincipal JwtUserDetails principal) {
-        Long userId = principal.getUserId();
-
-        // 1. 방 상태 확인
-        Room room = roomService.find(roomId);
-        if (!room.getStatus().equals(RoomStatus.NOT_STARTED)) {
-            throw new IllegalStateException("Cannot join. Room is not in NOT_STARTED state.");
-        }
-
-        // 방에 참여할 준비 수행
-        roomUserService.prepareEnter(roomId, userId);
-    }
-
-    @Operation(
-            summary = "참여자의 방 나가기 버튼",
-            description = "사용자가 참여 중인 방에서 나갑니다.",
-            security = @SecurityRequirement(name = "bearer-key")
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "방에서 성공적으로 나감"),
-            @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음/만료)"),
-            @ApiResponse(responseCode = "403", description = "인가 실패"),
-            @ApiResponse(responseCode = "404", description = "방 또는 사용자 정보를 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-    })
-    @DeleteMapping("/{roomId}/exit")
-    public void exitRoom(@PathVariable Long roomId,
-                         HttpServletRequest request,
-                         @AuthenticationPrincipal JwtUserDetails principal) {
-        Long userId = principal.getUserId();
-        roomUserService.exit(roomId, userId);
-    }
-
-    @Operation(
-            summary = "방장으로써 참여자 강퇴",
-            description = "방장이 특정 참여자를 강퇴합니다.",
-            security = @SecurityRequirement(name = "bearer-key")
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "강퇴 성공"),
-            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류"),
-            @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음/만료)"),
-            @ApiResponse(responseCode = "403", description = "인가 실패 (방장 아님)"),
-            @ApiResponse(responseCode = "404", description = "대상 사용자를 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-    })
-    @DeleteMapping("/{roomId}/participants")
-    public void kickParticipant(@PathVariable Long roomId,
-                                @RequestParam Long targetUserId,
-                                @AuthenticationPrincipal JwtUserDetails principal) {
-        Long hostId = principal.getUserId();
-        roomService.kick(roomId, hostId, targetUserId);
-    }
-
-    @Operation(
-            summary = "게임 시작",
-            description = "방장이 게임을 시작합니다. 시작 시 참여자 수를 확인하고, 마니또 매칭을 수행하며, WebSocket으로 시작 메시지를 브로드캐스트합니다.",
-            security = @SecurityRequirement(name = "bearer-key")
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "게임 시작 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 실패 (토큰 없음/만료)"),
-            @ApiResponse(responseCode = "403", description = "인가 실패 (방장 아님)"),
-            @ApiResponse(responseCode = "404", description = "방을 찾을 수 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-    })
-    @PostMapping("/{roomId}/start")
-    public ResponseEntity<?> startGame(@PathVariable("roomId") Long roomId,
-                                       @AuthenticationPrincipal JwtUserDetails principal) {
-        Long userId = principal.getUserId();
-        roomService.startGame(roomId, userId);
+    @PostMapping("/exit")
+    public ResponseEntity<Void> hostExit(@AuthenticationPrincipal JwtUserDetails user) {
+        roomService.closeRoomByCreatorId(user.getUserId());
         return ResponseEntity.ok().build();
     }
 
     @Operation(
-            summary     = "방장 여부 확인",
-            description = "로그인 사용자가 NOT_STARTED / IN_PROGRESS 상태의 방에서 방장인지 여부를 반환합니다.",
-            security    = { @SecurityRequirement(name = "bearer-key") }
+            summary = "방 정보 조회",
+            description = "주어진 roomId의 방 정보를 반환합니다."
     )
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description  = "true = 방장, false = 방장이 아님",
-                    content      = @Content(schema = @Schema(type = "boolean"))
-            ),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+            @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = RoomInfoResponse.class))),
+            @ApiResponse(responseCode = "404", description = "방 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    @GetMapping("/creator")
-    public boolean isManager(
-            @AuthenticationPrincipal JwtUserDetails principal    // ← JWT에서 복원된 사용자
-    ) {
-        return roomService.checkCreator(principal.getUserId());
+    @GetMapping("/{roomId}")
+    public ResponseEntity<RoomInfoResponse> info(@PathVariable Long roomId) {
+        RoomInfoResponse resp = roomService.getRoomInfo(roomId);
+        return ResponseEntity.ok(resp);
     }
 
+    @Operation(
+            summary = "참여자 목록 조회",
+            description = "대기방의 참여자 목록을 반환합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ParticipantResponse.class))),
+            @ApiResponse(responseCode = "404", description = "방 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    @GetMapping("/{roomId}/participants")
+    public ResponseEntity<List<ParticipantResponse>> participants(@PathVariable Long roomId) {
+        List<ParticipantResponse> list = roomService.getParticipants(roomId);
+        return ResponseEntity.ok(list);
+    }
+
+    @Operation(
+            summary = "상태 메시지 작성 및 입장",
+            description = "메시지와 함께 방에 입장 처리하고 WebSocket으로 브로드캐스트합니다.",
+            security = @SecurityRequirement(name = "bearer-key")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "처리 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "403", description = "인가 실패"),
+            @ApiResponse(responseCode = "404", description = "방 또는 사용자 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    @PostMapping("/{roomId}/message")
+    public ResponseEntity<Void> setUserMessage(
+            @PathVariable Long roomId,
+            @RequestBody SetUserMessageRequest req,
+            @AuthenticationPrincipal JwtUserDetails user
+    ) {
+        roomUserService.enterWithMessage(roomId, user.getUserId(), req.message());
+        return ResponseEntity.noContent().build();
+    }
+
+//    @Operation(
+//            summary = "참여 준비",
+//            description = "초대링크 진입 후 입장 준비를 수행합니다.",
+//            security = @SecurityRequirement(name = "bearer-key")
+//    )
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "204", description = "준비 성공"),
+//            @ApiResponse(responseCode = "400", description = "잘못된 상태"),
+//            @ApiResponse(responseCode = "401", description = "인증 실패"),
+//            @ApiResponse(responseCode = "404", description = "방 없음"),
+//            @ApiResponse(responseCode = "500", description = "서버 오류")
+//    })
+//    @PostMapping("/{roomId}/enter")
+//    public ResponseEntity<Void> prepareEnter(
+//            @PathVariable Long roomId,
+//            @AuthenticationPrincipal JwtUserDetails user
+//    ) {
+//        Room room = roomService.find(roomId);
+//        if (!room.getStatus().equals(RoomStatus.NOT_STARTED)) {
+//            throw new IllegalStateException("현재 입장할 수 없는 상태입니다.");
+//        }
+//        roomUserService.prepareEnter(roomId, user.getUserId());
+//        return ResponseEntity.noContent().build();
+//    }
+
+    @Operation(
+            summary = "방 나가기",
+            description = "참여 중인 방에서 나갑니다.",
+            security = @SecurityRequirement(name = "bearer-key")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "나가기 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "404", description = "방 또는 사용자 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    @DeleteMapping("/{roomId}/exit")
+    public ResponseEntity<Void> exitRoom(
+            @PathVariable Long roomId,
+            @AuthenticationPrincipal JwtUserDetails user
+    ) {
+        roomUserService.exit(roomId, user.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+
+    @Operation(
+            summary = "참여자 강퇴",
+            description = "방장이 특정 참여자를 강퇴합니다.",
+            security = @SecurityRequirement(name = "bearer-key")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "강퇴 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "403", description = "방장 권한 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    @DeleteMapping("/{roomId}/participants/{targetUserId}")
+    public ResponseEntity<Void> kickParticipant(
+            @PathVariable Long roomId,
+            @PathVariable Long targetUserId,
+            @AuthenticationPrincipal JwtUserDetails user
+    ) {
+        roomService.kick(roomId, user.getUserId(), targetUserId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "게임 시작",
+            description = "방장이 게임을 시작하고 매칭을 수행합니다.",
+            security = @SecurityRequirement(name = "bearer-key")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "시작 성공"),
+            @ApiResponse(responseCode = "400", description = "참여자 수 부족"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "방 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    @PostMapping("/{roomId}/start")
+    public ResponseEntity<Void> startGame(
+            @PathVariable Long roomId,
+            @AuthenticationPrincipal JwtUserDetails user
+    ) {
+        roomService.startGame(roomId, user.getUserId());
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "방장 여부 확인",
+            description = "로그인 사용자가 방장인지 확인합니다.",
+            security = @SecurityRequirement(name = "bearer-key")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "true: 방장, false: 아님", content = @Content(schema = @Schema(type = "boolean"))),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    @GetMapping("/creator")
+    public ResponseEntity<Boolean> isCreator(
+            @AuthenticationPrincipal JwtUserDetails user
+    ) {
+        boolean isCreator = roomService.checkCreator(user.getUserId());
+        return ResponseEntity.ok(isCreator);
+    }
 }

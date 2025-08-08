@@ -6,4 +6,5 @@ public record OAuthUserDto(
         Long userId,
         String providerId,
         OAuthProvider provider
-) {}
+) {
+}
