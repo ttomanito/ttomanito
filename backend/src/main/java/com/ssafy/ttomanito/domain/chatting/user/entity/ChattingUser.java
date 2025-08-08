@@ -31,4 +31,13 @@ public class ChattingUser {
 
     @Column(name = "last_read_time")
     private LocalDateTime lastReadTime;
+
+    public static ChattingUser create(ChattingRoom room, RoomUser participant) {
+        return ChattingUser.builder()
+                .chattingRoom(room)
+                .roomUser(participant)
+                .unreadCount(0)
+                .lastReadTime(null)
+                .build();
+    }
 }

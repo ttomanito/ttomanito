@@ -28,4 +28,12 @@ public class ChattingRoom {
 
     @Column(name = "last_message_time")
     private LocalDateTime lastMessageTime;
+
+    public static ChattingRoom create(ManitoAssignment assignment) {
+        return ChattingRoom.builder()
+                .manitoAssignment(assignment)
+                .lastMessage(null)
+                .lastMessageTime(null)
+                .build();
+    }
 }
