@@ -1,5 +1,9 @@
 package com.ssafy.ttomanito.domain.room.service;
 
+import com.ssafy.ttomanito.domain.chatting.room.entity.ChattingRoom;
+import com.ssafy.ttomanito.domain.chatting.room.repository.ChattingRoomRepository;
+import com.ssafy.ttomanito.domain.chatting.user.entity.ChattingUser;
+import com.ssafy.ttomanito.domain.chatting.user.repository.ChattingUserRepository;
 import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import com.ssafy.ttomanito.domain.manito.repository.ManitoAssignmentRepository;
 import com.ssafy.ttomanito.domain.room.dto.request.CreateRoomRequest;
@@ -15,13 +19,10 @@ import com.ssafy.ttomanito.domain.user.repository.UserRepository;
 import com.ssafy.ttomanito.global.exception.AccessDeniedException;
 import com.ssafy.ttomanito.global.exception.BadRequestException;
 import com.ssafy.ttomanito.global.exception.NotFoundException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -32,6 +33,8 @@ import java.util.*;
 public class RoomService {
     private final RoomRepository roomRepository;
     private final RoomUserRepository roomUserRepository;
+    private final ChattingRoomRepository chattingRoomRepository;
+    private final ChattingUserRepository chattingUserRepository;
     private final MissionDayRepository missionDayRepository;
     private final ManitoAssignmentRepository manitoAssignmentRepository;
     private final UserRepository userRepository;
@@ -84,6 +87,7 @@ public class RoomService {
         // 2) 실제 참가자 조회
         return roomUserRepository.findParticipantsByRoomId(roomId);
     }
+
     public UserRoomStatus getUserRoomStatusEnum(Long userId) {
         List<RoomStatus> statuses = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
         List<RoomUser> rooms = roomUserRepository.findActiveRoomsForUser(userId, statuses);
@@ -96,29 +100,13 @@ public class RoomService {
         }
         return UserRoomStatus.IN_NONE;
     }
+
     @Transactional(readOnly = true)
     public RoomInfoResponse getRoomInfo(Long roomId) {
         Room room = find(roomId);
         List<Weekday> days = missionDayRepository.findWeekdaysByRoomId(roomId);
         return RoomInfoResponse.from(room, days);
     }
-
-    public boolean isUserInProgressOrWaiting(Long userId) {
-        List<RoomStatus> statuses = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
-        return !roomUserRepository.findActiveRoomsForUser(userId, statuses).isEmpty();
-    }
-
-    public void setUserMessage(Long roomId, Long userId, String message) {
-        if (message == null || message.isBlank()) {
-            throw new BadRequestException("메시지는 비어있을 수 없습니다.");
-        }
-        RoomUser ru = roomUserRepository
-                .findByRoom_roomIdAndUser_UserId(roomId, userId)
-                .orElseThrow(() -> new NotFoundException("방에 참여하지 않은 사용자입니다."));
-        ru = ru.toBuilder().statusMessage(message).build();
-        roomUserRepository.save(ru);
-    }
-
 
     public void closeRoomByCreatorId(Long creatorId) {
         Room room = roomRepository
@@ -187,10 +175,6 @@ public class RoomService {
     public Room find(Long roomId) {
         return roomRepository.findById(roomId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 방입니다: id=" + roomId));
-    }
-
-    public boolean isRoomNotStarted(Long roomId) {
-        return find(roomId).getStatus() == RoomStatus.NOT_STARTED;
     }
 
     public boolean checkCreator(Long userId) {

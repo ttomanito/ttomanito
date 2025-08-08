@@ -24,9 +24,9 @@ public class ChatWebSocketController {
 
     /**
      * 1) 클라이언트에서 과거 메시지 요청 시
-     *    send → /app/chat.history.{chatRoomId}
-     *    payload → { "before": "2025-08-07T12:34:56.789" } or { "before": null }
-     *    receive → /user/queue/history
+     * send → /app/chat.history.{chatRoomId}
+     * payload → { "before": "2025-08-07T12:34:56.789" } or { "before": null }
+     * receive → /user/queue/history
      */
     @MessageMapping("/chat.history.{chatRoomId}")
     public void history(

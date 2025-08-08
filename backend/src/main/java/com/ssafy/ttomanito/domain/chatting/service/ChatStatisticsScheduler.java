@@ -13,32 +13,34 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ChatStatisticsScheduler {
 
-    private final ChatMessageRepository       chatMessageRepository;
-    private final ChattingRoomRepository     chattingRoomRepository;
+    private final ChatMessageRepository chatMessageRepository;
+    private final ChattingRoomRepository chattingRoomRepository;
     private final ManitoAssignmentRepository manitoAssignmentRepository;
-    private final ManitoActivityRepository   manitoActivityRepository;
-    private final RoomUserRepository         roomUserRepository;
+    private final ManitoActivityRepository manitoActivityRepository;
+    private final RoomUserRepository roomUserRepository;
 
-    @Scheduled(cron = "0 0 0 * * ?", zone = "Asia/Seoul")
+    @Scheduled(cron = "3 0 0 * * ?", zone = "Asia/Seoul")
     @Transactional
     public void updateDailyManitoChatCounts() {
         ZoneId zone = ZoneId.of("Asia/Seoul");
         LocalDateTime start = LocalDate.now(zone).minusDays(1).atStartOfDay();
-        LocalDateTime end   = LocalDate.now(zone).atStartOfDay();
+        LocalDateTime end = LocalDate.now(zone).atStartOfDay();
 
         chatMessageRepository
                 .countBySentAtBetweenGroupByRoomAndSender(start, end)
                 .forEach(stat -> {
-                    Long   chatRoomId = stat.getChattingRoomId();
-                    Long   senderId   = stat.getSenderRoomUserId();
-                    int    count      = stat.getCount().intValue();
+                    Long chatRoomId = stat.getChattingRoomId();
+                    Long senderId = stat.getSenderRoomUserId();
+                    int count = stat.getCount().intValue();
 
                     // (1) 이 채팅방의 ManitoAssignment 조회 → 마니또 roomUserId 비교
                     chattingRoomRepository.findById(chatRoomId)

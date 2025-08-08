@@ -15,21 +15,21 @@ public interface ManitoActivityRepository extends JpaRepository<ManitoActivity, 
      * 한 방(roomId)에 속한 모든 활동 기록 조회
      */
     @Query("""
-      SELECT a
-      FROM ManitoActivity a
-      WHERE a.roomUser.room.roomId = :roomId
-    """)
+              SELECT a
+              FROM ManitoActivity a
+              WHERE a.roomUser.room.roomId = :roomId
+            """)
     List<ManitoActivity> findByRoomId(RoomUser roomUser);
 
     /**
      * 1) 특정 방·특정 사용자 통화 시간 합계
      */
     @Query("""
-      SELECT COALESCE(SUM(a.callTime), 0)
-      FROM ManitoActivity a
-      WHERE a.roomUser.room.roomId = :roomId
-        AND a.roomUser.user.userId = :userId
-    """)
+              SELECT COALESCE(SUM(a.callTime), 0)
+              FROM ManitoActivity a
+              WHERE a.roomUser.room.roomId = :roomId
+                AND a.roomUser.user.userId = :userId
+            """)
     Long sumCallTimeByRoomAndUser(@Param("roomId") Long roomId,
                                   @Param("userId") Long userId);
 
@@ -37,51 +37,54 @@ public interface ManitoActivityRepository extends JpaRepository<ManitoActivity, 
      * 2) 특정 방·특정 사용자 채팅 횟수 합계
      */
     @Query("""
-      SELECT COALESCE(SUM(a.chatCount), 0)
-      FROM ManitoActivity a
-      WHERE a.roomUser.room.roomId = :roomId
-        AND a.roomUser.user.userId = :userId
-    """)
+              SELECT COALESCE(SUM(a.chatCount), 0)
+              FROM ManitoActivity a
+              WHERE a.roomUser.room.roomId = :roomId
+                AND a.roomUser.user.userId = :userId
+            """)
     Long sumChatCountByRoomAndUser(@Param("roomId") Long roomId,
                                    @Param("userId") Long userId);
 
     @Query("""
-      SELECT COALESCE(SUM(a.missionSuccessCount), 0)
-      FROM ManitoActivity a
-      WHERE a.roomUser.room.roomId = :roomId
-        AND a.roomUser.user.userId = :userId
-    """)
+              SELECT COALESCE(SUM(a.missionSuccessCount), 0)
+              FROM ManitoActivity a
+              WHERE a.roomUser.room.roomId = :roomId
+                AND a.roomUser.user.userId = :userId
+            """)
     Long sumMissionSuccessCountByRoomAndUser(
             @Param("roomId") Long roomId,
             @Param("userId") Long userId
     );
+
     /**
      * 3) 특정 방 전체 통화 시간 평균
      */
     @Query("""
-      SELECT COALESCE(AVG(a.callTime), 0)
-      FROM ManitoActivity a
-      WHERE a.roomUser.room.roomId = :roomId
-    """)
+              SELECT COALESCE(AVG(a.callTime), 0)
+              FROM ManitoActivity a
+              WHERE a.roomUser.room.roomId = :roomId
+            """)
     Double avgCallTimeByRoom(@Param("roomId") Long roomId);
 
     /**
      * 4) 특정 방 전체 채팅 횟수 평균
      */
     @Query("""
-      SELECT COALESCE(AVG(a.chatCount), 0)
-      FROM ManitoActivity a
-      WHERE a.roomUser.room.roomId = :roomId
-    """)
+              SELECT COALESCE(AVG(a.chatCount), 0)
+              FROM ManitoActivity a
+              WHERE a.roomUser.room.roomId = :roomId
+            """)
     Double avgChatCountByRoom(@Param("roomId") Long roomId);
 
 
-    /** 특정 방 전체 미션 성공 횟수 평균 */
+    /**
+     * 특정 방 전체 미션 성공 횟수 평균
+     */
     @Query("""
-      SELECT COALESCE(AVG(a.missionSuccessCount), 0)
-      FROM ManitoActivity a
-      WHERE a.roomUser.room.roomId = :roomId
-    """)
+              SELECT COALESCE(AVG(a.missionSuccessCount), 0)
+              FROM ManitoActivity a
+              WHERE a.roomUser.room.roomId = :roomId
+            """)
     Double avgMissionSuccessCountByRoom(@Param("roomId") Long roomId);
 
     Optional<ManitoActivity> findByRoomUser(RoomUser roomUser);

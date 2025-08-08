@@ -1,7 +1,5 @@
 package com.ssafy.ttomanito.global.security.jwt;
 
-import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
-import com.ssafy.ttomanito.global.security.jwt.JwtToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

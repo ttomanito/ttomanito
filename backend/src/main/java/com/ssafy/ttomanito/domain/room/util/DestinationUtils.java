@@ -2,7 +2,8 @@ package com.ssafy.ttomanito.domain.room.util;
 
 public final class DestinationUtils {
 
-    private DestinationUtils() {}
+    private DestinationUtils() {
+    }
 
     // 예) /topic/room/123  -> 123L
     public static Long extractRoomIdAsLong(String destination) {
