@@ -17,8 +17,6 @@ import detective_ttoma_img from '@/assets/ttomas/detective_ttoma.svg';
 import logo_ttomanito from '@/assets/ttomas/logo_ttomanito.svg';
 import { useModalStore } from '@/stores/modalStore';
 import BaseModal from '@/components/modal/BaseModal';
-import DevLogoutButton from '@/components/buttons/DevLogoutButton'
-
 // 왼쪽 텍스트 영역
 const PcMent = () => (
   <Flex
@@ -63,15 +61,18 @@ export default function AppLayout() {
 
   const noHeaderPatterns = [
     '/chat/:chatRoomId/call',
+    '/room',
+    '/login',
+  ];
+  const noBottomPatterns = [
+    '/chat/:chatRoomId/call',
     '/',
     '/main',
     '/room',
     '/login',
     '/register',
     '/room/:roomId',
-    '/manito/:roomId/matching',
-  ];
-  const noBottomPatterns = [...noHeaderPatterns];
+    '/manito/:roomId/matching',];
 
   const hideHeader = noHeaderPatterns.some((pattern) =>
     matchPath({ path: pattern, end: true }, pathname)
@@ -119,20 +120,20 @@ export default function AppLayout() {
             // ✨ 3단계 반응형 너비 설정
             w={{ base: '375px', xs: '100%', mobile: '520px' }}
             h="100dvh"
+            overflow="hidden"
           >
             
             <Container
               maxW="560px"
               w="full"
-              px={4}
+              px={0}
               display="grid"
               gridTemplateRows="auto 1fr auto"
               h="100dvh"
               overflow="hidden"
               bg="white"
             >
-              <DevLogoutButton />
-              {!hideHeader && <AppHeader />}
+              {!hideHeader && <AppHeader containerRef={containerRef} />}
               <Box as="main" overflowY="auto">
                 <Outlet />
               </Box>
