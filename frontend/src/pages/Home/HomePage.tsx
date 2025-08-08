@@ -5,14 +5,14 @@ import {
   Image,
   HStack,
   Flex,
-  Spinner, // 로딩 스피너 추가
+  Spinner,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import CommonCard from '@/components/cards/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
 import ProfileCard from '@/components/profile/ProfileCard';
+import MissionListItem from '@/components/lists/MissionListItem'; // 이전 미션 리스트 아이템
 import ttoma_questionmark from '@/assets/ttomas/ttoma_questionmark.svg';
 import ttoma_heart from '@/assets/ttomas/ttoma_heart.svg';
 import ttoma_mission from '@/assets/ttomas/ttoma_mission.svg';
@@ -23,7 +23,7 @@ import DoubleButton from '@/components/buttons/DoubleButton';
 import { useModalStore } from '@/stores/modalStore';
 import TutorialBody from '@/components/modal/TutorialBody';
 import { fetchTodayMission, type Mission } from '@/api/mission';
-import { getRequest } from '@/api/requests';
+import { getRequest, patchRequest } from '@/api/requests';
 import easy from '@/assets/mission_icons/stars/easy.svg';
 import normal from '@/assets/mission_icons/stars/normal.svg';
 import hard from '@/assets/mission_icons/stars/hard.svg';
@@ -32,27 +32,96 @@ import ttoma_communication from '@/assets/mission_icons/ttoma_communication.svg'
 import ttoma_notes from '@/assets/mission_icons/ttoma_notes.svg';
 import ttoma_observation from '@/assets/mission_icons/ttoma_observation.svg';
 import ttoma_performance from '@/assets/mission_icons/ttoma_performance.svg';
+import { useAuth } from '@/stores/authStore';
+import ttoma_profile from '@/assets/ttomas/ttoma_profile.png'; // 기본 아바타 이미지
+
+// 타입 정의
+interface Participant {
+  userId: number;
+  name: string;
+  statusMessage: string;
+  creatorId: number;
+  profileImageUrl?: string;
+}
+
+interface PastMission {
+  missionId: number;
+  missionStatusId: number;
+  title: string;
+  description: string;
+  difficulty: string;
+  missionDate: string;
+  completed: boolean;
+}
 
 const GameHomePage = () => {
-  const { roomId } = useParams<{ roomId: string }>();
+  // ✨ MODIFIED: useAuth 스토어에서 roomId와 isInGame 상태를 가져옵니다.
+  const { roomId, isInGame } = useAuth((s) => s.gameInfo);
+  const hydrated = useAuth((s) => s.hydrated);
   const { openModal, closeModal } = useModalStore();
 
+  // 상태 관리
   const [room, setRoom] = useState<{
     startDate: string;
     endDate: string;
     missionDays: string[];
   } | null>(null);
-
-  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
-
-  const [isMissionRevealed, setIsMissionRevealed] = useState(false);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [isPageLoading, setIsPageLoading] = useState(!hydrated);
+  
+  // 오늘의 미션 관련 상태
   const [todayMission, setTodayMission] = useState<Mission | null>(null);
+  const [isMissionRevealed, setIsMissionRevealed] = useState(false);
+  const [isMissionCompletedToday, setIsMissionCompletedToday] = useState(false);
 
+  // 마니띠 확인 관련 상태
+  const [manitoProfile, setManitoProfile] = useState<Participant | null>(null);
+  const [isFetchingManito, setIsFetchingManito] = useState(false);
+
+  // 이전 미션 목록 관련 상태
+  const [pastMissions, setPastMissions] = useState<PastMission[]>([]);
+  const [isFetchingMissions, setIsFetchingMissions] = useState(false);
+
+  // 날짜 관련 변수
   const today = dayjs();
   const todayKey = today.format('YYYY-MM-DD');
   const todayDay = today.format('ddd').toUpperCase();
 
-  // useMemo를 사용하여 room 정보가 변경될 때만 계산
+  // ✨ MODIFIED: 데이터 로딩 useEffect를 useAuth 상태와 연동합니다.
+  useEffect(() => {
+    // zustand-persist가 로드되기 전에는 실행하지 않습니다.
+    if (!hydrated) {
+      return;
+    }
+
+    // 게임에 참여 중이고, roomId가 있을 때만 데이터를 불러옵니다.
+    if (isInGame && roomId) {
+      const fetchGameData = async () => {
+        setIsPageLoading(true);
+        try {
+          // Promise.all을 사용해 방 정보와 참여자 목록을 동시에 가져옵니다.
+          const [roomData, participantsData] = await Promise.all([
+            getRequest(`/room/${roomId}`), // 하드코딩된 ID 대신 스토어의 roomId 사용
+            getRequest<Participant[]>(`/room/${roomId}/participants`),
+          ]);
+          setRoom(roomData);
+          setParticipants(participantsData);
+        } catch (err) {
+          console.error('게임 데이터 가져오기 실패:', err);
+          setRoom(null);
+          setParticipants([]);
+        } finally {
+          setIsPageLoading(false);
+        }
+      };
+      fetchGameData();
+    } else {
+      // 게임에 참여 중이 아니면 로딩을 중단합니다.
+      setIsPageLoading(false);
+    }
+  }, [hydrated, roomId, isInGame]); // 스토어 상태 변경 시 다시 실행
+
+  // 게임 진행률 계산
   const { currentDay, totalDays } = useMemo(() => {
     if (!room) return { currentDay: 0, totalDays: 0 };
     const start = dayjs(room.startDate);
@@ -62,8 +131,9 @@ const GameHomePage = () => {
     if (current < 1) current = 1;
     if (current > total) current = total;
     return { currentDay: current, totalDays: total };
-  }, [room, today]); // 의존성 배열에 room 추가
+  }, [room, today]);
 
+  // 오늘 미션이 있는지 여부 확인
   const isMissionAvailable = useMemo(() => {
     if (!room) return false;
     const start = dayjs(room.startDate);
@@ -73,41 +143,32 @@ const GameHomePage = () => {
       today.isBefore(end.add(1, 'day')) &&
       room.missionDays.includes(todayDay)
     );
-  }, [room, todayDay]);
+  }, [room, todayDay, today]);
 
-
-  // API 호출 로직을 useEffect 내부에 정의하고, useEffect의 의존성 배열에 roomId를 추가
-  useEffect(() => {
-    const fetchRoomInfo = async () => {
-      setIsLoading(true); // API 호출 시작 시 로딩 상태 true
-      try {
-        const data = await getRequest(`/room/${roomId}`);
-        console.log("🏠 room data:", data);
-        setRoom({
-          startDate: data.startDate,
-          endDate: data.endDate,
-          missionDays: data.missionDays,
-        });
-      } catch (err) {
-        console.error('방 정보 가져오기 실패:', err);
-        setRoom(null); // 실패 시 null로 상태 초기화
-      } finally {
-        setIsLoading(false); // API 호출 완료 시 로딩 상태 false
-      }
-    };
-    fetchRoomInfo();
-  }, [roomId]); // roomId가 변경될 때만 API를 다시 호출하도록 설정
-
+  // 미션 상태(확인/완료 여부) 동기화
   useEffect(() => {
     const revealed = localStorage.getItem(`mission_revealed_${todayKey}`);
+    const completed = localStorage.getItem(`mission_completed_${todayKey}`);
     const wasRevealed = revealed === 'true';
+    const wasCompleted = completed === 'true';
+  
     setIsMissionRevealed(wasRevealed);
-
+    setIsMissionCompletedToday(wasCompleted);
+  
     if (wasRevealed && !todayMission && isMissionAvailable) {
-      fetchTodayMission().then(setTodayMission).catch(console.error);
+      fetchTodayMission()
+        .then(mission => {
+            setTodayMission(mission);
+            if (mission.completed) {
+                setIsMissionCompletedToday(true);
+                localStorage.setItem(`mission_completed_${todayKey}`, 'true');
+            }
+        })
+        .catch(console.error);
     }
-  }, [todayKey, isMissionAvailable]);
+  }, [todayKey, isMissionAvailable, todayMission]);
 
+  // 핸들러 함수들 (내부 로직 변경 없음)
   const handleRevealMission = async () => {
     if (isMissionRevealed || !isMissionAvailable) return;
     try {
@@ -120,8 +181,65 @@ const GameHomePage = () => {
       alert('미션을 불러오지 못했습니다.');
     }
   };
+
+  const handleCompleteMission = async () => {
+    if (!todayMission?.missionStatusId) {
+      alert('미션 정보를 찾을 수 없어 완료 처리할 수 없습니다.');
+      return;
+    }
+    try {
+      await patchRequest(`/manito/mission/${todayMission.missionStatusId}/success`, {});
+      alert('미션을 완료하였습니다!');
+      localStorage.setItem(`mission_completed_${todayKey}`, 'true');
+      setIsMissionCompletedToday(true);
+      closeModal();
+    } catch (err) {
+      console.error('미션 완료 처리 실패:', err);
+      alert('미션 완료 처리에 실패했습니다. CORS 문제일 수 있으니 서버 설정을 확인해주세요.');
+    }
+  };
   
-  // ... (getDifficultyImage, getTypeImage, Modal Data 등은 생략)
+  const handleShowManito = async () => {
+    openModal(manitoModalData);
+    setIsFetchingManito(true);
+    setManitoProfile(null);
+    try {
+      const { manitoId } = await getRequest<{ manitoId: number }>(`/manito/my-manito`);
+      const foundManito = participants.find(p => p.userId === manitoId);
+      if (foundManito) {
+        setManitoProfile(foundManito);
+      } else {
+        throw new Error('참여자 목록에서 마니띠를 찾을 수 없습니다.');
+      }
+    } catch (err) {
+      console.error('마니띠 정보 처리 실패:', err);
+      alert('마니띠 정보를 처리하는 중 오류가 발생했습니다.');
+      closeModal();
+    } finally {
+      setIsFetchingManito(false);
+    }
+  };
+
+  const handleShowPastMissions = async () => {
+    openModal({
+      title: '이전 미션 확인하기',
+      caption: '내가 수행한 미션 목록입니다',
+      body: <PastMissionsModalBody />,
+    });
+    setIsFetchingMissions(true);
+    setPastMissions([]);
+    try {
+      const missionList = await getRequest<PastMission[]>('/manito/mission/missionlist');
+      setPastMissions(missionList);
+    } catch (err) {
+      console.error('이전 미션 목록 가져오기 실패:', err);
+      alert('미션 목록을 불러오는 데 실패했습니다.');
+      closeModal();
+    } finally {
+      setIsFetchingMissions(false);
+    }
+  };
+
   const getDifficultyImage = (difficulty: Mission['difficulty']) => {
     switch (difficulty) {
       case 'EASY': return easy;
@@ -131,7 +249,7 @@ const GameHomePage = () => {
       default: return easy;
     }
   };
-
+  
   const getTypeImage = (type: Mission['type']) => {
     switch (type) {
       case 'GIFT': return ttoma_gift;
@@ -143,69 +261,62 @@ const GameHomePage = () => {
     }
   };
 
+  // 모달 Body 컴포넌트들 (내부 로직 변경 없음)
+  const ManitoProfileModalBody = () => {
+    if (isFetchingManito) return <Flex justify="center" align="center" h="150px"><Spinner size="lg" /></Flex>;
+    if (manitoProfile) return <ProfileCard title="내 마니띠" name={manitoProfile.name} subtitle={manitoProfile.statusMessage} src={manitoProfile.profileImageUrl || ttoma_profile} />;
+    return null;
+  };
+
+  const PastMissionsModalBody = () => {
+    if (isFetchingMissions) return <Flex justify="center" align="center" h="200px"><Spinner size="lg" /></Flex>;
+    if (pastMissions.length === 0) return <Flex justify="center" align="center" h="100px"><Text textStyle="body_md">아직 수행한 미션이 없습니다.</Text></Flex>;
+    return (
+      <VStack gap={2} maxH="400px" overflowY="auto">
+        {pastMissions.map((mission) => (
+          <MissionListItem key={mission.missionStatusId} date={dayjs(mission.missionDate).format('MM/DD')} content={mission.title} completed={mission.completed} />
+        ))}
+      </VStack>
+    );
+  };
+
+  // 모달 데이터 정의 (내부 로직 변경 없음)
   const missionCompleteModalData = {
     title: '오늘의 미션을 완료하셨나요?',
     caption: '미션 수행 결과는 수정이 불가능합니다.\n 신중히 선택해주세요.',
-    body: (''
-    ),
-    footer: (
-      <DoubleButton
-        leftLabel="취소"
-        rightLabel="확인"
-        onLeftClick={closeModal}
-        onRightClick={() => {
-          alert('미션을 완료하였습니다 !');
-          closeModal();
-        }}
-      />
-    ),
+    body: (''),
+    footer: ( <DoubleButton leftLabel="취소" rightLabel="확인" onLeftClick={closeModal} onRightClick={handleCompleteMission} /> ),
   };
-  const prevMissionModalData = {
-    title: '이전 미션 확인하기',
-    caption: '내가 수행한 미션 목록입니다',
-    body: <Text>7/28: 인사하기<br />7/29: 몰래 간식 주기</Text>,
-  };
+  const manitoModalData = { title: '내 마니띠 확인', body: <ManitoProfileModalBody />, };
+  const tutorialModalData = { title: '', body: <TutorialBody />, footer: <LongButton onClick={closeModal}>닫기</LongButton>, };
 
-  const manitoModalData = {
-    title: '내 마니띠 확인',
-    body: <ProfileCard name="안수진" subtitle="상태메시지" title="내 마니띠" src='{src}' />,
-  };
+  // ✨ MODIFIED: 렌더링 가드 로직을 개선합니다.
+  if (isPageLoading) {
+    return ( <Flex justify="center" align="center" h="100vh"><Spinner size="xl" /></Flex> );
+  }
 
-  const tutorialModalData = {
-    title: '', 
-    body: <TutorialBody />,
-    footer: <LongButton onClick={closeModal}>닫기</LongButton>,
-  };
+  // 로딩이 끝났지만, 게임에 참여중이 아니거나 방 정보를 못 불러온 경우
+  if (!isInGame || !room) {
+    return (
+      <Flex justify="center" align="center" h="100vh">
+        <Text textStyle="title_sm">참여중인 게임이 없거나,정보를 불러올 수 없습니다.</Text>
+      </Flex>
+    );
+  }
 
-
+  // UI 렌더링
   return (
     <VStack gap={5} align="center" w="full" m={0} p={0}>
       <Box w="full" bgImage={`url(${missioncard_bg})`} bgSize="cover" bgRepeat="no-repeat" py={20}>
         <Box maxW="480px" mx="auto" px={4}>
           <Text textStyle="title_lg" textAlign="center" mb={-2}>오늘의 미션</Text>
-
-          {/* 로딩 중일 때 스피너 표시 */}
-          {isLoading ? (
-            <Flex justify="center" align="center" h="100px" mb={6}>
-              <Spinner size="xl" />
-            </Flex>
-          ) : room && (
-            <Box w="100%" mb={6}>
-              <Text textStyle="body_sm" mb={2} mr={3} textAlign="end">
-                {currentDay} / {totalDays}일
-              </Text>
-              <Box h="10px" bg="gray.200" borderRadius="full" overflow="hidden">
-                {/* 진행률 계산 로직을 명확하게 */}
-                <Box h="full" w={`${(currentDay / totalDays) * 100}%`} bg="purple.400" transition="width 0.3s ease" />
-              </Box>
+          <Box w="100%" mb={6}>
+            <Text textStyle="body_sm" mb={2} mr={3} textAlign="end">{currentDay} / {totalDays}일</Text>
+            <Box h="10px" bg="gray.200" borderRadius="full" overflow="hidden">
+              <Box h="full" w={`${totalDays > 0 ? (currentDay / totalDays) * 100 : 0}%`} bg="purple.400" transition="width 0.3s ease" />
             </Box>
-          )}
-
-          <CommonCard
-            onClick={handleRevealMission}
-            cursor={!isMissionRevealed ? 'pointer' : 'default'}
-            h="360px"
-          >
+          </Box>
+          <CommonCard onClick={handleRevealMission} cursor={isMissionAvailable && !isMissionRevealed ? 'pointer' : 'default'} h="360px">
             <Flex direction="column" justify="center" align="center" h="100%" w="100%" bgImage={!isMissionRevealed ? `url("${missioncard_bg_2}")` : undefined} bgSize="cover" bgRepeat="no-repeat" borderRadius="inherit">
               {!isMissionAvailable ? (
                 <>
@@ -223,7 +334,9 @@ const GameHomePage = () => {
                   <Text textStyle="title_ml" textAlign="center" mb={1}>{todayMission.title}</Text>
                   <Text textStyle="caption_xs_light" textAlign="center">{todayMission.description ?? ""}</Text>
                   <Image src={getTypeImage(todayMission.type)} alt={todayMission.type} mx="auto" maxW="120px" mb={4} />
-                  <LongButton onClick={() => openModal(missionCompleteModalData)}>미션 완료!</LongButton>
+                  <LongButton onClick={(e) => { e.stopPropagation(); openModal(missionCompleteModalData); }} disabled={isMissionCompletedToday}>
+                    {isMissionCompletedToday ? '오늘의 미션 완료됨' : '미션 완료!'}
+                  </LongButton>
                 </>
               )}
             </Flex>
@@ -232,8 +345,8 @@ const GameHomePage = () => {
       </Box>
 
       {/* 메뉴 카드 */}
-      <VStack gap={3} w="100%" maxW="480px">
-        <CommonCard onClick={() => openModal(prevMissionModalData)}>
+      <VStack gap={3} w="100%" maxW="480px" pb={5}>
+        <CommonCard onClick={handleShowPastMissions}>
           <HStack gap={2} align="center">
             <Image src={ttoma_mission} alt="ttoma icon" boxSize="40px" />
             <VStack gap={1} align="start">
@@ -242,7 +355,8 @@ const GameHomePage = () => {
             </VStack>
           </HStack>
         </CommonCard>
-        <CommonCard onClick={() => openModal(manitoModalData)}>
+
+        <CommonCard onClick={handleShowManito}>
           <HStack gap={2} align="center">
             <Image src={ttoma_heart} alt="ttoma icon" boxSize="40px" />
             <VStack gap={1} align="start">
@@ -251,6 +365,7 @@ const GameHomePage = () => {
             </VStack>
           </HStack>
         </CommonCard>
+        
         <CommonCard onClick={() => openModal(tutorialModalData)}>
           <HStack gap={2} align="center">
             <Image src={ttoma_questionmark} alt="ttoma icon" boxSize="40px" />
