@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,7 @@ public class MissionService {
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("현재 참여 중인 마니또 방이 없습니다"));
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         // ✅ 1. 오늘 미션이 이미 있는 경우
         Optional<DailyMission> existing = dailyMissionRepository.findByManito_UserIdAndMissionDate(userId, today);
