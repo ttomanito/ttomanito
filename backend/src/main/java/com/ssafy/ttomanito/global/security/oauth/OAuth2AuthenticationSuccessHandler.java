@@ -8,12 +8,12 @@ import com.ssafy.ttomanito.domain.oauth.service.OAuthService;
 import com.ssafy.ttomanito.domain.user.entity.User;
 import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
 import com.ssafy.ttomanito.global.security.jwt.JwtToken;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -37,7 +37,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication)
-            throws IOException, ServletException {
+            throws IOException {
 
         var oidcUser = (SocialUser) authentication.getPrincipal();
         String providerId = oidcUser.getIdToken().getSubject();
@@ -60,17 +60,25 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         refreshTokenRepo.save(refreshTokenEntity);
 
         // 쿠키 세팅 (maxAge는 초 단위)
-        response.addCookie(buildCookie("accessToken", tokens.getAccessToken(), (int) (jwtProvider.getAccessTokenTtlMs() / 1000)));
-        response.addCookie(buildCookie("refreshToken", tokens.getRefreshToken(), (int) (refreshTokenTtlMs / 1000)));
+        addCookie(request, response, "accessToken", tokens.getAccessToken(), jwtProvider.getAccessTokenTtlMs()/1000);
+        addCookie(request, response, "refreshToken", tokens.getRefreshToken(), refreshTokenTtlMs/1000);
 
         response.sendRedirect(frontendRedirectUrl + "/main");
     }
 
-    private Cookie buildCookie(String name, String value, int maxAgeSeconds) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(maxAgeSeconds);
-        return cookie;
+    private void addCookie(HttpServletRequest req, HttpServletResponse res,
+                           String name, String value, long maxAgeSeconds) {
+        boolean isLocal = "localhost".equalsIgnoreCase(req.getServerName())
+                || "127.0.0.1".equals(req.getServerName());
+
+        ResponseCookie cookie = ResponseCookie.from(name, value)
+                .httpOnly(true)
+                .secure(!isLocal)                      // prod(https)=true, local(http)=false
+                .sameSite(isLocal ? "Lax" : "None")    // prod= None, local= Lax
+                .path("/")
+                .maxAge(maxAgeSeconds)
+                .build();
+
+        res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }
