@@ -3,6 +3,7 @@ package com.ssafy.ttomanito.domain.room.service;
 import com.ssafy.ttomanito.domain.room.dto.response.WaitingEventMessage;
 import com.ssafy.ttomanito.domain.room.dto.response.WaitingMessage;
 import com.ssafy.ttomanito.domain.room.entity.Room;
+import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomRepository;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
@@ -81,6 +82,18 @@ public class RoomUserService {
      * 대기방에서 나가기
      */
     public void exit(Long roomId, Long userId) {
+        // 1) 대기방 존재/상태 확인
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new NotFoundException("해당 방에 해당하는 대기방이 없습니다."));
+        if (room.getStatus() != RoomStatus.NOT_STARTED) { // ← 대기방 상태명에 맞게 수정
+            throw new NotFoundException("해당 방에 해당하는 대기방이 없습니다.");
+        }
+
+        // 2) 대기방 내 유저 존재 확인
+        RoomUser ru = roomUserRepository
+                .findByRoom_roomIdAndUser_UserId(roomId, userId)
+                .orElseThrow(() -> new NotFoundException("해당 대기방에 사용자가 없습니다."));
+
         roomUserRepository.deleteByRoom_roomIdAndUser_UserId(roomId, userId);
 
         // 퇴장 이벤트 브로드캐스트

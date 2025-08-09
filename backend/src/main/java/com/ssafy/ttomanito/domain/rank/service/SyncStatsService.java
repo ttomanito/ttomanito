@@ -9,7 +9,7 @@
 //
 //import java.util.List;
 //
-//// com.ssafy.ttomanito.domain.rank.service.SyncStatsService.java
+/// / com.ssafy.ttomanito.domain.rank.service.SyncStatsService.java
 //@Service
 //@RequiredArgsConstructor
 //public class SyncStatsService {

@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Repository
 public interface PokeLogRepository extends JpaRepository<PokeLog, Long> {
@@ -22,11 +21,11 @@ public interface PokeLogRepository extends JpaRepository<PokeLog, Long> {
      * @return 해당 날짜의 Poke 수 합계
      */
     @Query("""
-      SELECT COALESCE(COUNT(pl), 0)
-      FROM PokeLog pl
-      WHERE pl.roomUser.roomUserId = :roomUserId
-        AND FUNCTION('DATE', pl.createdAt) = :date
-    """)
+              SELECT COALESCE(COUNT(pl), 0)
+              FROM PokeLog pl
+              WHERE pl.roomUser.roomUserId = :roomUserId
+                AND FUNCTION('DATE', pl.createdAt) = :date
+            """)
     Long sumPokeCountByRoomUserAndDate(
             @Param("roomUserId") Long roomUserId,
             @Param("date") LocalDate date

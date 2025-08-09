@@ -25,16 +25,16 @@ public class ManitoActivity {
     @JoinColumn(name = "room_user_id", nullable = false)
     private RoomUser roomUser;
 
-    @Column(name = "chat_count",      nullable = false)
+    @Column(name = "chat_count", nullable = false)
     private Integer chatCount;
 
-    @Column(name = "call_time",       nullable = false)
+    @Column(name = "call_time", nullable = false)
     private Integer callTime;
 
     @Column(name = "mission_success_count", nullable = false)
     private Integer missionSuccessCount;
 
-    @Column(name = "poke_count",      nullable = false)
+    @Column(name = "poke_count", nullable = false)
     private Integer pokeCount;
 
     public void updateCounts(int pokeCount,

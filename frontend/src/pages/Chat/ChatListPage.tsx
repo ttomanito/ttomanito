@@ -1,7 +1,7 @@
 // src/pages/ChatListPage.tsx
 import { Box, Flex, Text, VStack, Badge, Image } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
-import profile_manito from '@/assets/profile_manito.png';
+import profile_manito from '@/assets/ttomas/profile_manito.png';
 const chatList = [
   {
     id: 1,

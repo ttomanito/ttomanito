@@ -10,20 +10,20 @@ import com.ssafy.ttomanito.domain.room.service.RoomUserService;
 import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
 import com.ssafy.ttomanito.global.security.userdetails.JwtUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.util.List;
 
@@ -118,7 +118,7 @@ public class RoomController {
 
     @Operation(
             summary = "참여자 목록 조회",
-            description = "대기방의 참여자 목록을 반환합니다."
+            description = "참여자 목록을 반환합니다."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ParticipantResponse.class))),
@@ -244,7 +244,7 @@ public class RoomController {
 
     @Operation(
             summary = "방장 여부 확인",
-            description = "해당 방에서 로그인 사용자가 방장인지 확인합니다.",
+            description = "로그인 사용자가 방장인지 확인합니다.",
             security = @SecurityRequirement(name = "bearer-key")
     )
     @ApiResponses({
