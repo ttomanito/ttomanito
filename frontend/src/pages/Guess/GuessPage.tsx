@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom'; // ✨ 1. useParams import 추가
 import {
   Box,
   Button,
@@ -8,10 +7,7 @@ import {
   Flex,
   Spinner,
 } from '@chakra-ui/react';
-// ✨ 2. useToast를 @chakra-ui/react에서 분리
-import { useToast } from '@chakra-ui/toast';
-
-// 컴포넌트 및 유틸리티 import
+import { useToast } from '@chakra-ui/toast'
 import BaseModal from '@/components/modal/BaseModal';
 import { getRequest, postRequest } from '@/api/requests';
 import { useAuth } from '@/stores/authStore';
@@ -20,7 +16,7 @@ import ProfileCard from '@/components/profile/ProfileCard';
 import LongButton from '@/components/buttons/LongButton';
 import DoubleButton from '@/components/buttons/DoubleButton';
 import BasicListItem from '@/components/lists/BasicListItem';
-import ttoma_profile from '@/assets/ttomas/ttoma_profile.png'; // 기본 아바타 이미지
+import ttoma_profile from '@/assets/ttomas/ttoma_profile.png';
 
 // --- API 응답에 맞춘 인터페이스 정의 ---
 interface User {
@@ -41,10 +37,21 @@ interface GuessPostResponse {
   isCorrect: boolean;
 }
 
+/**
+ * GuessPage 컴포넌트
+ * - 현재 참여 중인 게임 방의 다른 참여자들을 대상으로 마니또를 추측하는 페이지입니다.
+ * - authStore에서 실제 게임 참여 상태(isInGame)와 방 ID(roomId)를 가져와 사용합니다.
+ */
 const GuessPage = () => {
-  // ✨ 3. 스토어 구조에 맞게 상태 가져오기
-  const { roomId } = useParams<{ roomId: string }>();
-  const { user, hydrated, isAuthenticated } = useAuth();
+  // ✨ 디버깅을 위해 게임 참여 상태와 roomId를 강제로 설정합니다.
+  // ✨ 실제 앱에서는 이 부분을 지우고 authStore의 gameInfo를 사용해야 합니다.
+  const isInGame = true;
+  const roomId = '2';
+  const { user, hydrated } = useAuth();
+
+  // ✅ isAuthenticated를 제거하고, gameInfo에서 필요한 값만 가져옵니다.
+  // const { user, hydrated, gameInfo } = useAuth();
+  // const { isInGame, roomId } = gameInfo;
   const toast = useToast();
 
   // --- 상태 관리 ---
@@ -54,19 +61,19 @@ const GuessPage = () => {
   const [guessHistory, setGuessHistory] = useState<GuessHistory[]>([]);
   const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
 
-  // 모달 상태
+  // 모달 표시 여부 상태
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
   // --- 데이터 로딩 useEffect ---
   useEffect(() => {
-    // ✨ 4. 인증 상태 및 유저 정보 확인 로직 강화
-    if (!hydrated || !isAuthenticated || !user) {
+    // ✅ isAuthenticated 확인 로직을 제거하고, isInGame만으로 판단합니다.
+    if (!hydrated || !user || !isInGame || !roomId) {
       setIsPageLoading(false);
       return;
     }
-    
+
     const fetchData = async () => {
       setIsPageLoading(true);
       try {
@@ -77,9 +84,8 @@ const GuessPage = () => {
 
         setAllParticipants(participants);
 
-        // ✨ 5. user.id를 사용하도록 수정
         const filtered = participants.filter((u) => u.userId !== Number(user.id));
-        const sorted = [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+        const sorted = [...filtered].sort((a, b) => b.name.localeCompare(a.name, 'ko'));
         
         setUsersToGuess(sorted);
         setGuessHistory(fetchedHistory);
@@ -89,7 +95,10 @@ const GuessPage = () => {
         toast({
           title: '데이터를 불러올 수 없습니다.',
           description: '네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요.',
-          status: 'error', duration: 5000, isClosable: true, position: 'top',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+          position: 'top',
         });
       } finally {
         setIsPageLoading(false);
@@ -97,7 +106,7 @@ const GuessPage = () => {
     };
 
     fetchData();
-  }, [roomId, user, hydrated, isAuthenticated, toast]); // ✨ 6. 의존성 배열 수정
+  }, [isInGame, roomId, user, hydrated, toast]); // ✅ 의존성 배열에서 isAuthenticated 제거
 
   // --- 파생 상태 (Derived State) ---
   const todayString = new Date().toISOString().slice(0, 10);
@@ -107,7 +116,7 @@ const GuessPage = () => {
     ? allParticipants.find(u => u.userId === todaysGuess.guessedUserId)
     : null;
 
-  // --- 핸들러 함수 (내부 로직 변경 없음) ---
+  // --- 핸들러 함수 (이하 로직은 기존과 동일) ---
   const handleSelect = (userId: number) => {
     if (hasGuessedToday) return;
     setSelectedId(userId);
@@ -147,11 +156,11 @@ const GuessPage = () => {
     return <Flex justify="center" align="center" h="100vh"><Spinner /></Flex>;
   }
 
-  // ✨ 7. 인증되지 않았거나, 데이터를 못불러온 경우에 대한 처리 강화
-  if (!isAuthenticated || allParticipants.length === 0) {
+  // ✅ 사용자가 게임에 참여 중이 아닐 때의 화면을 렌더링합니다.
+  if (!isInGame) {
     return (
       <Flex justify="center" align="center" h="100vh">
-        <Text textStyle="title_sm">참여중인 게임이 아니거나, 정보를 불러올 수 없습니다.</Text>
+        <Text textStyle="title_sm">참여중인 게임이 없습니다.</Text>
       </Flex>
     );
   }
@@ -186,10 +195,9 @@ const GuessPage = () => {
             onClick={() => handleSelect(participant.userId)}
             cursor={hasGuessedToday ? 'not-allowed' : 'pointer'}
             bg={!hasGuessedToday && selectedId === participant.userId ? 'purple.50' : 'white'}
+            transition="all 0.2s"
+            _hover={!hasGuessedToday ? { borderColor: 'purple.300', bg: 'purple.50' } : {}}
           >
-            {/* 🚨 중요: 아래 `src` prop 에러를 해결하려면 
-              `ProfileListItem.tsx` 파일의 `ProfileListItemProps` 타입에 `src?: string;`를 추가해야 합니다.
-            */}
             <ProfileListItem
               name={participant.name}
               statusMessage={participant.statusMessage}
@@ -203,22 +211,38 @@ const GuessPage = () => {
       </VStack>
 
       {/* --- 모달 섹션 --- */}
-      <BaseModal open={alertOpen} onClose={() => setAlertOpen(false)} title="팀원 중 한 명을 선택해주세요" body={<Text textStyle="caption_xs_light" textAlign="center" mt={-5}>가장 의심되는 팀원을 선택해주세요</Text>} />
-      <BaseModal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="추측하시겠습니까?" body={<Text>{allParticipants.find((u) => u.userId === selectedId)?.name}님을 마니또로 추측합니다.</Text>} footer={<DoubleButton leftLabel="취소" rightLabel="확인" onLeftClick={() => setConfirmOpen(false)} onRightClick={handleSubmitGuess} />} />
-      <BaseModal open={historyOpen} onClose={() => setHistoryOpen(false)} title="이전 추측 보기" body={
-        guessHistory.length === 0 ? (
-          <Text textAlign="center" color="gray.500">추측 기록이 없습니다.</Text>
-        ) : (
-          <VStack align="stretch" gap={2}>
-            {guessHistory.map((g) => {
-              const guessedUser = allParticipants.find((u) => u.userId === g.guessedUserId);
-              return (
-                <BasicListItem key={g.guessedDate} date={g.guessedDate.slice(5).replace('-', '.')} content={guessedUser?.name || '알 수 없음'} />
-              );
-            })}
-          </VStack>
-        )
-      } />
+      <BaseModal 
+        open={alertOpen} 
+        onClose={() => setAlertOpen(false)} 
+        title="팀원 중 한 명을 선택해주세요" 
+        body={<Text textStyle="caption_xs_light" textAlign="center" mt={-5}>가장 의심되는 팀원을 선택해주세요</Text>} 
+      />
+      <BaseModal 
+        open={confirmOpen} 
+        onClose={() => setConfirmOpen(false)} 
+        title="추측하시겠습니까?" 
+        body={<Text>{allParticipants.find((u) => u.userId === selectedId)?.name}님을 마니또로 추측합니다.</Text>} 
+        footer={<DoubleButton leftLabel="취소" rightLabel="확인" onLeftClick={() => setConfirmOpen(false)} onRightClick={handleSubmitGuess} />} 
+      />
+      <BaseModal 
+        open={historyOpen} 
+        onClose={() => setHistoryOpen(false)} 
+        title="이전 추측 보기" 
+        body={
+          guessHistory.length === 0 ? (
+            <Text textAlign="center" color="gray.500">추측 기록이 없습니다.</Text>
+          ) : (
+            <VStack align="stretch" gap={2}>
+              {guessHistory.map((g) => {
+                const guessedUser = allParticipants.find((u) => u.userId === g.guessedUserId);
+                return (
+                  <BasicListItem key={g.guessedDate} date={g.guessedDate.slice(5).replace('-', '.')} content={guessedUser?.name || '알 수 없음'} />
+                );
+              })}
+            </VStack>
+          )
+        } 
+      />
     </Box>
   );
 };

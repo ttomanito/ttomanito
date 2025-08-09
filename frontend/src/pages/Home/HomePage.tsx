@@ -102,10 +102,13 @@ const GameHomePage = () => {
   // ⚠️ 테스트를 위한 하드코딩
   const isInGame = true;
   const roomId = '2';
-
+  
+  // 테스트 아닐 경우 
+  // const { hydrated, gameInfo } = useAuth();
+  // const { isInGame, roomId } = gameInfo;
+  
   const hydrated = useAuth((s) => s.hydrated);
   const { openModal, closeModal } = useModalStore();
-
   const [room, setRoom] = useState<{
     startDate: string;
     endDate: string;
