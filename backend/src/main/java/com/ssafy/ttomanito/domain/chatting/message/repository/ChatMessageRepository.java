@@ -52,4 +52,10 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
             LocalDateTime start,
             LocalDateTime end
     );
+    // 방 전체 메시지 수 (둘의 합산)
+    @Aggregation(pipeline = {
+            "{ '$match': { 'chattingRoomId': ?0 } }",
+            "{ '$count': 'count' }"
+    })
+    Optional<ChatCount> countAllByRoom(String chattingRoomId);
 }

@@ -1,26 +1,18 @@
 // components/layout/AppHeader.tsx
+import { Flex } from '@chakra-ui/react';
+import SideMenu from './SideMenu'; // ✅ 추가
 
-import { Flex, Image } from '@chakra-ui/react';
-
-const AppHeader = () => {
+const AppHeader = ({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) => {
   return (
     <Flex
       as="header"
       align="center"
       justify="space-between"
-      pt={2}
-      mb={2}
-      py={4}
-      px={4} // ← 양옆 16px 패딩
+      mb={1}
     >
-      {/* 로고 */}
-      <Image src="/src/assets/logo.svg" boxSize={10} alt="logo" />
+      {/* 왼쪽: 사이드 메뉴 트리거 */}
+      <SideMenu containerRef={containerRef} />
 
-      {/* 오른쪽 아이콘 */}
-      <Flex gap={4}>
-        <Image src="/src/assets/bellicon.svg" boxSize={12} alt="알림" />
-        <Image src="/src/assets/menuicon.svg" boxSize={14} alt="메뉴" />
-      </Flex>
     </Flex>
   );
 };

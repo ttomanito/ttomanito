@@ -4,6 +4,7 @@ import com.ssafy.ttomanito.global.security.filter.JwtAuthenticationFilter;
 import com.ssafy.ttomanito.global.security.oauth.OAuth2AuthenticationSuccessHandler;
 import com.ssafy.ttomanito.global.security.oauth.SocialUserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,6 +24,9 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    @Value("${url.redirect.base}")
+    private String frontendRedirectUrl;
 
     private final JwtAuthenticationFilter jwtFilter;
     private final OAuth2AuthenticationSuccessHandler successHandler;
@@ -67,13 +71,12 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
-                        .logoutSuccessUrl("/login")
                         .deleteCookies("accessToken", "refreshToken", "JSESSIONID")
-                        .permitAll()
+                        .logoutSuccessHandler((req, res, auth) -> {
+                            res.sendRedirect(frontendRedirectUrl + "/login");  // http://localhost:5173/login
+                        })
                 )
-                .exceptionHandling(e -> e
-                        .authenticationEntryPoint((req, res, ex) -> res.sendError(401))
-                );
+                .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> res.sendError(401)));
 
         return http.build();
     }
