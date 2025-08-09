@@ -96,7 +96,7 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "https://i13b206.p.ssafy.io"
         ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH","DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true); // 프론트에서 쿠키/토큰 등 전송 가능하게
