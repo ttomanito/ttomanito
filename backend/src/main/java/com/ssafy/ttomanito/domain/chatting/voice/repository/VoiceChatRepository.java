@@ -41,14 +41,16 @@ public interface VoiceChatRepository
             @Param("roomUserId") Long roomUserId,
             @Param("date") LocalDate date
     );
+    // 최신 종료 기록 1건
+    Optional<VoiceChat> findTopByRoomUser_RoomUserIdAndIsActiveFalseOrderByEndedAtDesc(Long roomUserId);
 
-    /**
-     * 주어진 RoomUser별, 특정 날짜에 종료된 모든 VoiceChat 세션 조회 (필요시)
-     */
-    List<VoiceChat> findAllByRoomUserRoomUserIdAndEndedAtBetween(
-            Long roomUserId,
-            LocalDate start,
-            LocalDate end
+    Optional<VoiceChat> findByChattingRoom_ChattingRoomIdAndRoomUser_RoomUserId(
+            Long roomId, Long roomUserId
     );
+    Optional<VoiceChat> findByChattingRoom_ManitoAssignment_ManitoAssignmentIdAndRoomUser_RoomUserId(
+            Long manitoAssignmentId,
+            Long roomUserId
+    );
+
 }
 

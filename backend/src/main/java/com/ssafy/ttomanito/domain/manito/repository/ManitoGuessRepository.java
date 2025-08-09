@@ -16,4 +16,7 @@ public interface ManitoGuessRepository extends JpaRepository<ManitoGuess, Long> 
 
     // 정답 여부 확인용 (optional)
     List<ManitoGuess> findByGuessUserIdAndGuessedUserId(Long guessUserId, Long guessedUserId);
+
+    long countByGuessUserIdAndGuessedUserId(Long guessUserId, Long guessedUserId);
+
 }
