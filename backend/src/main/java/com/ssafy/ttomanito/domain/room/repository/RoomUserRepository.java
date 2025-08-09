@@ -118,4 +118,14 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
 
     /** 방의 특정 상태들인 RoomUser 전체 조회 */
     List<RoomUser> findByRoom_StatusIn(List<RoomStatus> statuses);
+
+    //해당 유저의 모든 roomuser id 구하기(끝난거 모두)
+    @Query("""
+        select ru from RoomUser ru
+        join fetch ru.room r
+        where ru.user.userId = :userId
+          and r.status = 'FINISHED'
+    """)
+    List<RoomUser> findAllFinishedByUserId(@Param("userId") Long userId);
+
 }

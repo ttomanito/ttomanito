@@ -74,4 +74,5 @@ public class VoiceChat {
         this.startedAt = now;
         this.isActive = true;
     }
+
 }
