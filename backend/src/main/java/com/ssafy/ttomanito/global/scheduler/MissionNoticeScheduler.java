@@ -3,7 +3,6 @@ package com.ssafy.ttomanito.global.scheduler;
 import com.ssafy.ttomanito.domain.notice.entity.Notice;
 import com.ssafy.ttomanito.domain.notice.entity.NoticeType;
 import com.ssafy.ttomanito.domain.notice.repository.NoticeRepository;
-import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import lombok.RequiredArgsConstructor;

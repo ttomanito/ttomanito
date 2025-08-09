@@ -1,4 +1,5 @@
 /**
+ * src/api/requests.ts
  * GET 요청을 보내는 함수
  * @param url 요청할 API 경로 (예: /todos/1)
  * @param config Axios 설정 객체 (선택)

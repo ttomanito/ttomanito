@@ -4,4 +4,5 @@ public record RankingDto(
         Long userId,
         Long metricValue,
         Integer rankPosition
-) {}
+) {
+}

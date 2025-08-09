@@ -1,24 +1,13 @@
 package com.ssafy.ttomanito.config;
 
-import lombok.extern.slf4j.Slf4j;
 import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.messaging.simp.stomp.StompCommand;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.MessageHeaderAccessor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-
-import java.util.Objects;
 
 /**
  * WebSocket/STOMP 설정
@@ -37,7 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry config) {
 
         // 브로커 활성화: 채팅, 게임, 개인 큐
-        config.enableSimpleBroker("/topic/chat", "/topic/game", "/queue");
+        config.enableSimpleBroker("/topic/chat", "/topic/waiting", "/queue");
         // 클라이언트 -> 서버 메시지 prefix
         config.setApplicationDestinationPrefixes("/app");
         // 서버 -> 특정 사용자 메시지 prefix

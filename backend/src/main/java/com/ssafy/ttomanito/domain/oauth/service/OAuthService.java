@@ -1,19 +1,17 @@
 package com.ssafy.ttomanito.domain.oauth.service;
 
-import java.util.Optional;
-
 import com.ssafy.ttomanito.domain.oauth.dto.OAuthUserDto;
-import com.ssafy.ttomanito.domain.user.entity.User;
-import com.ssafy.ttomanito.domain.user.repository.UserRepository;
-import com.ssafy.ttomanito.global.exception.NotFoundException;
-import org.springframework.stereotype.Service;
-
 import com.ssafy.ttomanito.domain.oauth.entity.OAuthIdentity;
 import com.ssafy.ttomanito.domain.oauth.entity.OAuthIdentity.OAuthProvider;
 import com.ssafy.ttomanito.domain.oauth.repository.OAuthRepository;
-
+import com.ssafy.ttomanito.domain.user.entity.User;
+import com.ssafy.ttomanito.domain.user.repository.UserRepository;
+import com.ssafy.ttomanito.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @Transactional

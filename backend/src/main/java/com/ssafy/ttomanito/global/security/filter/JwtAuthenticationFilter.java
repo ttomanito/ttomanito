@@ -1,13 +1,13 @@
 package com.ssafy.ttomanito.global.security.filter;
 
-import java.io.IOException;
-import java.util.stream.Stream;
+import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
+import com.ssafy.ttomanito.global.security.token.TokenRevocationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.DisabledException;
@@ -21,10 +21,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
 
-import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
-import com.ssafy.ttomanito.global.security.token.TokenRevocationService;
-
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -41,16 +39,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return true;
         }
         // Swagger / OpenAPI 문서도 토큰 검사 스킵
-        if (path.startsWith("/v3/api-docs")
+        return path.startsWith("/v3/api-docs")
                 || path.startsWith("/api/v3/api-docs")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/api/swagger-ui")
                 || path.equals("/swagger-ui.html")
                 || path.equals("/api/swagger-ui.html")
-                || path.startsWith("/webjars/")) {
-            return true;
-        }
-        return false;
+                || path.startsWith("/webjars/");
     }
 
     @Override

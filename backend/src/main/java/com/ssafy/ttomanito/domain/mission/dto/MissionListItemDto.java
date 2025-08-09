@@ -28,6 +28,6 @@ public record MissionListItemDto(
             LocalDate missionDate,
             boolean completed
     ) {
-        return new MissionListItemDto(missionId,missionStatusId, title, description, difficulty, channels, type, missionDate, completed);
+        return new MissionListItemDto(missionId, missionStatusId, title, description, difficulty, channels, type, missionDate, completed);
     }
 }

@@ -4,11 +4,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-    @Configuration
-    public class WebMvcConfig implements WebMvcConfigurer {
-        /* CORS 설정 추가*/
-        @Override
-        public void addCorsMappings(CorsRegistry registry) {
+@Configuration
+public class WebMvcConfig implements WebMvcConfigurer {
+    /* CORS 설정 추가*/
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
 
             // React CORS 설정
             registry.addMapping("/**")  // 모든 경로에 대해 CORS 적용
@@ -18,5 +18,5 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
                     .exposedHeaders("Authorization")
                     .allowCredentials(true);    // 자격 증명 허용 여부 설정
 
-        }
     }
+}

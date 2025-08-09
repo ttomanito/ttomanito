@@ -1,9 +1,6 @@
 package com.ssafy.ttomanito.domain.chatting.voice.repository;
 
-import com.ssafy.ttomanito.domain.chatting.room.entity.ChattingRoom;
 import com.ssafy.ttomanito.domain.chatting.voice.entity.VoiceChat;
-import com.ssafy.ttomanito.domain.chatting.voice.entity.VoiceChatId;
-import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 import java.time.LocalDate;
 import java.util.List;
-
+import java.util.Optional;
 
 public interface VoiceChatRepository
         extends JpaRepository<VoiceChat, Long> {
@@ -35,12 +32,12 @@ public interface VoiceChatRepository
      * 주어진 RoomUser별, 특정 날짜에 종료된 통화의 총 지속시간(초)을 집계하여 반환
      */
     @Query("""
-      SELECT COALESCE(SUM(vc.durationSec), 0)
-      FROM VoiceChat vc
-      WHERE vc.roomUser.roomUserId = :roomUserId
-        AND FUNCTION('DATE', vc.endedAt) = :date
-        AND vc.isActive = false
-    """)
+              SELECT COALESCE(SUM(vc.durationSec), 0)
+              FROM VoiceChat vc
+              WHERE vc.roomUser.roomUserId = :roomUserId
+                AND FUNCTION('DATE', vc.endedAt) = :date
+                AND vc.isActive = false
+            """)
     Long sumDurationSecByRoomUserAndDate(
             @Param("roomUserId") Long roomUserId,
             @Param("date") LocalDate date

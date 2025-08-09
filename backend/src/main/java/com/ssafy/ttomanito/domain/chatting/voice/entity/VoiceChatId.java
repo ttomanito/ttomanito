@@ -1,8 +1,9 @@
 package com.ssafy.ttomanito.domain.chatting.voice.entity;
 
-import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 @NoArgsConstructor
 @EqualsAndHashCode

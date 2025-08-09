@@ -1,7 +1,6 @@
 package com.ssafy.ttomanito.domain.rank.controller;
 
 import com.ssafy.ttomanito.domain.rank.dto.RankingDto;
-import com.ssafy.ttomanito.domain.rank.entity.RankingGenre;
 import com.ssafy.ttomanito.domain.rank.service.RankingService;
 import com.ssafy.ttomanito.global.security.userdetails.JwtUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
 @Tag(
         name = "중간랭킹",
         description = "사용자 또는 방의 장르별 랭킹 조회 API, 매일 자정 자동 업데이트"
@@ -26,6 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RankingController {
     private final RankingService rankingService;
+
     @Operation(
             summary = "장르별 방 랭킹 조회",
             description = "장르 코드를 기반으로 해당 방의 랭킹 리스트를 반환합니다.\n" +

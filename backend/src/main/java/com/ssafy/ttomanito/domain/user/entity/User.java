@@ -1,7 +1,8 @@
 package com.ssafy.ttomanito.domain.user.entity;
 
-import lombok.*;
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity

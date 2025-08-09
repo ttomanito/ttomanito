@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 @Service
 @RequiredArgsConstructor
 public class RankingService {
@@ -63,7 +64,7 @@ public class RankingService {
                     }
                     return Map.entry(uid, metric);
                 })
-                .sorted(Map.Entry.<Long, Long>comparingByValue(Comparator.reverseOrder()))
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .toList();
 
         // 4) DTO 로 변환
