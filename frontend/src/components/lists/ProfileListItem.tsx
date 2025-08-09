@@ -1,4 +1,3 @@
-
 import { Box, Flex, Text } from '@chakra-ui/react';
 
 interface ProfileListItemProps {
@@ -7,10 +6,7 @@ interface ProfileListItemProps {
   profileImageUrl?: string; // 사용하지 않지만 props 구조 유지
 }
 
-const ProfileListItem: React.FC<ProfileListItemProps> = ({
-  name,
-  statusMessage,
-}) => {
+const ProfileListItem: React.FC<ProfileListItemProps> = ({ name, statusMessage }) => {
   // 이니셜 추출 (예: 안수진 → 안)
   const initial = name[0];
 
@@ -33,13 +29,10 @@ const ProfileListItem: React.FC<ProfileListItemProps> = ({
         {initial}
       </Box>
 
-      <Box>
-        <Text textStyle="body_sm">
-          {name}
-        </Text>
-        <Text textStyle="caption_xs_md">
-          {statusMessage}
-        </Text>
+      <Box textAlign="left">
+        <Text textStyle="body_sm">{name}</Text>
+        <Text textStyle="caption_xs_light">{statusMessage}</Text>
+        
       </Box>
     </Flex>
   );
