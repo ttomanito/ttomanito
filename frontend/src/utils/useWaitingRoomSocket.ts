@@ -6,6 +6,7 @@ import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs'
 export interface Participant {
   userId: number | string
   statusMessage?: string
+  name?: string; //
 }
 export type MessageType = 'ENTER' | 'EXIT' | 'CLOSE' | 'START' | 'KICK'
 export interface MessagePayload {

@@ -1,3 +1,4 @@
+//src/components/inputs/TextInput.tsx
 import { Input, type InputProps } from '@chakra-ui/react';
 
 interface TextInputProps extends InputProps {
