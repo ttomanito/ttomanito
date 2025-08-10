@@ -97,7 +97,7 @@ const tabs = [
   { id: 3, label: '미션 수행 횟수', unit: '회', genreCode: 3 },
 ];
 
-const RankingPageWithTabs: React.FC = () => {
+const RankingPage: React.FC = () => {
   
   const isInGame = true;
   const roomId = '2';
@@ -249,4 +249,4 @@ const RankingPageWithTabs: React.FC = () => {
   );
 };
 
-export default RankingPageWithTabs;
+export default RankingPage;
