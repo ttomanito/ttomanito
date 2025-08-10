@@ -1,78 +1,106 @@
-// src/stores/authStore.ts
+/**
+ * src/stores/auth.ts
+ * ✅ 인증 및 게임 상태를 관리하는 Zustand 스토어 (Axios 기반)
+ */
+
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import Cookies from 'js-cookie'
+import { postRequest } from '@/api/requests'
 
 type Tokens = { accessToken: string | null; refreshToken: string | null }
-type User   = { id: string; name: string; role?: string } | null
+type User = { id: string; name: string; role?: string } | null
+
+type GameInfo = {
+  isInGame: boolean
+  roomId: number | null
+  isCreator: boolean
+}
 
 type AuthState = {
   user: User
   tokens: Tokens
+  gameInfo: GameInfo
   hydrated: boolean
-
-  // 로그인 여부를 boolean 상태로 관리
   isAuthenticated: boolean
 
   setTokens: (t: Tokens) => void
-  setUser:   (u: User)   => void
-  logout:    ()           => void
-  markHydrated: ()        => void
+  setUser: (u: User) => void
+  joinGame: (roomId: number, isCreator: boolean) => Promise<void>
+  leaveGame: () => void
+  finishGame: () => void
+  logout: () => void
+  markHydrated: () => void
+}
+
+const initialGameInfo: GameInfo = {
+  isInGame: false,
+  roomId: null,
+  isCreator: false,
 }
 
 export const useAuth = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       tokens: { accessToken: null, refreshToken: null },
+      gameInfo: initialGameInfo,
       hydrated: false,
-      isAuthenticated: false,
 
-      setTokens: (tokens) => {
-        // 쿠키에도 같이 저장
-        if (tokens.accessToken) {
-          Cookies.set('accessToken', tokens.accessToken)
-        }
-        if (tokens.refreshToken) {
-          Cookies.set('refreshToken', tokens.refreshToken)
-        }
-        set({
-          tokens,
-          isAuthenticated: !!tokens.accessToken,
-        })
+      get isAuthenticated() {
+        const state = get?.()
+        return !!state?.tokens?.accessToken
       },
 
-      setUser: (user) =>
-        set({ user }),
+      setTokens: (tokens) => set({ tokens }),
+      setUser: (user) => set({ user }),
+
+      // 게임 시작 API 호출 + 상태 업데이트
+      joinGame: async (roomId, isCreator) => {
+        try {
+          await postRequest(`/room/${roomId}/start`)
+
+          set({
+            gameInfo: {
+              isInGame: true,
+              roomId,
+              isCreator,
+            },
+          })
+        } catch (error) {
+          console.error('[authStore] 게임 시작 중 오류:', error)
+        }
+      },
+
+      leaveGame: () => set({ gameInfo: initialGameInfo }),
+      finishGame: () => set({ gameInfo: initialGameInfo }),
 
       logout: () => {
-        // 메모리 상태 초기화
         set({
           user: null,
           tokens: { accessToken: null, refreshToken: null },
-          isAuthenticated: false,
+          gameInfo: initialGameInfo,
         })
-        // persist된 로컬스토리지 키 삭제
         localStorage.removeItem('auth')
-        // 쿠키 삭제
         Cookies.remove('accessToken')
         Cookies.remove('refreshToken')
       },
 
-      markHydrated: () =>
-        set({ hydrated: true }),
+      markHydrated: () => set({ hydrated: true }),
     }),
     {
       name: 'auth',
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
-        tokens:          s.tokens,
-        user:            s.user,
-        isAuthenticated: s.isAuthenticated,
+        tokens: s.tokens,
+        user: s.user,
+        gameInfo: s.gameInfo,
       }),
-      onRehydrateStorage: () => (state, error) => {
-        state?.markHydrated()
-        if (error) console.error('rehydration error', error)
+      onRehydrateStorage: () => {
+        return (state, error) => {
+          state?.markHydrated()
+          if (error) console.error('rehydration error', error)
+        }
       },
     },
   ),

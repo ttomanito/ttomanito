@@ -20,7 +20,8 @@ import { ko } from 'date-fns/locale';
 import { format } from 'date-fns';
 import DateInput from '@/components/inputs/DateInput';
 import { useNavigate } from 'react-router-dom';
-import { api } from '@/api/client';  // api 인스턴스 import
+import { api } from '@/api/client';
+import { useAuth } from '@/stores/authStore'; 
 
 const korToEngDay = {
   '월': 'MON',
@@ -63,7 +64,6 @@ const RoomCreatePage = () => {
     const deadline = dayjs(endDate).format('YYYY-MM-DD');
 
     try {
-      // 여기서 api 인스턴스 사용 (토큰 자동 헤더 포함)
       const res = await api.post('/room', {
         name: groupName,
         deadline,
@@ -71,7 +71,14 @@ const RoomCreatePage = () => {
       });
 
       const { roomId } = res.data;
-      navigate(`/room/${roomId}`);
+      
+      // ✨ 2. 방 생성 성공 후, auth 스토어 상태를 업데이트합니다.
+      // 이 시점에 사용자는 게임에 참여한 것이며, 방의 생성자입니다.
+      useAuth.getState().joinGame(roomId, true); // isCreator: true
+      console.log(roomId)
+
+      // ✨ 3. 상태 업데이트 후 게임 페이지로 이동합니다.
+      navigate(`/home`);
     } catch (err) {
       console.error(err);
       alert('방 생성 중 오류가 발생했습니다.');
@@ -119,7 +126,7 @@ const RoomCreatePage = () => {
             <DatePicker
               selected={endDate}
               onChange={(date: Date | null) => setEndDate(date)}
-               renderCustomHeader={({
+                renderCustomHeader={({
     date,
     decreaseMonth,
     increaseMonth,
