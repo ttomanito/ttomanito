@@ -1,10 +1,10 @@
 // src/routes.tsx
 import type { LazyExoticComponent, ComponentType } from 'react';
-import React, { Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
-import AppLayout    from '@/components/layout/AppLayout'
-import RequireAuth  from '@/routes/RequireAuth'
-import Loading       from '@/routes/Loading'
+import React, { Suspense } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import AppLayout from '@/components/layout/AppLayout';
+import RequireAuth from '@/routes/RequireAuth';
+import Loading from '@/routes/Loading';
 
 // === lazy 로딩 타입 보조 함수 ===
 function lazyImport<P = unknown>(
@@ -38,15 +38,15 @@ export default function AppRoutes() {
       <Routes>
         <Route element={<AppLayout />}>
           {/* 🔓 ─────────── 비로그인 허용 ─────────── */}
-          <Route path="/login"                 element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/report/reportdetail/:reportId" element={<ReportDetailPage />} />
-          <Route path="/room/:roomId"      element={<WaitingRoomPage />}/>
+          <Route path="/room/:roomId" element={<WaitingRoomPage />} />
 
           {/* 🔒 ─────────── 나머지 전부 보호 ─────────── */}
           <Route element={<RequireAuth />}>
-            <Route path="/"                      element={<MainPage />} />
-            <Route path="/main"                  element={<MainPage />} />
-            <Route path="/room"                    element={<RoomCreatePage />} />
+            <Route path="/" element={<MainPage />} />
+            <Route path="/main" element={<MainPage />} />
+            <Route path="/room" element={<RoomCreatePage />} />
             <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
             <Route path="/chat/:chatRoomId/call"   element={<CallPage />} />
             <Route path="/home"                    element={<HomePage />} />
@@ -61,5 +61,5 @@ export default function AppRoutes() {
         </Route>
       </Routes>
     </Suspense>
-  )
+  );
 }
