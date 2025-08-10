@@ -7,6 +7,8 @@ interface Profile {
   statusMessage: string;
   profileImageUrl?: string;
   rightSideChild?: ReactNode;
+  borderWidth?: string; // 추가
+  borderColor?: string; // 추가
 }
 
 interface ProfileListProps {

@@ -322,11 +322,15 @@ const WaitingRoomPage = () => {
                 />
             );
         }
+        const isMe = String(p.userId) === String(myUserId);
 
         return {
             name: `User ID: ${p.userId}`,
             statusMessage: p.statusMessage || '상태메세지를 설정해주세요!',
             rightSideChild: rightContent,
+            // 내 프로필이면 볼드 테두리 스타일 추가
+            borderWidth: isMe ? "2px" : "1px",
+            borderColor: isMe ? "accent.500" : "gray.200",
         };
     });
 
