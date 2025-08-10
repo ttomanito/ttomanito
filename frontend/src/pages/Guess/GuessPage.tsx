@@ -166,8 +166,8 @@ const GuessPage = () => {
   }
 
   return (
-    <Box p={4}>
-      <Text textStyle="title_mlg" mb={2}>추측하기</Text>
+    <Box p={4} m={4}>
+      <Text textStyle="title_mlg" mb={2}>✪ 추측하기</Text>
       <Text textStyle="caption_sm" color="gray.600" mb={4}>내 마니또는 누구일까? 두근두근 맞춰보기</Text>
 
       <VStack gap={4} align="stretch">
