@@ -56,7 +56,7 @@ interface PastMission {
   type: string;
 }
 
-// 데이터를 직접 불러오는 컨테이너 컴포넌트
+// 이전 미션 목록
 const PastMissionsList = () => {
   const [missions, setMissions] = useState<PastMission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,30 +96,20 @@ const PastMissionsList = () => {
   );
 };
 
-
-// 메인 페이지 컴포넌트
+// 메인 컴포넌트
 const GameHomePage = () => {
-  // ⚠️ 테스트를 위한 하드코딩
-  const isInGame = true;
+  const isInGame = true; // 테스트용
   const roomId = '2';
-  
-  // 테스트 아닐 경우 
-  // const { hydrated, gameInfo } = useAuth();
-  // const { isInGame, roomId } = gameInfo;
-  
+
   const hydrated = useAuth((s) => s.hydrated);
   const { openModal, closeModal } = useModalStore();
-  const [room, setRoom] = useState<{
-    startDate: string;
-    endDate: string;
-    missionDays: string[];
-  } | null>(null);
+
+  const [room, setRoom] = useState<{ startDate: string; endDate: string; missionDays: string[] } | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isPageLoading, setIsPageLoading] = useState(!hydrated);
-  
+
   const [todayMission, setTodayMission] = useState<Mission | null>(null);
   const [isMissionRevealed, setIsMissionRevealed] = useState(false);
-  const [isMissionCompletedToday, setIsMissionCompletedToday] = useState(false);
 
   const [manitoProfile, setManitoProfile] = useState<Participant | null>(null);
   const [isFetchingManito, setIsFetchingManito] = useState(false);
@@ -174,21 +164,17 @@ const GameHomePage = () => {
     );
   }, [room, todayDay, today]);
 
+  // ✅ 서버 데이터 기준 완료 여부
+  const isMissionCompletedToday = useMemo(() => !!todayMission?.completed, [todayMission]);
+
   useEffect(() => {
     const revealed = localStorage.getItem(`mission_revealed_${todayKey}`);
-    const completed = localStorage.getItem(`mission_completed_${todayKey}`);
-    if (revealed === 'true' && !todayMission && isMissionAvailable) {
-      fetchTodayMission()
-        .then(mission => {
-            setTodayMission(mission);
-            if (mission.completed || completed === 'true') {
-                setIsMissionCompletedToday(true);
-            }
-        })
-        .catch(console.error);
-    }
     setIsMissionRevealed(revealed === 'true');
-    setIsMissionCompletedToday(completed === 'true');
+
+    // 미션이 미리 공개된 상태라면 fetch
+    if (revealed === 'true' && !todayMission && isMissionAvailable) {
+      fetchTodayMission().then(setTodayMission).catch(console.error);
+    }
   }, [todayKey, isMissionAvailable, todayMission]);
 
   const handleRevealMission = async () => {
@@ -208,32 +194,26 @@ const GameHomePage = () => {
     try {
       await patchRequest(`/manito/mission/${todayMission.missionStatusId}/success`, {});
       alert('미션을 완료하였습니다!');
-      localStorage.setItem(`mission_completed_${todayKey}`, 'true');
-      setIsMissionCompletedToday(true);
+      setTodayMission({ ...todayMission, completed: true }); // 서버 응답 직접 반영
       closeModal();
     } catch (err) {
       console.error('미션 완료 처리 실패:', err);
     }
   };
-  
-  // ✅ [수정됨] 마니띠 정보 확인 핸들러 로직 수정
+
   const handleShowManito = async () => {
     openModal(manitoModalData);
     setIsFetchingManito(true);
-    setManitoProfile(null); // 프로필 상태 초기화
+    setManitoProfile(null);
     try {
-      // 1. API가 숫자(number)를 반환한다고 가정하고 바로 변수에 할당
       const manitoId = await getRequest<number>(`/manito/manitee`);
       const foundManito = participants.find(p => p.userId === manitoId);
-
       if (foundManito) {
         setManitoProfile(foundManito);
       } else {
-        // 2. 마니띠를 못 찾아도 에러를 발생시키지 않고, 콘솔에만 기록
         console.error(`참여자 목록에 마니띠 ID(${manitoId})가 존재하지 않습니다.`);
       }
     } catch (err) {
-      // 3. 네트워크 등 실제 에러가 발생했을 때만 콘솔에 기록
       console.error('마니띠 정보를 불러오는 중 에러 발생:', err);
     } finally {
       setIsFetchingManito(false);
@@ -257,7 +237,7 @@ const GameHomePage = () => {
       default: return easy;
     }
   };
-  
+
   const getTypeImage = (type: Mission['type']) => {
     switch (type) {
       case 'GIFT': return ttoma_gift;
@@ -269,7 +249,6 @@ const GameHomePage = () => {
     }
   };
 
-  // ✅ [수정됨] 마니띠를 찾지 못했을 때의 메시지 추가
   const ManitoProfileModalBody = () => {
     if (isFetchingManito) {
       return <Flex justify="center" align="center" h="150px"><Spinner size="lg" /></Flex>;
@@ -277,21 +256,21 @@ const GameHomePage = () => {
     if (manitoProfile) {
       return <ProfileCard title="내 마니띠" name={manitoProfile.name} subtitle={manitoProfile.statusMessage} src={manitoProfile.profileImageUrl || ttoma_profile} />;
     }
-    // 로딩이 끝났는데 manitoProfile이 여전히 null이면 이 메시지를 표시
     return <Flex justify="center" align="center" h="100px"><Text textStyle="body_md">마니띠 정보를 찾을 수 없습니다.</Text></Flex>;
   };
-  
+
   const missionCompleteModalData = {
     title: '오늘의 미션을 완료하셨나요?',
-    caption: '미션 수행 결과는 수정이 불가능합니다.\n 신중히 선택해주세요.',
+    caption: '미션 수행 결과는 수정이 불가능합니다.\n신중히 선택해주세요.',
     body: (''),
-    footer: ( <DoubleButton leftLabel="취소" rightLabel="확인" onLeftClick={closeModal} onRightClick={handleCompleteMission} /> ),
+    footer: (<DoubleButton leftLabel="취소" rightLabel="확인" onLeftClick={closeModal} onRightClick={handleCompleteMission} />),
   };
-  const manitoModalData = { title: '내 마니띠 확인', body: <ManitoProfileModalBody />, };
-  const tutorialModalData = { title: '', body: <TutorialBody />, footer: <LongButton onClick={closeModal}>닫기</LongButton>, };
+
+  const manitoModalData = { title: '내 마니띠 확인', body: <ManitoProfileModalBody /> };
+  const tutorialModalData = { title: '', body: <TutorialBody />, footer: <LongButton onClick={closeModal}>닫기</LongButton> };
 
   if (isPageLoading) {
-    return ( <Flex justify="center" align="center" h="100vh"><Spinner size="xl" /></Flex> );
+    return (<Flex justify="center" align="center" h="100vh"><Spinner size="xl" /></Flex>);
   }
 
   if (!isInGame || !room) {
