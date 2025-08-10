@@ -50,35 +50,36 @@ const RoomCreatePage = () => {
 
   const dayOptions = ['월', '화', '수', '목', '금', '토', '일'];
 
-  const handleCreateRoom = async () => {
-    if (!groupName || !endDate || selectedDays.length === 0) {
-      alert('모든 항목을 입력해주세요.');
-      return;
-    }
-    setLoading(true);
+const handleCreateRoom = async () => {
+  if (!groupName || !endDate || selectedDays.length === 0) {
+    alert('모든 항목을 입력해주세요.');
+    return;
+  }
+  setLoading(true);
 
-    const missionDays = selectedDays.map(
-      (kor) => korToEngDay[kor as keyof typeof korToEngDay]
-    );
-    const deadline = dayjs(endDate).format('YYYY-MM-DD');
+  const missionDays = selectedDays.map(
+    (kor) => korToEngDay[kor as keyof typeof korToEngDay]
+  );
+  const startDate = dayjs().format('YYYY-MM-DD'); // 오늘 날짜
+  const deadline = dayjs(endDate).format('YYYY-MM-DD');
 
-    try {
-      // 👇 2. api.post 대신 postRequest를 사용합니다.
-      const res = await postRequest('/room', {
-        name: groupName,
-        deadline: deadline,
-        missionDays,
-      });
+  try {
+    const res = await postRequest('/room', {
+      name: groupName,
+      startDate: startDate,  // 시작일 추가
+      deadline: deadline,
+      missionDays,
+    });
 
-      const { roomId } = res;
-      navigate(`/room/${roomId}`);
-    } catch (err) {
-      console.error(err);
-      alert('방 생성 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const { roomId } = res;
+    navigate(`/room/${roomId}`);
+  } catch (err) {
+    console.error(err);
+    alert('방 생성 중 오류가 발생했습니다.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const longButtonProps: LongButtonProps = {
     loading,

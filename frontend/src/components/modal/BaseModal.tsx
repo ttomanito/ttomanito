@@ -76,7 +76,7 @@ const BaseModal = ({
                 </DialogHeader>
               )}
               
-              {body && <DialogBody>{body}</DialogBody>}
+              {body && <DialogBody whiteSpace="pre-line" textAlign="center">{body}</DialogBody>}
 
               <DialogFooter>
                 {footer ?? <LongButton onClick={onClose}>닫기</LongButton>}

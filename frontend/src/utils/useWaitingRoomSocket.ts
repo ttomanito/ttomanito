@@ -21,7 +21,6 @@ export const useWaitingRoomSocket = () => {
   const [connected, setConnected] = useState(false)
   const [participants, setParticipants] = useState<Participant[]>([])
   const [lastMessage, setLastMessage] = useState<any>(null)
-
   const normalizeId = (v: number | string) => String(v)
 
   const onMessageReceived = useCallback((message: IMessage) => {
@@ -43,6 +42,8 @@ export const useWaitingRoomSocket = () => {
           })
           break
         case 'EXIT':
+          setParticipants(prev => prev.filter(p => normalizeId(p.userId) !== normalizeId(body.userId)))
+          break
         case 'KICK':
           setParticipants(prev => prev.filter(p => normalizeId(p.userId) !== normalizeId(body.userId)))
           break

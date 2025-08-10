@@ -21,7 +21,7 @@ const RoomInfoCard: React.FC<RoomInfoCardProps> = ({ roomInfo }) => {
   return (
     <VStack align="stretch" w="full" gap={3}>
       {/* 그룹 이름 - 카드 외부에 위치 */}
-      <Text textStyle="title_mlg">{roomInfo.name}</Text>
+      <Text textStyle="title_mlg">대기방:{roomInfo.name}</Text>
       
       <VStack align="stretch" w="full">
         {/* 시작일 / 종료일 - 원본처럼 분리된 박스 */}
