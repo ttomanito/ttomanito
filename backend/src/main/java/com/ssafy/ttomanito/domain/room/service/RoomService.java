@@ -167,6 +167,10 @@ public class RoomService {
         }
         Collections.shuffle(participants);
 
+
+        // ✅ 방 상태를 IN_PROGRESS로 변경
+        room.start(); // Room 엔티티에 updateStatus 메서드 필요
+
         // 게임 시작 브로드캐스트
         messagingTemplate.convertAndSend(
                 "/topic/waiting/" + roomId,
