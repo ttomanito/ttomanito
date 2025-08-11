@@ -3,6 +3,9 @@ package com.ssafy.ttomanito.domain.chatting.controller;
 import com.ssafy.ttomanito.domain.chatting.message.dto.ChatMessageDto;
 import com.ssafy.ttomanito.domain.chatting.message.dto.HistoryRequest;
 import com.ssafy.ttomanito.domain.chatting.service.ChattingService;
+import com.ssafy.ttomanito.domain.push.dto.FcmChatPayload;
+import com.ssafy.ttomanito.domain.push.service.FcmService;
+import com.ssafy.ttomanito.domain.push.service.PushTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -22,6 +25,8 @@ import java.util.Objects;
 public class ChatWebSocketController {
     private final ChattingService service;
     private final SimpMessagingTemplate template;
+    private final PushTokenService pushTokenService;
+    private final FcmService fcmService;
 
     /**
      * 1) 클라이언트에서 과거 메시지 요청 시
@@ -68,8 +73,7 @@ public class ChatWebSocketController {
                 new ChatMessageDto(chatRoomId, payload.senderRoomUserId(), payload.content(), null)
         );
         log.debug("[웹소켓] 채팅 전송 완료 - 방ID={}, 전송시각={}", chatRoomId, saved.sentAt());
-
-        template.convertAndSend("/topic/chat." + chatRoomId, saved);
+        chatPush(chatRoomId, payload, saved);
     }
 
     /**
@@ -82,6 +86,16 @@ public class ChatWebSocketController {
                      @Payload ChatMessageDto payload) {
         log.info("[웹소켓] 콕 찌르기 - 방ID={}, 발신자={}", chatRoomId, payload.senderRoomUserId());
         ChatMessageDto saved = service.pokeMessage(chatRoomId, payload.senderRoomUserId());
+        chatPush(chatRoomId, payload, saved);
+    }
+
+    private void chatPush(@DestinationVariable Long chatRoomId, @Payload ChatMessageDto payload, ChatMessageDto saved) {
         template.convertAndSend("/topic/chat." + chatRoomId, saved);
+
+        List<Long> receiverUserIds = service.findReceivers(chatRoomId, payload.senderRoomUserId());
+        List<String> tokens = pushTokenService.findTokensByUserIds(receiverUserIds);
+        fcmService.sendMulticastMessage(tokens, new FcmChatPayload(
+                "새 메시지", saved.content(), "https://i13b206.p.ssafy.io/chat/" + chatRoomId
+        ));
     }
 }

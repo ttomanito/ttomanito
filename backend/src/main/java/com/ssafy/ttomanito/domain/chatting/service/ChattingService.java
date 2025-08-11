@@ -206,4 +206,14 @@ public class ChattingService {
                 .lastReadTime(LocalDateTime.now())
                 .build());
     }
+
+    @Transactional(readOnly = true)
+    public List<Long> findReceivers(Long chatRoomId, Long senderRoomUserId) {
+        return chatUserRepo.findAllByChattingRoomChattingRoomId(chatRoomId).stream()
+                .map(ChattingUser::getRoomUser)                         // RoomUser
+                .filter(ru -> !ru.getRoomUserId().equals(senderRoomUserId))
+                .map(ru -> ru.getUser().getUserId())
+                .distinct()
+                .toList();
+    }
 }
