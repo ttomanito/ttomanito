@@ -105,7 +105,7 @@ const LoginPage: React.FC = () => {
         {/* 카카오 로그인 버튼 */}
         <LongButton
           w="full"
-          onClick={() => (window.location.href = '/api/oauth2/authorization/kakao')}
+          onClick={() => window.location.href = 'https://i13b206.p.ssafy.io/api/oauth2/authorization/kakao'}
           bg="#FEE500"
           color="black"
           _hover={{ bg: '#FFEB33' }}

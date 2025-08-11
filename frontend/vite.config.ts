@@ -123,8 +123,19 @@ export default defineConfig({
       '/api': {
         target: 'https://i13b206.p.ssafy.io',
         changeOrigin: true,
-        secure: false,
+        secure: true,
         rewrite: p => p.replace(/^\/api/, ''),
+      },
+      // ✅ 로그인 시작/콜백도 프록시로 전달
+      '/oauth2': {
+        target: 'https://i13b206.p.ssafy.io',
+        changeOrigin: true,
+        secure: true,
+      },
+      '/login/oauth2': {
+        target: 'https://i13b206.p.ssafy.io',
+        changeOrigin: true,
+        secure: true,
       },
     },
   },
