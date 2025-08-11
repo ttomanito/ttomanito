@@ -30,9 +30,8 @@ public class ReportController {
 
     @Operation(
             summary = "내 결과 보고서 히스토리 조회",
-            description = "JWT 토큰의 사용자 ID 기준으로, 내가 완료한 결과 보고서 목록을 반환합니다.",
-            operationId = "getMyReportHistory",
-            security = {@SecurityRequirement(name = "bearerAuth")}
+            description = "JWT 토큰의 사용자 ID 기준으로, 내가 완료한 결과 보고서 목록을 반환합니다."
+
     )
     @ApiResponses({
             @ApiResponse(
