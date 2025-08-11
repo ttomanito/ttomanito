@@ -27,4 +27,5 @@ public interface MissionDayRepository extends JpaRepository<MissionDay, Long> {
      * room.id 값으로 일괄 삭제
      */
     void deleteByRoom_roomId(Long roomId);
+    boolean existsByRoom_roomIdAndDay(Long roomId, Weekday day);
 }
