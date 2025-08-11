@@ -1,6 +1,7 @@
 package com.ssafy.ttomanito.domain.room.repository;
 
 import com.ssafy.ttomanito.domain.room.dto.response.ParticipantResponse;
+import com.ssafy.ttomanito.domain.room.entity.Room;
 import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -141,4 +142,12 @@ public interface RoomUserRepository extends JpaRepository<RoomUser, Long> {
     """)
     List<RoomUser> findAllFinishedByUserId(@Param("userId") Long userId);
 
+    @Query("""
+    SELECT r
+    FROM RoomUser ru
+    JOIN ru.room r
+    WHERE ru.user.userId = :userId
+      AND r.status IN :statuses
+""")
+    Room findActiveRoomByUserId(Long userId, List<RoomStatus> statuses);
 }
