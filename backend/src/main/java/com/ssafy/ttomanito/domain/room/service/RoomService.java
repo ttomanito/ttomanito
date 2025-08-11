@@ -218,4 +218,17 @@ public class RoomService {
         List<RoomStatus> active = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
         return roomRepository.checkCreator(userId, active);
     }
+
+    @Transactional(readOnly = true)
+    public Long findMyActiveRoomId(Long userId) {
+        List<RoomStatus> active = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
+        Room room = roomUserRepository.findActiveRoomByUserId(userId, active);
+
+        if (room == null) {
+            throw new NotFoundException("활성 방이 없습니다."); // 네가 만든 404 처리
+        }
+
+        return room.getRoomId();
+    }
+
 }

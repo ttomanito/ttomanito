@@ -154,30 +154,6 @@ public class RoomController {
         return ResponseEntity.noContent().build();
     }
 
-//    @Operation(
-//            summary = "참여 준비",
-//            description = "초대링크 진입 후 입장 준비를 수행합니다.",
-//            security = @SecurityRequirement(name = "bearer-key")
-//    )
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "204", description = "준비 성공"),
-//            @ApiResponse(responseCode = "400", description = "잘못된 상태"),
-//            @ApiResponse(responseCode = "401", description = "인증 실패"),
-//            @ApiResponse(responseCode = "404", description = "방 없음"),
-//            @ApiResponse(responseCode = "500", description = "서버 오류")
-//    })
-//    @PostMapping("/{roomId}/enter")
-//    public ResponseEntity<Void> prepareEnter(
-//            @PathVariable Long roomId,
-//            @AuthenticationPrincipal JwtUserDetails user
-//    ) {
-//        Room room = roomService.find(roomId);
-//        if (!room.getStatus().equals(RoomStatus.NOT_STARTED)) {
-//            throw new IllegalStateException("현재 입장할 수 없는 상태입니다.");
-//        }
-//        roomUserService.prepareEnter(roomId, user.getUserId());
-//        return ResponseEntity.noContent().build();
-//    }
 
     @Operation(
             summary = "방 나가기",
@@ -257,5 +233,22 @@ public class RoomController {
     ) {
         boolean isCreator = roomService.checkCreator(user.getUserId());
         return ResponseEntity.ok(isCreator);
+    }
+
+    @Operation(
+            summary = "내 활성 방 ID 조회",
+            description = "참여 중인 활성 방(NOT_STARTED / IN_PROGRESS)의 roomId 반환. 없으면 404",
+            security = @SecurityRequirement(name = "bearer-key")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "roomId", content = @Content(schema = @Schema(type = "integer", format = "int64"))),
+            @ApiResponse(responseCode = "404", description = "활성 방 없음")
+    })
+    @GetMapping("/roomId")
+    public ResponseEntity<Long> getMyRoomId(
+            @AuthenticationPrincipal JwtUserDetails user
+    ) {
+        Long roomId = roomService.findMyActiveRoomId(user.getUserId());
+        return ResponseEntity.ok(roomId); // 없으면 service에서 예외 터뜨림
     }
 }
