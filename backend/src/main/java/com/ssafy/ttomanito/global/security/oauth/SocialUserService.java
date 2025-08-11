@@ -1,10 +1,10 @@
 package com.ssafy.ttomanito.global.security.oauth;
 
-import com.ssafy.ttomanito.domain.user.dto.UserDto;
+import com.ssafy.ttomanito.domain.oauth.dto.OAuthUserDto;
 import com.ssafy.ttomanito.domain.oauth.entity.OAuthIdentity;
 import com.ssafy.ttomanito.domain.oauth.entity.OAuthIdentity.OAuthProvider;
-import com.ssafy.ttomanito.domain.oauth.dto.OAuthUserDto;
 import com.ssafy.ttomanito.domain.oauth.service.OAuthService;
+import com.ssafy.ttomanito.domain.user.dto.UserDto;
 import com.ssafy.ttomanito.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;

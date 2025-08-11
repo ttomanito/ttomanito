@@ -4,11 +4,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -37,8 +35,9 @@ public class JwtProvider {
     void init() {
         log.info("jwt.secret length={}, head={}",
                 secretKey != null ? secretKey.length() : -1,
-                (secretKey != null && secretKey.length() >= 6) ? secretKey.substring(0,6) : "null");
+                (secretKey != null && secretKey.length() >= 6) ? secretKey.substring(0, 6) : "null");
     }
+
     /**
      * Access/Refresh JWT를 생성해서 반환합니다.
      */
@@ -95,6 +94,7 @@ public class JwtProvider {
             return false;
         }
     }
+
     /**
      * 토큰에서 클레임(Subject 등)을 파싱해서 반환합니다.
      */

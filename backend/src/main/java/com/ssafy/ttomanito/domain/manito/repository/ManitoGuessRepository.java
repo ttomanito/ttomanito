@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface ManitoGuessRepository extends JpaRepository<ManitoGuess, Long> {
     List<ManitoGuess> findAllByGuessUserId(Long guessUserId);
+
     // 특정 유저의 추측 기록 가져오기
     List<ManitoGuess> findByGuessUserId(Long guessUserId);
 
@@ -15,4 +16,7 @@ public interface ManitoGuessRepository extends JpaRepository<ManitoGuess, Long> 
 
     // 정답 여부 확인용 (optional)
     List<ManitoGuess> findByGuessUserIdAndGuessedUserId(Long guessUserId, Long guessedUserId);
+
+    long countByGuessUserIdAndGuessedUserId(Long guessUserId, Long guessedUserId);
+
 }

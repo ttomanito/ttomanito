@@ -1,13 +1,13 @@
 package com.ssafy.ttomanito.global.security.filter;
 
-import java.io.IOException;
-import java.util.stream.Stream;
+import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
+import com.ssafy.ttomanito.global.security.token.TokenRevocationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.DisabledException;
@@ -21,10 +21,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
 
-import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
-import com.ssafy.ttomanito.global.security.token.TokenRevocationService;
-
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -32,6 +30,23 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
     private final TokenRevocationService tokenRevocationService;
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // WebSocket 시그널링은 토큰 없이 통과
+        if (path.startsWith("/ws/")) {
+            return true;
+        }
+        // Swagger / OpenAPI 문서도 토큰 검사 스킵
+        return path.startsWith("/v3/api-docs")
+                || path.startsWith("/api/v3/api-docs")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/api/swagger-ui")
+                || path.equals("/swagger-ui.html")
+                || path.equals("/api/swagger-ui.html")
+                || path.startsWith("/webjars/");
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -80,4 +95,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 4) 필터 체인 계속
         chain.doFilter(request, response);
     }
+
 }

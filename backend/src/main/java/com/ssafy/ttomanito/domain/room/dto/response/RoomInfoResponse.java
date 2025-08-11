@@ -13,9 +13,9 @@ public record RoomInfoResponse(
         Long creatorId,
         String name,
         RoomStatus status,
+
         LocalDate startDate,
         LocalDate endDate,   // 내부 확인용(필요 없으면 제거 가능)
-        LocalDate deadline,  // 프론트에 명확히 노출 (실제로는 endDate)
         List<Weekday> missionDays
 ) {
     public static RoomInfoResponse from(Room r, List<Weekday> days) {
@@ -26,7 +26,6 @@ public record RoomInfoResponse(
                 r.getStatus(),
                 r.getStartDate(),
                 r.getEndDate(),
-                r.getEndDate(),     // deadline = endDate
                 days
         );
     }
