@@ -110,8 +110,8 @@ public class ReportService {
         } else {
             givingHelp = new GivingHelpDto(null, new PairStatsDto(0,0,0,0,0), List.of());
         }
-
-        return new ReportDetailResponseDto(roomId, receivingHelp, givingHelp);
+        String roomName = me.getRoom().getName();
+        return new ReportDetailResponseDto(roomId, roomName, receivingHelp, givingHelp);
     }
 
     /** 같은 assignment에서 내 duration + 상대 duration 합. */
