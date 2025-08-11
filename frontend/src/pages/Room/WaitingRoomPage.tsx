@@ -244,7 +244,7 @@ const WaitingRoomPage = () => {
                 onClick: handleStart,
                 props: {
                     colorScheme: 'blue',
-                    disabled: listForRender.length < 2,
+                    disabled: listForRender.length < 4, // 4명 이상이어야 시작가능
                 }
             };
         } else if (hasMe) {
@@ -361,7 +361,7 @@ const WaitingRoomPage = () => {
         <Box height="100vh" display="flex" flexDirection="column" >
             <Box flex="1" overflowY="auto" p={4}>
                 <RoomInfoCard roomInfo={roomInfo} />
-                <VStack gap={4} align="stretch">
+                <VStack gap={4} align="stretch" bg="transparent">
                     <Box>
                         {/* 제목과 삭제 버튼을 양쪽 끝에 배치 */}
                         <Flex justify="space-between" py={3}>
@@ -403,15 +403,15 @@ const WaitingRoomPage = () => {
             </Box>
             
             {/* 고정된 하단 버튼 */}
-            <Box
-                position="absolute"
-                bottom="0"
-                left="0"
-                right="0"
-                px={4}
-                py={4}
-                bg="white"
-            >
+    <Box
+      as="footer"
+      position="sticky"
+      bottom="0"
+      px={4}
+      py={4}
+      bg="transparent"
+      zIndex={1000}
+    >
                 {actionButton}
             </Box>
 

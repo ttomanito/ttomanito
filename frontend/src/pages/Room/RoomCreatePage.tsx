@@ -1,3 +1,4 @@
+//src/pages/RoomCreatePage.tsx
 import {
   Box,
   Text,
@@ -21,9 +22,7 @@ import { format } from 'date-fns';
 import DateInput from '@/components/inputs/DateInput';
 import { useNavigate } from 'react-router-dom';
 import { postRequest } from '@/api/requests'; 
-
-import { api } from '@/api/client';
-import { useAuth } from '@/stores/authStore'; 
+import { useAuth } from '@/stores/authStore';
 
 const korToEngDay = {
   '월': 'MON',
@@ -64,27 +63,28 @@ const handleCreateRoom = async () => {
     (kor) => korToEngDay[kor as keyof typeof korToEngDay]
   );
   const startDate = dayjs().format('YYYY-MM-DD'); // 오늘 날짜
-  const deadline = dayjs(endDate).format('YYYY-MM-DD');
+  const selectedEnd = dayjs(endDate).format('YYYY-MM-DD');
 
   try {
     // ✨ 1. 방 생성 API 호출
     const res = await postRequest('/room', {
       name: groupName,
       startDate: startDate, // 시작일 추가
-      deadline: deadline,
+      endDate: selectedEnd,
       missionDays,
     });
-    
+    console.log('방 생성 응답:', res); // 🔍 디버깅: 응답 확인
+
     const { roomId } = res;
-    
-    // ✨ 2. 방 생성 성공 후, auth 스토어를 통해 게임 시작
-    // joinGame 함수가 내부적으로 /room/${roomId}/start API를 호출하고 상태를 업데이트합니다.
-    await useAuth.getState().joinGame(roomId, true); // isCreator: true
-    
-    console.log(roomId);
-    
-    // ✨ 3. 상태 업데이트 후 홈 페이지로 이동
-    navigate('/home');
+
+     // ✨ 2. 방 생성 후 상태 업데이트 (게임 시작은 안함)
+    useAuth.getState().setGameInfo({
+      isInGame: true,  // 방에는 참여했지만
+      roomId,
+      isCreator: true, // 방 생성자
+    });
+    navigate(`/room/${roomId}`);
+    // ✨ 3. 상태 업데이트 후 대기방 페이지로 이동
     
   } catch (err) {
     console.error(err);
