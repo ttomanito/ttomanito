@@ -3,6 +3,7 @@ WORKDIR /app
 COPY . /app
 RUN gradle clean build -x test
 
+
 # 2. 실행용 Stage
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
