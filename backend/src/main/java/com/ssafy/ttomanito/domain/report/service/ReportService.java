@@ -11,6 +11,7 @@ import com.ssafy.ttomanito.domain.report.dto.MissionItemDto;
 import com.ssafy.ttomanito.domain.report.dto.PairStatsDto;
 import com.ssafy.ttomanito.domain.report.dto.ReceivingHelpDto;
 import com.ssafy.ttomanito.domain.report.dto.ReportDetailResponseDto;
+import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import com.ssafy.ttomanito.global.exception.NotFoundException;
@@ -110,8 +111,8 @@ public class ReportService {
         } else {
             givingHelp = new GivingHelpDto(null, new PairStatsDto(0,0,0,0,0), List.of());
         }
-
-        return new ReportDetailResponseDto(roomId, receivingHelp, givingHelp);
+        String roomName = me.getRoom().getName();
+        return new ReportDetailResponseDto(roomId, roomName, receivingHelp, givingHelp);
     }
 
     /** 같은 assignment에서 내 duration + 상대 duration 합. */
@@ -229,5 +230,20 @@ public class ReportService {
                 .setParameter("uid", myUserId)
                 .getSingleResult();
         return n.intValue();
+    }
+
+    @Transactional(readOnly = true)
+    public ReportDetailResponseDto getReportDetail(Long userId, Long roomId) {
+        // 사용자가 그 방에 속해 있는지 + (선택) 종료된 방인지 검증
+        RoomUser me = roomUserRepo.findByRoomIdAndUserId(roomId, userId)
+                .orElseThrow(() -> new NotFoundException("roomUser not found"));
+
+        // 보고서는 종료된 방만 허용하려면 아래 체크 유지
+        // import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
+        if (me.getRoom().getStatus() != RoomStatus.FINISHED) {
+            throw new NotFoundException("아직 종료되지 않은 방입니다"); // 정책상 숨기고 싶으면 NotFound 유지
+        }
+
+        return buildReportForRoom(roomId, userId);
     }
 }
