@@ -54,9 +54,8 @@ public class Room {
         this.status = RoomStatus.NONE;
     }
 
-    public void start(LocalDate when) {
+    public void start() {
         this.status = RoomStatus.IN_PROGRESS;
-        this.startDate = when;
     }
 
     public void finish(LocalDate when) {

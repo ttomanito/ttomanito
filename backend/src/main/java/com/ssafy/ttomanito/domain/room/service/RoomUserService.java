@@ -58,27 +58,6 @@ public class RoomUserService {
     }
 
     /**
-     * 초대링크 → “참가하기” 버튼 누르면 실행
-     * 메시지 작성 전이라 insert는 안 하고, 조건 검사만
-     */
-    @Transactional(readOnly = true)
-    public void prepareEnter(Long roomId, Long userId) {
-        boolean exists = roomUserRepository
-                .existsByRoom_roomIdAndUser_UserId(roomId, userId);
-        if (exists) {
-            throw new BadRequestException("이미 이 방에 참여했습니다.");
-        }
-    }
-
-    /**
-     * 해당 방에 사용자가 이미 들어와 있는지
-     */
-    @Transactional(readOnly = true)
-    public boolean isUserInRoom(Long roomId, Long userId) {
-        return roomUserRepository.existsByRoom_roomIdAndUser_UserId(roomId, userId);
-    }
-
-    /**
      * 대기방에서 나가기
      */
     public void exit(Long roomId, Long userId) {
