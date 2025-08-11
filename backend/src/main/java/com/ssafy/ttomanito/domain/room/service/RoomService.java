@@ -59,18 +59,23 @@ public class RoomService {
         User creator = userRepository.findById(creatorId)
                 .orElseThrow(() -> new NotFoundException("유저를 찾을 수 없습니다: id=" + creatorId));
 
+
         // 3) Room 생성 및 저장
         Room room = Room.create(creator, req.name())
                 .toBuilder()
+                .startDate(LocalDate.now())
                 .endDate(req.endDate())
                 .build();
         room = roomRepository.save(room);
+
 
         // 4) MissionDay 저장 (중복 제거)
         Set<Weekday> uniqueDays = new LinkedHashSet<>(req.missionDays());
         for (Weekday day : uniqueDays) {
             missionDayRepository.save(MissionDay.of(room, day));
         }
+
+
 
         // 5) 방장도 RoomUser에 추가
         roomUserRepository.save(RoomUser.of(room, creator));
@@ -170,7 +175,7 @@ public class RoomService {
                         .type(WaitingMessage.MessageType.START)
                         .build()
         );
-        room.start(LocalDate.now());
+
 
         // 1) 마니또-마니띠 배정 (순환)
         List<ManitoAssignment> assignments = new ArrayList<>(participants.size());
