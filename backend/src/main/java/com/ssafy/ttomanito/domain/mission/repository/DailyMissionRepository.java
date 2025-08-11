@@ -1,6 +1,7 @@
 package com.ssafy.ttomanito.domain.mission.repository;
 
 import com.ssafy.ttomanito.domain.mission.entity.DailyMission;
+import com.ssafy.ttomanito.domain.room.entity.Weekday;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -19,4 +20,8 @@ public interface DailyMissionRepository extends JpaRepository<DailyMission, Long
 
     /* 특정 RoomUser(=manito) 의 전체 미션 */
     List<DailyMission> findAllByManito_UserId(Long manitoUserId);
+    // DailyMissionRepository
+    Optional<DailyMission> findByRoom_RoomIdAndManito_UserIdAndMissionDate(Long roomId, Long manitoUserId, LocalDate missionDate);
+
+
 }
