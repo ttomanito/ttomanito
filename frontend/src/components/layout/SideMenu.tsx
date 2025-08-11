@@ -1,4 +1,4 @@
-// src/components/layout/SideMenu.tsxss
+// src/components/layout/SideMenu.tsx
 import {
   Box,
   VStack,
@@ -13,7 +13,7 @@ import { TiThMenu } from 'react-icons/ti';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logoSvg from '@/assets/ttomas/main_page_logo.svg';
-import { useAuth } from '@/stores/authStore';
+import { logout } from '@/api/client'; // 🔥 안전한 로그아웃 함수 import
 import TutorialBody from '@/components/modal/TutorialBody'
 import { useModalStore } from '@/stores/modalStore'
 import { useNavigate } from 'react-router-dom'
@@ -25,7 +25,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
   const { openModal } = useModalStore()
   const tutorialModalData = { body: <TutorialBody /> }
   const [isOpen, setIsOpen] = useState(false);
-  const logout = useAuth((s) => s.logout);
+  // 🔥 기존: const logout = useAuth((s) => s.logout); 제거
 
   const close = () => setIsOpen(false);
 
@@ -136,6 +136,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                   color="red.500"
                   textStyle="title_md"
                   onClick={() => {
+                    // 🔥 안전한 로그아웃 사용 (race condition 해결됨)
                     logout();
                     close();
                   }}
