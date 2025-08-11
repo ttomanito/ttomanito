@@ -2,10 +2,7 @@ package com.ssafy.ttomanito.global.security.oauth;
 
 import com.ssafy.ttomanito.domain.auth.entity.RefreshToken;
 import com.ssafy.ttomanito.domain.auth.repository.RefreshTokenRepository;
-import com.ssafy.ttomanito.domain.oauth.entity.OAuthIdentity;
-import com.ssafy.ttomanito.domain.oauth.entity.OAuthIdentity.OAuthProvider;
-import com.ssafy.ttomanito.domain.oauth.service.OAuthService;
-import com.ssafy.ttomanito.domain.user.entity.User;
+import com.ssafy.ttomanito.domain.user.dto.UserDto;
 import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
 import com.ssafy.ttomanito.global.security.jwt.JwtToken;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +21,6 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtProvider jwtProvider;
-    private final OAuthService oAuthService;
     private final RefreshTokenRepository refreshTokenRepo;
 
     @Value("${url.redirect.base}")
@@ -36,34 +32,30 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
-                                        Authentication authentication)
-            throws IOException {
+                                        Authentication authentication) throws IOException {
+        try {
+            SocialUser principal = (SocialUser) authentication.getPrincipal();
+            UserDto user = principal.getUser();
 
-        var oidcUser = (SocialUser) authentication.getPrincipal();
-        String providerId = oidcUser.getIdToken().getSubject();
-        OAuthProvider provider = oidcUser.getProvider();
+            // 1) 토큰 발급 (DB 재조회 불필요)
+            JwtToken tokens = jwtProvider.generateTokens(user.userId(), user.name());
 
-        User user = oAuthService
-                .findWithUserByProviderIdAndProvider(providerId, provider)
-                .map(OAuthIdentity::getUser)
-                .orElseThrow(() -> new IllegalStateException("No linked user for " + providerId));
+            // 2) refresh 저장
+            long ttlSeconds = refreshTokenTtlMs / 1000;
+            refreshTokenRepo.save(new RefreshToken(
+                    tokens.getRefreshToken(),
+                    String.valueOf(user.userId()),
+                    ttlSeconds
+            ));
 
-        JwtToken tokens = jwtProvider.generateTokens(user.getUserId(), user.getName());
-
-        long ttlSeconds = refreshTokenTtlMs / 1000;
-
-        RefreshToken refreshTokenEntity = new RefreshToken(
-                tokens.getRefreshToken(),
-                user.getUserId().toString(),
-                ttlSeconds
-        );
-        refreshTokenRepo.save(refreshTokenEntity);
-
-        // 쿠키 세팅 (maxAge는 초 단위)
-        addCookie(request, response, "accessToken", tokens.getAccessToken(), jwtProvider.getAccessTokenTtlMs()/1000);
-        addCookie(request, response, "refreshToken", tokens.getRefreshToken(), refreshTokenTtlMs/1000);
-
-        response.sendRedirect(frontendRedirectUrl + "/main");
+            // 3) 쿠키 + 리다이렉트
+            addCookie(request, response, "accessToken",  tokens.getAccessToken(),  jwtProvider.getAccessTokenTtlMs()/1000);
+            addCookie(request, response, "refreshToken", tokens.getRefreshToken(), refreshTokenTtlMs/1000);
+            response.sendRedirect(frontendRedirectUrl + "/main");
+        } catch (Exception e) {
+            String msg = java.net.URLEncoder.encode(e.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
+            response.sendRedirect(frontendRedirectUrl + "/login?error=" + msg);
+        }
     }
 
     private void addCookie(HttpServletRequest req, HttpServletResponse res,
@@ -73,8 +65,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         ResponseCookie cookie = ResponseCookie.from(name, value)
                 .httpOnly(true)
-                .secure(!isLocal)                      // prod(https)=true, local(http)=false
-                .sameSite(isLocal ? "Lax" : "None")    // prod= None, local= Lax
+                .secure(!isLocal)
+                .sameSite(isLocal ? "Lax" : "None")
                 .path("/")
                 .maxAge(maxAgeSeconds)
                 .build();
@@ -82,3 +74,4 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }
+
