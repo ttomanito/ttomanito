@@ -3,10 +3,15 @@ package com.ssafy.ttomanito.domain.report.controller;
 import com.ssafy.ttomanito.domain.report.dto.ReportDetailResponseDto;
 import com.ssafy.ttomanito.domain.report.service.ReportService;
 import com.ssafy.ttomanito.global.security.userdetails.JwtUserDetails;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,5 +30,24 @@ public class ReportController {
         return ResponseEntity.ok(
                 reportService.getFinishedReportHistory(user.getUserId())
         );
+    }
+
+    @Operation(
+            summary = "특정 방 보고서 상세 조회",
+            description = "roomId를 받아 해당 방의 보고서를 반환합니다. 종료된 방만 조회됩니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "404", description = "방이 없거나 종료되지 않음 / 유저 미참여")
+    })
+    @GetMapping("/reportdetail/{roomId}")
+    public ResponseEntity<ReportDetailResponseDto> getReportDetail(
+            @Parameter(description = "보고서 대상 roomId", required = true)
+            @PathVariable("roomId") Long roomId,
+            @AuthenticationPrincipal JwtUserDetails user // 프로젝트에 맞게 타입 사용
+    ) {
+        Long userId = user.getUserId();
+        ReportDetailResponseDto dto = reportService.getReportDetail(userId, roomId);
+        return ResponseEntity.ok(dto);
     }
 }
