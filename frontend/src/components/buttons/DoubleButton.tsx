@@ -1,4 +1,5 @@
 /**
+ * src/components/buttons/DoubleButton.tsx
  * ✅ DoubleButton 사용법:
  * <DoubleButton
  *   leftLabel="취소"

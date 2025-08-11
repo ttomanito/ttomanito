@@ -135,6 +135,7 @@ export default function AppLayout() {
               h="100dvh"
               overflow="hidden"
               bg="white"
+              boxSizing="border-box" // 추가
             >
               {!hideHeader && <AppHeader containerRef={containerRef} />}
               <Box as="main" overflowY="auto">
