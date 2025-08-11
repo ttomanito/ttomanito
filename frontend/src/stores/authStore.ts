@@ -6,12 +6,12 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import Cookies from 'js-cookie'
-import { postRequest } from '@/api/requests'
+import { getRequest, postRequest } from '@/api/requests'
 import { api } from '@/api/client.ts'
 
 type Tokens = { accessToken: string | null; refreshToken: string | null }
 type User = { id: string; name: string; role?: string } | null
-
+type UserGameStatus = 'IN_NONE' | 'IN_WAITING' | 'IN_GAME';
 type GameInfo = {
   isInGame: boolean
   roomId: number | null
@@ -24,7 +24,10 @@ type AuthState = {
   gameInfo: GameInfo
   hydrated: boolean
   isAuthenticated: boolean // ★ 서버 기준 로그인 상태
-
+  userGameStatus: UserGameStatus;
+  currentRoomId: number | null;
+  
+  handleLoginSuccess: () => boolean; // 🔥 추가
   setTokens: (t: Tokens) => void
   setUser: (u: User) => void
   setGameInfo: (info: Partial<GameInfo>) => void
@@ -37,6 +40,8 @@ type AuthState = {
   logout: () => Promise<void> // ★ 서버 로그아웃 추가
   markHydrated: () => void
   bootstrapFromServer: () => Promise<void> // ★ 서버 상태 동기화
+  checkUserGameStatus: () => Promise<UserGameStatus>;
+  setUserGameStatus: (status: UserGameStatus, roomId?: number) => void;
 }
 
 const initialGameInfo: GameInfo = {
@@ -53,8 +58,12 @@ export const useAuth = create<AuthState>()(
       gameInfo: initialGameInfo,
       hydrated: false,
       isAuthenticated: false,
+      userGameStatus: 'IN_NONE',
+      currentRoomId: null,
 
       setTokens: (tokens) => {
+        const prevTokens = get().tokens; // 🔥 추가
+
         // 토큰 쿠키에 저장 (dev 환경용)
         if (tokens.accessToken) {
           Cookies.set('accessToken', tokens.accessToken)
@@ -72,6 +81,81 @@ export const useAuth = create<AuthState>()(
           // 토큰만으로는 로그인 판정하지 않음 (서버 확인 필요)
           isAuthenticated: !!tokens.accessToken 
         })
+        // 🔥 새 로그인 감지 및 리다이렉트 처리 추가
+        if (!prevTokens.accessToken && tokens.accessToken) {
+          console.log('[AUTH] 새 로그인 감지');
+          const hasRedirect = get().handleLoginSuccess();
+          if (!hasRedirect) {
+            console.log('[AUTH] 리다이렉트 없음 - 기본 동작 유지');
+          }
+        }
+      },
+      // setTokens 함수 뒤에 추가
+      handleLoginSuccess: () => {
+        const redirectDataStr = localStorage.getItem('redirectAfterLogin');
+        
+        if (redirectDataStr) {
+          try {
+            const redirectData = JSON.parse(redirectDataStr);
+            console.log('[AUTH] 로그인 성공 - 리다이렉트 데이터:', redirectData);
+            
+            localStorage.removeItem('redirectAfterLogin');
+            
+            const isValid = Date.now() - redirectData.timestamp < 24 * 60 * 60 * 1000;
+            
+            if (isValid && redirectData.url) {
+              console.log('[AUTH] 원래 페이지로 리다이렉트:', redirectData.url);
+              setTimeout(() => {
+                window.location.href = redirectData.url;
+              }, 500);
+              return true;
+            }
+          } catch (error) {
+            console.error('[AUTH] 리다이렉트 데이터 파싱 실패:', error);
+            localStorage.removeItem('redirectAfterLogin');
+          }
+        }
+        
+        return false;
+      },
+
+      // 사용자 게임 상태 확인
+      checkUserGameStatus: async () => {
+        try {
+          const { isAuthenticated } = get();
+          if (!isAuthenticated) {
+            set({ userGameStatus: 'IN_NONE', currentRoomId: null });
+            return 'IN_NONE';
+          }
+
+          const status = await getRequest<UserGameStatus>('/room/check');
+          
+          // 대기 중이면 방 정보도 가져오기
+          let roomId = null;
+          if (status === 'IN_WAITING') {
+            try {
+              const roomInfo = await getRequest<{roomId: number}>('/room/my-current');
+              roomId = roomInfo.roomId;
+            } catch (error) {
+              console.warn('현재 방 정보 조회 실패:', error);
+            }
+          }
+
+          set({ userGameStatus: status, currentRoomId: roomId });
+          return status;
+        } catch (error) {
+          console.error('[authStore] 게임 상태 확인 실패:', error);
+          set({ userGameStatus: 'IN_NONE', currentRoomId: null });
+          return 'IN_NONE';
+        }
+      },
+
+      // 상태 직접 설정
+      setUserGameStatus: (status, roomId) => {
+        set({ 
+          userGameStatus: status, 
+          currentRoomId: roomId || null 
+        });
       },
 
       setUser: (user) => set({ user }),
@@ -267,6 +351,8 @@ export const useAuth = create<AuthState>()(
         user: s.user,
         gameInfo: s.gameInfo,
         isAuthenticated: s.isAuthenticated,
+        userGameStatus: s.userGameStatus, // 🔥 추가
+        currentRoomId: s.currentRoomId, // 🔥 추가
       }),
       onRehydrateStorage: () => {
         return (state, error) => {
