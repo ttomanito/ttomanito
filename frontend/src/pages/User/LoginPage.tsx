@@ -30,10 +30,10 @@ const LoginPage: React.FC = () => {
     'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.Ci2nd3YJucqv_fR-EtgLLmQwcWTHbEzd8km94HmUqxM',
     'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzIiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.na_XUDhhyVrlow307Voz8U2SKG8XexQl5uGqYP8hHz4',
     'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.zW6Td3CfzB8bU0Lv7Cjq95BDI5gOj4mFJS8MuB2bPiw',
-    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.D2aUll__uJGb0UIWgI9PxBXWtXZ3F_PExFjzFMNMZic',
-    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.8T5jNvwc9xqAF_nBtmHBSYYiUfD_es09mCgS3BHIVNE',
-    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.pWnRxPUCEGusgdFXZ-EiNPiR6vq4F-SUpPyzvQc-nWQ',
-    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4IiwidXNlcm5hbWUiOiIxIiwiaWF0IjoxNzU0NTQzNjYzLCJleHAiOjE3NTQ4ODkyNjN9.f5pJ5cdpupSXhmtkSTA8kTrvpgh4V50bzGo3yUpE9OY',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMCIsInVzZXJuYW1lIjoiMSIsImlhdCI6MTc1NDg3ODExMCwiZXhwIjoxNzU1MjIzNzEwfQ.wSM91ipSgHuj-iw3-8fT3JqvWIL9Y1BbBsPzY6sMRSI',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMSIsInVzZXJuYW1lIjoiMSIsImlhdCI6MTc1NDg3ODExMCwiZXhwIjoxNzU1MjIzNzEwfQ.0eE-UZBVaUsdyjv1cFAkuby41kQKRDNEFYuKfy9EnUE',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMiIsInVzZXJuYW1lIjoiMSIsImlhdCI6MTc1NDg3ODExMCwiZXhwIjoxNzU1MjIzNzEwfQ.XCAkotlLy1fJB-KpZEVlfPuW0tg-IYkHHWlf8gcXMHA',
+    'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMyIsInVzZXJuYW1lIjoiMSIsImlhdCI6MTc1NDg3ODExMCwiZXhwIjoxNzU1MjIzNzEwfQ.Q3Jm1vAc5bvjZAdqGT79kasgO1fgP7ClQz_D-7n_OZ0',
   ]
 
   // 선택한 토큰으로 로그인 처리
@@ -53,14 +53,18 @@ const LoginPage: React.FC = () => {
       title: '개발자 로그인 선택',
       body: (
         <VStack gap={3} align="stretch">
-          {devTokens.map((token, idx) => (
-            <LongButton key={idx} onClick={() => handleDevLoginWithToken(token)}>
-              {`User ${idx + 1}`}
-            </LongButton>
-          ))}
+  {devTokens.map((token, idx) => {
+    // 앞 4개: 1~4, 뒤 4개: 10~13
+    const label = idx < 4 ? idx + 1 : 10 + (idx - 4);
+    return (
+      <LongButton key={idx} onClick={() => handleDevLoginWithToken(token)}>
+        {`User ${label}`}
+      </LongButton>
+    );
+  })}
           <Text textStyle="caption_xs_light" color="gray.500" textAlign="center">
-            1번방 = 대기방('NOT_STARTED') : 방장 1번 - 참여자 1   / 2,3,4 는 아직 참여 안함
-2번방 = 게임방('IN_PROGRESS') : 방장 5번 - 참여자 5,6,7,8
+           2번이 방장, 10 11 12 13은 참여자
+            (마니또 마니띠 관계는 db에서 확인)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
           </Text>
         </VStack>
       ),
@@ -101,7 +105,7 @@ const LoginPage: React.FC = () => {
         {/* 카카오 로그인 버튼 */}
         <LongButton
           w="full"
-          onClick={() => (window.location.href = '/api/oauth2/authorization/kakao')}
+          onClick={() => window.location.href = 'https://i13b206.p.ssafy.io/api/oauth2/authorization/kakao'}
           bg="#FEE500"
           color="black"
           _hover={{ bg: '#FFEB33' }}

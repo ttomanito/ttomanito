@@ -1,12 +1,12 @@
-import { Input } from '@chakra-ui/react';
+//src/components/inputs/TextInput.tsx
+import { Input, type InputProps } from '@chakra-ui/react';
 
-interface TextInputProps {
+interface TextInputProps extends InputProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string;
 }
 
-const TextInput: React.FC<TextInputProps> = ({ value, onChange, placeholder }) => {
+const TextInput: React.FC<TextInputProps> = ({ value, onChange, placeholder, ...rest }) => {
   return (
     <Input
       value={value}
@@ -23,6 +23,7 @@ const TextInput: React.FC<TextInputProps> = ({ value, onChange, placeholder }) =
         borderColor: 'blue.300',
         boxShadow: '0 0 0 1px #A4B8FB',
       }}
+      {...rest}
     />
   );
 };
