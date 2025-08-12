@@ -68,10 +68,7 @@ public class DevAuthController {
         addCookie(request, response, "accessToken",  tokens.getAccessToken(),  jwtProvider.getAccessTokenTtlMs() / 1000);
         addCookie(request, response, "refreshToken", tokens.getRefreshToken(), ttlSeconds);
 
-        // 프론트로 리다이렉트(원하면 204로 바꿔도 OK)
-        response.setStatus(HttpServletResponse.SC_FOUND);
-        response.setHeader("Location", frontendRedirectUrl + "/main");
-        return ResponseEntity.status(302).build();
+        return ResponseEntity.noContent().build();
     }
 
     private void addCookie(HttpServletRequest req, HttpServletResponse res,
