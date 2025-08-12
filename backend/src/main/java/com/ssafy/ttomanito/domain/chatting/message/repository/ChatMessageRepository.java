@@ -7,7 +7,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public interface ChatMessageRepository extends MongoRepository<ChatMessage, String> {
     /**
@@ -42,20 +41,9 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
     })
     List<ChatCount> countBySentAtBetweenGroupByRoomAndSender(LocalDateTime start, LocalDateTime end);
 
-    /**
-     * 가장 최근 단일 메시지(새 메시지 알림용)
-     */
-    Optional<ChatMessage> findTopByChattingRoomIdOrderBySentAtDesc(Long chattingRoomId);
-
     long countBySenderRoomUserIdAndSentAtBetween(
             Long senderRoomUserId,
             LocalDateTime start,
             LocalDateTime end
     );
-    // 방 전체 메시지 수 (둘의 합산)
-    @Aggregation(pipeline = {
-            "{ '$match': { 'chattingRoomId': ?0 } }",
-            "{ '$count': 'count' }"
-    })
-    Optional<ChatCount> countAllByRoom(String chattingRoomId);
 }
