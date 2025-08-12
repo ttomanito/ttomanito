@@ -98,9 +98,9 @@ const tabs = [
 ];
 
 const RankingPage: React.FC = () => {
-  
+  //test 용
   const isInGame = true;
-  const roomId = '2';
+  const roomId = '14';
   const { hydrated } = useAuth();
   
   // const { hydrated, user, gameInfo } = useAuth();
