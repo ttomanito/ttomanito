@@ -5,12 +5,10 @@
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import Cookies from 'js-cookie'
 import { getRequest, postRequest } from '@/api/requests'
 import { api } from '@/api/client.ts'
 
-type Tokens = { accessToken: string | null; refreshToken: string | null }
-type User = { id: string; name: string; role?: string } | null
+type User = { id: string; name: string; } | null
 type UserGameStatus = 'IN_NONE' | 'IN_WAITING' | 'IN_GAME';
 type GameInfo = {
   isInGame: boolean
@@ -20,7 +18,6 @@ type GameInfo = {
 
 type AuthState = {
   user: User
-  tokens: Tokens
   gameInfo: GameInfo
   hydrated: boolean
   isAuthenticated: boolean // ★ 서버 기준 로그인 상태
@@ -28,7 +25,6 @@ type AuthState = {
   currentRoomId: number | null;
   
   handleLoginSuccess: () => boolean; // 🔥 추가
-  setTokens: (t: Tokens) => void
   setUser: (u: User) => void
   setGameInfo: (info: Partial<GameInfo>) => void
   joinGame: (roomId: number, isCreator: boolean) => Promise<void>
@@ -54,43 +50,12 @@ export const useAuth = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      tokens: { accessToken: null, refreshToken: null },
       gameInfo: initialGameInfo,
       hydrated: false,
       isAuthenticated: false,
       userGameStatus: 'IN_NONE',
       currentRoomId: null,
 
-      setTokens: (tokens) => {
-        const prevTokens = get().tokens; // 🔥 추가
-
-        // 토큰 쿠키에 저장 (dev 환경용)
-        if (tokens.accessToken) {
-          Cookies.set('accessToken', tokens.accessToken)
-        } else {
-          Cookies.remove('accessToken')
-        }
-        if (tokens.refreshToken) {
-          Cookies.set('refreshToken', tokens.refreshToken)
-        } else {
-          Cookies.remove('refreshToken')
-        }
-        
-        set({ 
-          tokens,
-          // 토큰만으로는 로그인 판정하지 않음 (서버 확인 필요)
-          isAuthenticated: !!tokens.accessToken 
-        })
-        // 🔥 새 로그인 감지 및 리다이렉트 처리 추가
-        if (!prevTokens.accessToken && tokens.accessToken) {
-          console.log('[AUTH] 새 로그인 감지');
-          const hasRedirect = get().handleLoginSuccess();
-          if (!hasRedirect) {
-            console.log('[AUTH] 리다이렉트 없음 - 기본 동작 유지');
-          }
-        }
-      },
-      // setTokens 함수 뒤에 추가
       handleLoginSuccess: () => {
         const redirectDataStr = localStorage.getItem('redirectAfterLogin');
         
@@ -134,10 +99,9 @@ export const useAuth = create<AuthState>()(
           let roomId = null;
           if (status === 'IN_WAITING') {
             try {
-              const roomInfo = await getRequest<{roomId: number}>('/room/my-current');
-              roomId = roomInfo.roomId;
+              roomId = await getRequest<number>('/room/roomId'); // 🔥 간단해짐!
             } catch (error) {
-              console.warn('현재 방 정보 조회 실패:', error);
+              console.warn('현재 방 ID 조회 실패:', error);
             }
           }
 
@@ -168,24 +132,37 @@ export const useAuth = create<AuthState>()(
       // ★ 서버에서 사용자 상태 동기화 (HttpOnly 쿠키 기반)
       bootstrapFromServer: async () => {
         try {
+          const wasNotAuthenticated = !get().isAuthenticated // 🔥 추가: 이전 인증 상태 저장
+          
           const { data } = await api.get('/auth/me')
           set({
             user: { id: String(data.userId), name: data.name },
             isAuthenticated: true,
           })
+          
+          // 🔥 추가: 새 로그인 감지 시 리다이렉트 처리
+          if (wasNotAuthenticated) {
+            console.log('[AUTH] 새 로그인 감지');
+            const hasRedirect = get().handleLoginSuccess();
+            if (!hasRedirect) {
+              console.log('[AUTH] 리다이렉트 없음 - 기본 동작 유지');
+            }
+          }
+          
           console.log('[authStore] 서버 인증 상태 동기화 완료')
         } catch (error) {
           console.log('[authStore] 미로그인 상태 확인됨')
           set({
             user: null,
             isAuthenticated: false,
-            gameInfo: initialGameInfo, // ★ 미로그인 시 게임 상태도 초기화
+            gameInfo: initialGameInfo,
+            userGameStatus: 'IN_NONE',
+            currentRoomId: null,
           })
         } finally {
           get().markHydrated()
         }
       },
-
       // 현재 사용자가 방장인지 서버에서 확인
       checkCreatorStatus: async () => {
         try {
@@ -319,60 +296,66 @@ export const useAuth = create<AuthState>()(
       // ★ 로그아웃 (서버 + 클라이언트)
       logout: async () => {
         try {
-          // 서버 로그아웃 시도
-          await api.post('/auth/logout').catch(err => {
-            console.warn('[authStore] 서버 로그아웃 실패:', err)
-          })
+          // 🔥 서버 로그아웃 API 호출 추가
+          await api.post('/auth/logout') // 또는 적절한 로그아웃 엔드포인트
+          console.log('[authStore] 서버 로그아웃 완료')
+        } catch (error) {
+          console.error('[authStore] 서버 로그아웃 실패:', error)
+          // 서버 로그아웃 실패해도 클라이언트 상태는 정리
         } finally {
-          // 클라이언트 상태 초기화
+          // 클라이언트 상태 정리
           set({
             user: null,
-            tokens: { accessToken: null, refreshToken: null },
             gameInfo: initialGameInfo,
             isAuthenticated: false,
+            userGameStatus: 'IN_NONE',
+            currentRoomId: null,
           })
           
-          // 저장소 정리
           localStorage.removeItem('auth')
-          Cookies.remove('accessToken')
-          Cookies.remove('refreshToken')
-          
-          console.log('[authStore] 로그아웃 완료')
+          console.log('[authStore] 클라이언트 로그아웃 완료')
         }
       },
-
+    
       markHydrated: () => set({ hydrated: true }),
     }),
     {
       name: 'auth',
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
-        tokens: s.tokens,
         user: s.user,
         gameInfo: s.gameInfo,
         isAuthenticated: s.isAuthenticated,
         userGameStatus: s.userGameStatus, // 🔥 추가
         currentRoomId: s.currentRoomId, // 🔥 추가
       }),
-      onRehydrateStorage: () => {
-        return (state, error) => {
-          if (error) {
-            console.error('[authStore] rehydration error:', error)
-            return
-          }
-          
-          // ★ 서버 상태 동기화 우선 (bootstrapFromServer → syncGameState)
-          state?.bootstrapFromServer?.().then(() => {
-            // 인증 확인 후 게임 상태 동기화
-            setTimeout(() => {
-              state?.syncGameState()
-            }, 100)
-          }).catch(err => {
-            console.error('[authStore] 부트스트랩 실패:', err)
-            state?.markHydrated?.() // 실패해도 hydrated는 표시
-          })
-        }
-      },
+onRehydrateStorage: () => {
+  return (state, error) => {
+    if (error) {
+      console.error('[authStore] rehydration error:', error)
+      return
+    }
+    
+    // 🔥 localStorage에서 로그인 상태 확인
+    const wasAuthenticated = state?.isAuthenticated;
+    
+    if (wasAuthenticated) {
+      // 로그인 상태였을 때만 서버 확인
+      state?.bootstrapFromServer?.().then(() => {
+        setTimeout(() => {
+          state?.syncGameState()
+        }, 100)
+      }).catch(err => {
+        console.error('[authStore] 부트스트랩 실패:', err)
+        state?.markHydrated?.()
+      })
+    } else {
+      // 미로그인 상태면 바로 hydrated 처리
+      console.log('[authStore] 미로그인 상태 - 서버 호출 스킵')
+      state?.markHydrated?.()
+    }
+  }
+},
     },
   ),
 )

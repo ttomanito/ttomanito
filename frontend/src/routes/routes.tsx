@@ -40,6 +40,7 @@ export default function AppRoutes() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/report/reportdetail/:reportId" element={<ReportDetailPage />} />
           <Route path="/room/:roomId" element={<WaitingRoomPage />} />
+          <Route path="/test" element={<TestPage />} />
 
           {/* 🔒 ─────────── 로그인 필요 + 상태별 가드 ─────────── */}
           <Route element={<RequireAuth />}>
@@ -64,7 +65,6 @@ export default function AppRoutes() {
             
               <Route path="/user/update" element={<EditProfile />} />
               <Route path="/report/reportlist" element={<ReportListPage />} />
-              <Route path="/test" element={<TestPage />} />
           </Route>
         </Route>
       </Routes>
