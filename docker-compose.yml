@@ -117,11 +117,10 @@ services:
     container_name: openvidu-server-kms
     restart: always
     environment:
-      DOMAIN_OR_PUBLIC_IP: ${DOMAIN_OR_PUBLIC_IP}
+      OPENVIDU_PUBLICURL: https://i13b206.p.ssafy.io
       OPENVIDU_SECRET: ${OPENVIDU_SECRET}
-      CERTIFICATE_TYPE: selfsigned
-    ports:
-      - "4443:4443"
+    # ports:
+    #   - "4443:4443"
     networks:
       - app-network
 
