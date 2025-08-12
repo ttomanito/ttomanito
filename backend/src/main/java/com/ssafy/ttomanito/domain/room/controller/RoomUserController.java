@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/room-user")
 @RequiredArgsConstructor
-@Tag(name = "방-사용자(RoomUser)", description = "RoomUser 식별/조회 API")
+@Tag(name = "방-사용자", description = "방-사용자 관련 API")
 public class RoomUserController {
 
     private final RoomUserService roomUserService;
