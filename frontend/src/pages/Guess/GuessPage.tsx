@@ -46,7 +46,7 @@ const GuessPage = () => {
   // ✨ 디버깅을 위해 게임 참여 상태와 roomId를 강제로 설정합니다.
   // ✨ 실제 앱에서는 이 부분을 지우고 authStore의 gameInfo를 사용해야 합니다.
   const isInGame = true;
-  const roomId = '2';
+  const roomId = '14';
   const { user, hydrated } = useAuth();
 
   // ✅ isAuthenticated를 제거하고, gameInfo에서 필요한 값만 가져옵니다.
