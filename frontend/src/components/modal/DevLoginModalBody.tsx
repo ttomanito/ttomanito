@@ -23,7 +23,7 @@ const DevLoginModalBody: React.FC = () => {
     // 1. 개발용 로그인 요청 (쿠키만 설정됨, HTML 응답 무시)
     await postRequest('/auth/dev/login', { 
       userId: Number(devLoginId) 
-    }).catch(() => {}); // HTML 응답 에러 무시
+    });
     
     // 2. 🔥 authStore의 bootstrapFromServer 호출
     await useAuth.getState().bootstrapFromServer();
