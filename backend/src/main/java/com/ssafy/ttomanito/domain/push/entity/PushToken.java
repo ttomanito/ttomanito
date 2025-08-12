@@ -7,14 +7,14 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table
+@Table(name="push_token")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
+@Builder(toBuilder = true)
 public class PushToken {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long pushTokenId;
 
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -28,7 +28,9 @@ public class PushToken {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    public void enable()  { this.enabled = true; }
     public void disable() { this.enabled = false; }
+    public void changeOwner(User newOwner) { this.user = newOwner; }
+
     @PrePersist @PreUpdate
-    void touch() { this.updatedAt = LocalDateTime.now(); }
-}
+    void touch() { this.updatedAt = LocalDateTime.now(); }}

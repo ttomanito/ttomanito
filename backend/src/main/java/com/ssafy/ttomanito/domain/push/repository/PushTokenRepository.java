@@ -12,9 +12,8 @@ import java.util.Optional;
 @Repository
 public interface PushTokenRepository extends JpaRepository<PushToken, Long> {
     Optional<PushToken> findByToken(String token);
+    Optional<PushToken> findByTokenAndUser_UserId(String token, Long userId);
+    List<PushToken> findByUser_UserIdAndEnabledTrue(Long userId);
     List<PushToken> findByUser_UserIdInAndEnabledTrue(Collection<Long> userIds);
-
-    @Modifying
-    void deleteByToken(String token);
 }
 

@@ -69,9 +69,8 @@ public class ChatWebSocketController {
                 chatRoomId, payload.senderRoomUserId(),
                 payload.content() == null ? 0 : payload.content().length());
 
-        ChatMessageDto saved = service.saveMessage(
-                new ChatMessageDto(chatRoomId, payload.senderRoomUserId(), payload.content(), null)
-        );
+        ChatMessageDto saved = service.sendText(chatRoomId, payload.senderRoomUserId(), payload.content());
+
         log.debug("[웹소켓] 채팅 전송 완료 - 방ID={}, 전송시각={}", chatRoomId, saved.sentAt());
         chatPush(chatRoomId, payload, saved);
     }
@@ -85,7 +84,7 @@ public class ChatWebSocketController {
     public void poke(@DestinationVariable Long chatRoomId,
                      @Payload ChatMessageDto payload) {
         log.info("[웹소켓] 콕 찌르기 - 방ID={}, 발신자={}", chatRoomId, payload.senderRoomUserId());
-        ChatMessageDto saved = service.pokeMessage(chatRoomId, payload.senderRoomUserId());
+        ChatMessageDto saved = service.sendPoke(chatRoomId, payload.senderRoomUserId());
         chatPush(chatRoomId, payload, saved);
     }
 

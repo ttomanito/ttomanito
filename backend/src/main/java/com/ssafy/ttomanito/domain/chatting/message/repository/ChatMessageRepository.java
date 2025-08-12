@@ -57,5 +57,5 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
             "{ '$match': { 'chattingRoomId': ?0 } }",
             "{ '$count': 'count' }"
     })
-    Optional<ChatCount> countAllByRoom(String chattingRoomId);
+    Optional<ChatCount> countAllByRoom(Long chattingRoomId);
 }
