@@ -234,13 +234,6 @@ export const useAuth = create<AuthState>()(
 
       // ★ 로그아웃 (서버 + 클라이언트)
       logout: async () => {
-        try {
-          // 서버 로그아웃 시도
-          await api.post('/auth/logout').catch(err => {
-            console.warn('[authStore] 서버 로그아웃 실패:', err)
-          })
-        } finally {
-          // 클라이언트 상태 초기화
           set({
             user: null,
             tokens: { accessToken: null, refreshToken: null },
@@ -254,7 +247,6 @@ export const useAuth = create<AuthState>()(
           Cookies.remove('refreshToken')
           
           console.log('[authStore] 로그아웃 완료')
-        }
       },
 
       markHydrated: () => set({ hydrated: true }),
