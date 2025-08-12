@@ -120,8 +120,9 @@ services:
       DOMAIN_OR_PUBLIC_IP: i13b206.p.ssafy.io
       OPENVIDU_PUBLICURL: https://i13b206.p.ssafy.io/openvidu
       OPENVIDU_SECRET: ${OPENVIDU_SECRET}
-    ports:
-      - "4443:4443"
+      HTTPS_PORT: 443
+    # ports:
+    #   - "4443:4443"
     networks:
       - app-network
 
