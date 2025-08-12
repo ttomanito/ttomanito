@@ -73,15 +73,18 @@ const ChatListPage = () => {
   return (
     <Box p={4}>
       <VStack align="stretch" gap="0">
-        {chatList.map(chat => (
+        {chatList.map((chat, index) => (
           <Link key={chat.chatRoom.chattingRoomId} to={`/chat/${chat.chatRoom.chattingRoomId}`}>
             <Flex
               align="center"
               _hover={{ bg: 'gray.100' }}
               px="2"
               py="4"
-              border="1px solid black"
-              borderRadius="md"
+              // 마지막 요소가 아닐 때만 borderBottom을 추가합니다.
+              // 마지막 요소가 아닐 때만 아래 border를 적용
+              borderBottomWidth={index === chatList.length - 1 ? '0' : '1px'}
+              borderBottomStyle="solid"
+              borderBottomColor="gray.200"
               gap={3}
             >
               <Box
