@@ -108,16 +108,6 @@ public class ChattingService {
                 room.getLastMessageTime());
     }
 
-    public ChatMessageDto saveMessage(ChatMessageDto dto) {
-        MessageType type = dto.type() == null ? MessageType.TEXT : dto.type();
-        return switch (type) {
-            case TEXT -> sendText(dto.chattingRoomId(), dto.senderRoomUserId(), dto.content());
-            case POKE -> sendPoke(dto.chattingRoomId(), dto.senderRoomUserId());
-            case CALL_START -> callStart(dto.chattingRoomId(), dto.senderRoomUserId());
-            case CALL_ACCEPT -> callAccept(dto.chattingRoomId(), dto.senderRoomUserId());
-            case CALL_REJECT -> callReject(dto.chattingRoomId(), dto.senderRoomUserId());
-        };
-    }
 
     public ChatMessageDto sendText(Long chattingRoomId, Long roomUserId, String content) {
         Long senderUserId = requireSenderUserId(roomUserId);
