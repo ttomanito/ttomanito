@@ -73,11 +73,14 @@ const ReportListPage = () => {
   }
   
   return (
-    <Box p={4} m={4}>
-      <Text fontSize="2xl" fontWeight="bold" mb={2}>
+    <Box maxW="md" mx="auto">
+          <VStack align="stretch">
+
+    <Box>
+      <Text textStyle="title_mlg">
         ✪ 마니또 리포트
       </Text>
-      <Text fontSize="md" color="gray.600" mb={6}>
+      <Text textStyle="caption_sm">
         너와 나 사이 관찰 보고서
       </Text>
       <VStack gap={3} align="stretch">
@@ -94,16 +97,18 @@ const ReportListPage = () => {
               border="1px"
               borderColor="gray.200"
             >
-              <Text fontSize="lg" color="gray.800">
+              <Text textStyle="body_sm">
                 {report.roomName}
               </Text>
             </Box>
           ))
         ) : (
-          <Text color="gray.500">완료된 리포트가 없습니다.</Text>
+          <Text textStyle="caption_sm">완료된 리포트가 없습니다.</Text>
         )}
       </VStack>
     </Box>
+          </VStack>
+          </Box>
   );
 };
 
