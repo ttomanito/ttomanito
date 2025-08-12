@@ -49,7 +49,7 @@ public class FcmService {
                 .build();
 
         try {
-            BatchResponse res = FirebaseMessaging.getInstance().sendMulticast(msg);
+            BatchResponse res = FirebaseMessaging.getInstance().sendEachForMulticast(msg);
 
             if (res.getFailureCount() > 0) {
                 log.warn("FCM partial failure: success={}, failure={}",
