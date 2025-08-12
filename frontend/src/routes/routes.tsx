@@ -41,7 +41,7 @@ export default function AppRoutes() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/report/reportdetail/:reportId" element={<ReportDetailPage />} />
           <Route path="/room/:roomId" element={<WaitingRoomPage />} />
-
+          <Route path="/test"                    element={<TestPage />} />
           {/* 🔒 ─────────── 나머지 전부 보호 ─────────── */}
           <Route element={<RequireAuth />}>
             <Route path="/" element={<MainPage />} />
@@ -56,7 +56,7 @@ export default function AppRoutes() {
             <Route path="/rank"                    element={<RankingPage />} />
             <Route path="/user/update"             element={<EditProfile />} />
             <Route path="/report/reportlist"       element={<ReportListPage />} />
-            <Route path="/test"                    element={<TestPage />} />
+            
           </Route>
         </Route>
       </Routes>
