@@ -1,3 +1,4 @@
+//frontend\src\pages\Rank\RankingPage.tsx
 import { useState, useEffect } from 'react';
 import {
   Box, Button, VStack, Text, HStack, Grid, GridItem, Spinner, Flex,
@@ -98,14 +99,11 @@ const tabs = [
 ];
 
 const RankingPage: React.FC = () => {
-  //test 용
-  const isInGame = true;
-  const roomId = '14';
-  const { hydrated } = useAuth();
+  // 🔥 변경: auth store 새 구조 사용
+  const { gameInfo, isReady } = useAuth();
+  const isInGame = gameInfo.status === 'IN_GAME';
+  const roomId = gameInfo.roomId;
   
-  // const { hydrated, user, gameInfo } = useAuth();
-  // const { isInGame, roomId } = gameInfo || {};
-
   const [activeTabIdx, setActiveTabIdx] = useState(0);
   const [rankingData, setRankingData] = useState<RankingItemData[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -116,7 +114,7 @@ const RankingPage: React.FC = () => {
 
   // 1. 참여자 목록(roomId 필요)
   useEffect(() => {
-    if (!hydrated || !isInGame || !roomId) {
+    if (!isReady || !isInGame || !roomId) {
       setParticipants([]);
       return;
     }
@@ -130,11 +128,11 @@ const RankingPage: React.FC = () => {
       }
     };
     fetchParticipants();
-  }, [hydrated, isInGame, roomId]);
+  }, [isReady, isInGame, roomId]);
 
   // 2. 랭킹 데이터(tabs 변경/참여자 정보 가져온 직후 roomId 필요)
   useEffect(() => {
-    if (!hydrated || !isInGame || !roomId || participants.length === 0) {
+    if (!isReady || !isInGame || !roomId || participants.length === 0) {
       setRankingData([]);
       return;
     }
@@ -162,10 +160,10 @@ const RankingPage: React.FC = () => {
     };
     fetchRanking();
     // 탭, 참가자 목록, 게임/방 상태가 바뀔 때마다
-  }, [activeTab, participants, hydrated, isInGame, roomId]);
+  }, [activeTab, participants, isReady, isInGame, roomId]);
 
   // ===== 렌더링 =====
-  if (!hydrated || loading) {
+  if (!isReady || loading) {
     return (
       <Flex justify="center" align="center" h="100vh">
         <Spinner />

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react' // 🔥 변경: useEffect 제거
 import {
   Box,
   VStack,
@@ -18,30 +18,22 @@ const MainPage: React.FC = () => {
   const navigate = useNavigate()
   const { openModal } = useModalStore()
   const { 
-    userGameStatus, 
-    currentRoomId, 
-    checkUserGameStatus,
-    isAuthenticated 
+    gameInfo // 🔥 변경: checkUserGameStatus, isAuthenticated 제거 (불필요)
   } = useAuth()
 
   const tutorialModalData = {
     body: <TutorialBody />
   }
 
-  // 페이지 진입 시 게임 상태 확인
-  useEffect(() => {
-    if (isAuthenticated) {
-      checkUserGameStatus()
-    }
-  }, [isAuthenticated, checkUserGameStatus])
+  // 🔥 제거: useEffect 불필요 (onRehydrateStorage에서 이미 상태 동기화 완료)
 
   // 첫 번째 버튼 텍스트와 동작 결정
   const getMainButtonConfig = () => {
-    switch (userGameStatus) {
+    switch (gameInfo.status) { // 🔥 변경: userGameStatus → gameInfo.status
       case 'IN_WAITING':
         return {
           text: '현재 대기방으로 이동',
-          action: () => navigate(`/room/${currentRoomId}`),
+          action: () => navigate(`/room/${gameInfo.roomId}`), // 🔥 변경: currentRoomId → gameInfo.roomId
           color: 'yellow.500',
           hoverColor: 'yellow.600'
         }

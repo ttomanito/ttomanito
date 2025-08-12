@@ -18,7 +18,11 @@ const WaitingRoomPage = () => {
     // 1. 모든 Hook들을 최상단에 배치
     const { roomId } = useParams<{ roomId: string }>();
     const navigate = useNavigate();
-    const myUserId = useAuth((s) => s.user?.id);
+    
+    // 🔥 변경: auth store 새 구조 사용
+    const { user, gameInfo, setGameInfo, startGame } = useAuth();
+    const myUserId = user?.id;
+    
     const { connected, participants, lastMessage, connect, disconnect} = useWaitingRoomSocket();
     const { openModal, closeModal } = useModalStore();
     const [isLoading, setIsLoading] = useState(true);
@@ -54,18 +58,24 @@ const WaitingRoomPage = () => {
                     // ✅ 이미 참여 중인 경우: 모든 검증을 건너뛰고 바로 연결 준비
                     console.log('이미 참여 중인 사용자입니다. 바로 연결합니다.');
                     setInitialParticipants(currentParticipants);
+                    
+                    // 🔥 추가: 게임 상태 업데이트 (대기방 상태로)
+                    setGameInfo({
+                        status: 'IN_WAITING',
+                        roomId: parseInt(roomId),
+                        isCreator: String(myUserId) === String(roomInfo?.creatorId)
+                    });
                 } else {
                     // ❌ 참여 중이 아닌 신규 유저인 경우: 자격 검증 시작
                     console.log('신규 사용자입니다. 자격 검증을 시작합니다.');
 
-                    // 1단계: 내 상태 확인
-                    const userStatus = await getRequest<string>('/room/check');
-                    if (userStatus !== 'IN_NONE') {
+                    // 🔥 변경: gameInfo.status 사용
+                    if (gameInfo.status !== 'IN_NONE') {
                         openModal({
                             title: '입장 불가', body: <Text>이미 다른 방에 참여 중입니다.</Text>,
                             footer: <Button onClick={() => { closeModal(); navigate('/main'); }}>확인</Button>,
                         });
-                        return; // 여기서 로직 종료
+                        return;
                     }
 
                     // 2단계: 방 상태 확인
@@ -75,7 +85,7 @@ const WaitingRoomPage = () => {
                             title: '입장 불가', body: <Text>이미 시작했거나 종료된 방입니다.</Text>,
                             footer: <Button onClick={() => { closeModal(); navigate('/main'); }}>확인</Button>,
                         });
-                        return; // 여기서 로직 종료
+                        return;
                     }
                     
                     // 모든 검증 통과! '참여하기' 버튼을 누를 수 있도록 참가자 목록을 설정합니다.
@@ -95,8 +105,8 @@ const WaitingRoomPage = () => {
         initialize();
 
         return () => { void disconnect(); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [roomId, myUserId]);
+    // 🔥 변경: gameInfo 의존성 추가
+    }, [roomId, myUserId, gameInfo.status]);
 
     // 내가 참가자 목록에 있을 때만 자동 연결
     useEffect(() => {
@@ -119,6 +129,14 @@ const WaitingRoomPage = () => {
                 
                 if (isMe) {
                     alert('방장에 의해 대기방에서 내보내졌습니다.');
+                    
+                    // 🔥 추가: 상태 초기화
+                    setGameInfo({
+                        status: 'IN_NONE',
+                        roomId: null,
+                        isCreator: false
+                    });
+                    
                     disconnect();
                     navigate('/');
                 }
@@ -126,11 +144,19 @@ const WaitingRoomPage = () => {
                 
             case 'CLOSE':
                 alert('방장이 대기방을 닫았습니다.');
+                
+                // 🔥 추가: 상태 초기화
+                setGameInfo({
+                    status: 'IN_NONE',
+                    roomId: null,
+                    isCreator: false
+                });
+                
                 disconnect();
                 navigate('/');
                 break;
         }
-    }, [lastMessage, myUserId, disconnect, navigate]);
+    }, [lastMessage, myUserId, disconnect, navigate, setGameInfo]);
 
     // 5. 모든 함수들
     const handleJoin = () => {
@@ -143,6 +169,14 @@ const WaitingRoomPage = () => {
                 closeModal();
                 const newList = await getRequest<Participant[]>(`/room/${roomId}/participants`);
                 setInitialParticipants(newList);
+                
+                // 🔥 추가: 참여 후 상태 업데이트
+                setGameInfo({
+                    status: 'IN_WAITING',
+                    roomId: parseInt(roomId),
+                    isCreator: false
+                });
+                
                 connect(roomId, newList);
             } catch (e) {
                 console.error('참여 실패:', e);
@@ -152,7 +186,6 @@ const WaitingRoomPage = () => {
 
         openModal({
             title: '대기방 참여',
-            // 👇 body에 분리된 컴포넌트를 렌더링합니다.
             caption: '상태 메세지를 적어주세요!',
             body: (
                 <MessageInputBody
@@ -168,6 +201,14 @@ const WaitingRoomPage = () => {
         if (!roomId || !myUserId) return;
         try {
             await deleteRequest(`/room/${roomId}/exit`);
+            
+            // 🔥 추가: 나가기 후 상태 초기화
+            setGameInfo({
+                status: 'IN_NONE',
+                roomId: null,
+                isCreator: false
+            });
+            
             // 내 연결만 종료합니다.
             setInitialParticipants(prev =>
                 prev.filter(p => String(p.userId) !== String(myUserId))
@@ -224,11 +265,21 @@ const WaitingRoomPage = () => {
         alert("초대 링크가 복사되었습니다!");
     };
 
-    // 시작하기 핸들러
+    // 🔥 변경: auth store의 startGame 함수 사용
     const handleStart = async () => {
+        if (!roomId) return;
+        
         try {
-            await postRequest(`/room/${roomId}/start`);
+            await startGame(parseInt(roomId));
             closeModal();
+            
+            // 🔥 추가: 게임 시작 후 상태 업데이트
+            setGameInfo({
+                status: 'IN_GAME',
+                roomId: parseInt(roomId),
+                isCreator: true
+            });
+            
             navigate('/home'); // 메인으로 이동
         } catch (error) {
             console.error('게임 시작 실패:', error);
@@ -274,6 +325,14 @@ const WaitingRoomPage = () => {
         try {
             await postRequest(`/room/exit`);
             closeModal();
+            
+            // 🔥 추가: 방 삭제 후 상태 초기화
+            setGameInfo({
+                status: 'IN_NONE',
+                roomId: null,
+                isCreator: false
+            });
+            
             navigate('/'); // 메인으로 이동
         } catch (error) {
             console.error('대기방 삭제 실패:', error);

@@ -3,7 +3,8 @@ import type { LazyExoticComponent, ComponentType } from 'react';
 import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
-import RequireAuth from '@/routes/RequireAuth';
+// Make sure AuthGuard.tsx exists at src/routes or update the path below if it's elsewhere
+import RequireAuthGuard, { PreventAuthGuard } from '@/routes/AuthGuard'; // 🔥 변경: 새로운 가드 import
 import { GameOnlyGuard, NonGameGuard } from '@/routes/GameStatusGuard';
 import Loading from '@/routes/Loading';
 
@@ -36,15 +37,18 @@ export default function AppRoutes() {
     <Suspense fallback={<Loading />}>
       <Routes>
         <Route element={<AppLayout />}>
-          {/* 🔓 ─────────── 비로그인 허용 ─────────── */}
-          <Route path="/login" element={<LoginPage />} />
+          {/* 🚫 ─────────── 로그인된 사용자 접근 불가 ─────────── */}
+          <Route element={<PreventAuthGuard redirectTo="/main" />}>
+            <Route path="/login" element={<LoginPage />} />
+          </Route>
+
+          {/* 🔓 ─────────── 비로그인 허용 (기타 공개 페이지) ─────────── */}
           <Route path="/report/reportdetail/:reportId" element={<ReportDetailPage />} />
           <Route path="/room/:roomId" element={<WaitingRoomPage />} />
           <Route path="/test" element={<TestPage />} />
 
           {/* 🔒 ─────────── 로그인 필요 + 상태별 가드 ─────────── */}
-          <Route element={<RequireAuth />}>
-            
+          <Route element={<RequireAuthGuard />}>
             {/* 🎮 게임 중인 사용자만 접근 가능 (IN_GAME) */}
             <Route element={<GameOnlyGuard />}>
               <Route path="/home" element={<HomePage />} />
@@ -62,9 +66,9 @@ export default function AppRoutes() {
               <Route path="/room" element={<RoomCreatePage />} />
               <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
             </Route>
-            
-              <Route path="/user/update" element={<EditProfile />} />
-              <Route path="/report/reportlist" element={<ReportListPage />} />
+
+            <Route path="/user/update" element={<EditProfile />} />
+            <Route path="/report/reportlist" element={<ReportListPage />} />
           </Route>
         </Route>
       </Routes>
