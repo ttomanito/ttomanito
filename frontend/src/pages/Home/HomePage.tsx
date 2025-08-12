@@ -202,7 +202,6 @@ const GameHomePage = () => {
   };
 
   const handleShowManito = async () => {
-    openModal(manitoModalData);
     setIsFetchingManito(true);
     setManitoProfile(null);
     try {
@@ -219,6 +218,12 @@ const GameHomePage = () => {
       setIsFetchingManito(false);
     }
   };
+
+  useEffect(() => {
+    if (manitoProfile) {
+      openModal(manitoModalData);
+    }
+  }, [manitoProfile]); // 마니또 프로필 세팅 한 후 모달 열기
 
   const handleShowPastMissions = () => {
     openModal({
