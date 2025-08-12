@@ -1,6 +1,6 @@
 FROM node:22 AS builder
-ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_BASE_URL
+ENV VITE_BASE_URL=$VITE_BASE_URL
 
 WORKDIR /app
 COPY package*.json ./
@@ -11,7 +11,7 @@ COPY . .
 # ✅ Chakra UI 타입 생성 (이 부분 추가)
 # RUN npx @chakra-ui/cli typegen --outdir src/@types/chakra.d.ts src/theme/system.ts || echo "Chakra typegen failed"
 RUN npx @chakra-ui/cli typegen ./src/theme/system.ts
-RUN echo "✅ VITE_API_URL = $VITE_API_URL"
+RUN echo "✅ VITE_BASE_URL = $VITE_BASE_URL"
 RUN npm run build
 
 # 2단계: Nginx로 정적 파일 서빙

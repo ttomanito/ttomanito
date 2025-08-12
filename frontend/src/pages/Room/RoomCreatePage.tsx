@@ -1,3 +1,4 @@
+//src/pages/RoomCreatePage.tsx
 import {
   Box,
   Text,
@@ -20,8 +21,8 @@ import { ko } from 'date-fns/locale';
 import { format } from 'date-fns';
 import DateInput from '@/components/inputs/DateInput';
 import { useNavigate } from 'react-router-dom';
-import { api } from '@/api/client';
-import { useAuth } from '@/stores/authStore'; 
+import { postRequest } from '@/api/requests'; 
+import { useAuth } from '@/stores/authStore';
 
 const korToEngDay = {
   '월': 'MON',
@@ -51,41 +52,47 @@ const RoomCreatePage = () => {
 
   const dayOptions = ['월', '화', '수', '목', '금', '토', '일'];
 
-  const handleCreateRoom = async () => {
-    if (!groupName || !endDate || selectedDays.length === 0) {
-      alert('모든 항목을 입력해주세요.');
-      return;
-    }
-    setLoading(true);
+const handleCreateRoom = async () => {
+  if (!groupName || !endDate || selectedDays.length === 0) {
+    alert('모든 항목을 입력해주세요.');
+    return;
+  }
+  setLoading(true);
 
-    const missionDays = selectedDays.map(
-      (kor) => korToEngDay[kor as keyof typeof korToEngDay]
-    );
-    const deadline = dayjs(endDate).format('YYYY-MM-DD');
+  const missionDays = selectedDays.map(
+    (kor) => korToEngDay[kor as keyof typeof korToEngDay]
+  );
+  const startDate = dayjs().format('YYYY-MM-DD'); // 오늘 날짜
+  const selectedEnd = dayjs(endDate).format('YYYY-MM-DD');
 
-    try {
-      const res = await api.post('/room', {
-        name: groupName,
-        deadline,
-        missionDays,
-      });
+  try {
+    // ✨ 1. 방 생성 API 호출
+    const res = await postRequest('/room', {
+      name: groupName,
+      startDate: startDate, // 시작일 추가
+      endDate: selectedEnd,
+      missionDays,
+    });
+    console.log('방 생성 응답:', res); // 🔍 디버깅: 응답 확인
 
-      const { roomId } = res.data;
-      
-      // ✨ 2. 방 생성 성공 후, auth 스토어 상태를 업데이트합니다.
-      // 이 시점에 사용자는 게임에 참여한 것이며, 방의 생성자입니다.
-      useAuth.getState().joinGame(roomId, true); // isCreator: true
-      console.log(roomId)
+    const { roomId } = res;
 
-      // ✨ 3. 상태 업데이트 후 게임 페이지로 이동합니다.
-      navigate(`/home`);
-    } catch (err) {
-      console.error(err);
-      alert('방 생성 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
+     // ✨ 2. 방 생성 후 상태 업데이트 (게임 시작은 안함)
+    useAuth.getState().setGameInfo({
+      isInGame: true,  // 방에는 참여했지만
+      roomId,
+      isCreator: true, // 방 생성자
+    });
+    navigate(`/room/${roomId}`);
+    // ✨ 3. 상태 업데이트 후 대기방 페이지로 이동
+    
+  } catch (err) {
+    console.error(err);
+    alert('방 생성 중 오류가 발생했습니다.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const longButtonProps: LongButtonProps = {
     loading,

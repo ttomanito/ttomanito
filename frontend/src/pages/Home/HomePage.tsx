@@ -99,7 +99,7 @@ const PastMissionsList = () => {
 // 메인 컴포넌트
 const GameHomePage = () => {
   const isInGame = true; // 테스트용
-  const roomId = '2';
+  const roomId = '14';
 
   const hydrated = useAuth((s) => s.hydrated);
   const { openModal, closeModal } = useModalStore();

@@ -20,7 +20,7 @@ public class RoomScheduler {
 
     private final RoomRepository roomRepository;
 
-    @Scheduled(cron = "0 0 0 * * *") // 매일 자정
+    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul") // 매일 자정
     @Transactional
     public void finishExpiredRooms() {
         LocalDate today = LocalDate.now();
