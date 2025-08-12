@@ -23,6 +23,20 @@ public class ChattingController {
     private final ChattingService service;
     private final VoiceChatService voiceChatService;
 
+    @Operation(summary = "채팅방 참여 여부 확인", description = "특정 사용자가 특정 채팅방에 속해 있는지 확인합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    @GetMapping("/{chatroomId}/is-user/{userId}")
+    public ResponseEntity<Boolean> isMember(
+            @PathVariable("chatroomId") Long chatroomId,
+            @PathVariable("userId") Long userId
+    ) {
+        boolean isMember = service.isUserInChatRoom(chatroomId, userId);
+        return ResponseEntity.ok(isMember);
+    }
+
     @Operation(summary = "채팅방 목록 조회", description = "현재 사용자가 속한 마니또/마니띠 채팅방 정보를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "채팅방 목록 조회 성공"),
