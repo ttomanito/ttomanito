@@ -4,6 +4,7 @@ import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
 import RequireAuth from '@/routes/RequireAuth';
+import { GameOnlyGuard, NonGameGuard } from '@/routes/GameStatusGuard';
 import Loading from '@/routes/Loading';
 
 // === lazy 로딩 타입 보조 함수 ===
@@ -13,25 +14,23 @@ function lazyImport<P = unknown>(
   return React.lazy(factory);
 }
 
-// === Layouts ===
-
 // === Pages ===
-const MainPage = lazyImport(() => import('@/pages/MainPage')); // /
-const LoginPage = lazyImport(() => import('@/pages/User/LoginPage')); // /auth/LoginPage
-const RoomCreatePage = lazyImport(() => import('@/pages/Room/RoomCreatePage')); // /room
-const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage')); // /room/:roomId
-const MatchingPage = lazyImport(() => import('@/pages/Room/MatchingPage')); // /manito/:roomId/matching
-const HomePage = lazyImport(() => import('@/pages/Home/HomePage')); // /home
-const ChatListPage = lazyImport(() => import('@/pages/Chat/ChatListPage')); // /chat
-const ChatRoomPage = lazyImport(() => import('@/pages/Chat/ChatRoomPage')); // /chat/:chatRoomId
-const CallPage = lazyImport(() => import('@/pages/Chat/CallPage')); // /chat/:chatRoomId/call
-const GuessPage = lazyImport(() => import('@/pages/Guess/GuessPage')); // /guess
-const RankingPage = lazyImport(() => import('@/pages/Rank/RankingPage')); // /rank
-const EditProfile = lazyImport(() => import('@/pages/User/EditProfilePage')); // /user/update
-const ReportListPage = lazyImport(() => import('@/pages/Report/ReportListPage')); // /report/reportlist
-const ReportDetailPage = lazyImport(() => import('@/pages/Report/ReportDetailPage')); // /report/reportdetail/:reportId
+const MainPage = lazyImport(() => import('@/pages/MainPage'));
+const LoginPage = lazyImport(() => import('@/pages/User/LoginPage'));
+const RoomCreatePage = lazyImport(() => import('@/pages/Room/RoomCreatePage'));
+const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage'));
+const MatchingPage = lazyImport(() => import('@/pages/Room/MatchingPage'));
+const HomePage = lazyImport(() => import('@/pages/Home/HomePage'));
+const ChatListPage = lazyImport(() => import('@/pages/Chat/ChatListPage'));
+const ChatRoomPage = lazyImport(() => import('@/pages/Chat/ChatRoomPage'));
+const CallPage = lazyImport(() => import('@/pages/Chat/CallPage'));
+const GuessPage = lazyImport(() => import('@/pages/Guess/GuessPage'));
+const RankingPage = lazyImport(() => import('@/pages/Rank/RankingPage'));
+const EditProfile = lazyImport(() => import('@/pages/User/EditProfilePage'));
+const ReportListPage = lazyImport(() => import('@/pages/Report/ReportListPage'));
+const ReportDetailPage = lazyImport(() => import('@/pages/Report/ReportDetailPage'));
+const TestPage = lazyImport(() => import('@/pages/TestPage'));
 
-const TestPage = lazyImport(() => import('@/pages/TestPage')); // /report/reportdetail/:reportId
 export default function AppRoutes() {
   return (
     <Suspense fallback={<Loading />}>
@@ -41,22 +40,31 @@ export default function AppRoutes() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/report/reportdetail/:reportId" element={<ReportDetailPage />} />
           <Route path="/room/:roomId" element={<WaitingRoomPage />} />
+          <Route path="/test" element={<TestPage />} />
 
-          {/* 🔒 ─────────── 나머지 전부 보호 ─────────── */}
+          {/* 🔒 ─────────── 로그인 필요 + 상태별 가드 ─────────── */}
           <Route element={<RequireAuth />}>
-            <Route path="/" element={<MainPage />} />
-            <Route path="/main" element={<MainPage />} />
-            <Route path="/room" element={<RoomCreatePage />} />
-            <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
-            <Route path="/chat/:chatRoomId/call"   element={<CallPage />} />
-            <Route path="/home"                    element={<HomePage />} />
-            <Route path="/chat"                    element={<ChatListPage />} />
-            <Route path="/chat/:chatRoomId"        element={<ChatRoomPage />} />
-            <Route path="/guess"                   element={<GuessPage />} />
-            <Route path="/rank"                    element={<RankingPage />} />
-            <Route path="/user/update"             element={<EditProfile />} />
-            <Route path="/report/reportlist"       element={<ReportListPage />} />
-            <Route path="/test"                    element={<TestPage />} />
+            
+            {/* 🎮 게임 중인 사용자만 접근 가능 (IN_GAME) */}
+            <Route element={<GameOnlyGuard />}>
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/chat" element={<ChatListPage />} />
+              <Route path="/chat/:chatRoomId" element={<ChatRoomPage />} />
+              <Route path="/chat/:chatRoomId/call" element={<CallPage />} />
+              <Route path="/guess" element={<GuessPage />} />
+              <Route path="/rank" element={<RankingPage />} />
+            </Route>
+
+            {/* 🚫 게임 중이 아닌 사용자만 접근 가능 (IN_NONE, IN_WAITING) */}
+            <Route element={<NonGameGuard />}>
+              <Route path="/" element={<MainPage />} />
+              <Route path="/main" element={<MainPage />} />
+              <Route path="/room" element={<RoomCreatePage />} />
+              <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
+            </Route>
+            
+              <Route path="/user/update" element={<EditProfile />} />
+              <Route path="/report/reportlist" element={<ReportListPage />} />
           </Route>
         </Route>
       </Routes>

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Box,
   VStack,
@@ -6,19 +6,64 @@ import {
   IconButton,
   AspectRatio,
 } from '@chakra-ui/react'
-import { useNavigate } from 'react-router-dom'     // ⬅️ 추가
+import { useNavigate } from 'react-router-dom'
 import { FaQuestionCircle } from 'react-icons/fa'
 
 import LongButton from '@/components/buttons/LongButton'
-import { useModalStore } from '@/stores/modalStore';
-import TutorialBody from '@/components/modal/TutorialBody'; 
+import { useModalStore } from '@/stores/modalStore'
+import { useAuth } from '@/stores/authStore'
+import TutorialBody from '@/components/modal/TutorialBody'
 
 const MainPage: React.FC = () => {
-  const navigate = useNavigate()                  // ⬅️ 내비게이터 초기화
+  const navigate = useNavigate()
   const { openModal } = useModalStore()
+  const { 
+    userGameStatus, 
+    currentRoomId, 
+    checkUserGameStatus,
+    isAuthenticated 
+  } = useAuth()
+
   const tutorialModalData = {
     body: <TutorialBody />
-  };
+  }
+
+  // 페이지 진입 시 게임 상태 확인
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkUserGameStatus()
+    }
+  }, [isAuthenticated, checkUserGameStatus])
+
+  // 첫 번째 버튼 텍스트와 동작 결정
+  const getMainButtonConfig = () => {
+    switch (userGameStatus) {
+      case 'IN_WAITING':
+        return {
+          text: '현재 대기방으로 이동',
+          action: () => navigate(`/room/${currentRoomId}`),
+          color: 'yellow.500',
+          hoverColor: 'yellow.600'
+        }
+      case 'IN_GAME':
+        // 게임 중이면 이 페이지에 올 수 없지만, 혹시 모를 경우를 위해
+        return {
+          text: '게임 계속하기',
+          action: () => navigate('/home'),
+          color: 'green.500',
+          hoverColor: 'green.600'
+        }
+      default: // 'IN_NONE'
+        return {
+          text: '그룹 생성하기',
+          action: () => navigate('/room'),
+          color: 'accent.500',
+          hoverColor: 'accent.600'
+        }
+    }
+  }
+
+  const mainButtonConfig = getMainButtonConfig()
 
   return (
     <Box
@@ -40,9 +85,8 @@ const MainPage: React.FC = () => {
         color="accent.500"
         _hover={{ 
           color: 'accent.700', 
-          bg: 'transparent' // ✨ 호버 시 배경색을 투명하게 설정
+          bg: 'transparent'
         }}
-        // ✨ 6. onClick 핸들러에서 openModal을 호출합니다.
         onClick={() => openModal(tutorialModalData)}
       >
         <FaQuestionCircle style={{ width: '40px', height: '40px' }} />
@@ -62,42 +106,44 @@ const MainPage: React.FC = () => {
         <VStack gap={12} w="full" align="center">
           
           {/* 탐정 또마니또 이미지 크게 */}
-<Box w="100%" h="500px">
-  <AspectRatio ratio={9 / 10} w="100%" h="100%">
-    <video
-      src="/videos/demo-video.mp4"
-      autoPlay
-      loop
-      muted
-      playsInline
-      controls={false} // ❌ 없어도 됨, 명시적으로 false 주면 확실
-      style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        borderRadius: '12px',
-        pointerEvents: 'none', // 👈 클릭 방지
-      }}
-    />
-  </AspectRatio>
-</Box>
+          <Box w="100%" h="500px">
+            <AspectRatio ratio={9 / 10} w="100%" h="100%">
+              <video
+                src="/videos/demo-video.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                controls={false}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '12px',
+                  pointerEvents: 'none',
+                }}
+              />
+            </AspectRatio>
+          </Box>
 
           {/* 버튼 두 개 */}
           <VStack gap={4} w="full">
+            {/* 🔥 상태별 동적 버튼 */}
             <LongButton
               w="full"
-              bg="accent.500"
-              _hover={{ bg: 'accent.600' }}
-              onClick={() => navigate('/room')}        // ⬅️ /room
+              bg={mainButtonConfig.color}
+              _hover={{ bg: mainButtonConfig.hoverColor }}
+              onClick={mainButtonConfig.action}
             >
-              그룹 생성하기
+              {mainButtonConfig.text}
             </LongButton>
 
+            {/* 보고서 버튼은 항상 표시 */}
             <LongButton
               w="full"
               bg="accent.500"
               _hover={{ bg: 'accent.600' }}
-              onClick={() => navigate('/report/reportlist')}  // ⬅️ /report/reportlist
+              onClick={() => navigate('/report/reportlist')}
             >
               보고서 보러가기
             </LongButton>
