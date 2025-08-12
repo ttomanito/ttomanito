@@ -182,3 +182,7 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
+# Firebase service account
+src/main/resources/firebase-service-account.json
+secrets/
+secrets/firebase-service-account.json
