@@ -1,3 +1,4 @@
+//frontend\src\routes\Loading.tsx
 import { Center, VStack, Image, Spinner, Text } from '@chakra-ui/react'
 import logo from '@/assets/ttomas/logo.svg'
 

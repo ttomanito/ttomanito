@@ -9,45 +9,14 @@ import type { Message } from '@/types/chat/chat';
 import ChatMessageRenderer from '@/components/chat/ChatMessageRenderer';
 import poke_icon from '@/assets/poke_icon.svg';
 import { useChatSocket } from '@/utils/useChatSocket';
-// 1. JWT 파서 함수를 import 합니다. (경로는 실제 파일 위치에 맞게 수정)
-import { jwtParser } from '@/utils/jwtparser';
+import { useAuth } from '@/stores/authStore'; // 🔥 추가: auth store 사용
 
 const ChatRoomPage = () => {
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
 
-  // 👇 ----- ID 가져오는 로직 ----- 👇
-  const getMyInfoFromToken = useCallback((): { id: string; name?: string } | null => {
-    const authDataString = localStorage.getItem('auth');
-    if (!authDataString) return null;
-
-    try {
-      const authData = JSON.parse(authDataString);
-      const accessToken = authData.state?.tokens?.accessToken;
-      if (!accessToken) return null;
-      
-      const payload = jwtParser<{ sub: string; name?: string; exp: number }>(accessToken);
-      if (payload?.sub) {
-        return { id: payload.sub, name: payload.name };
-      }
-      return null;
-    } catch (error) {
-      console.error("토큰 처리 중 에러 발생:", error);
-      return null;
-    }
-  }, []);
-
-  // 2. 실제 ID를 myUserId로 사용합니다.
-  const [myUserId, setMyUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const userInfo = getMyInfoFromToken();
-    if (userInfo) {
-      setMyUserId(userInfo.id);
-    }
-    // 컴포넌트 마운트 시 한 번만 실행
-  }, [getMyInfoFromToken]);
-
-  // 👆 ----- 여기까지 ID 가져오는 로직 ----- 👆
+  // 🔥 변경: auth store에서 사용자 정보 가져오기
+  const { user, isReady } = useAuth();
+  const myUserId = user?.id || null;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState('');
@@ -99,9 +68,8 @@ const ChatRoomPage = () => {
     }
   }, [messages]);
 
-
-  // myUserId가 로드되기 전에는 로딩 상태를 표시할 수 있습니다.
-  if (!myUserId) {
+  // 🔥 변경: auth store의 준비 상태와 사용자 정보 확인
+  if (!isReady || !myUserId) {
     return <Box>사용자 정보를 불러오는 중...</Box>;
   }
 
