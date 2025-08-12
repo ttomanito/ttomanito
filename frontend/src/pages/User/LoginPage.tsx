@@ -116,13 +116,9 @@ const LoginPage: React.FC = () => {
             <Text>카카오 로그인</Text>
           </HStack>
         </LongButton>
-
-        {/* 💻 개발용 로그인 선택 버튼 */}
-        {import.meta.env.DEV && (
           <LongButton w="full" onClick={showDevLoginModal} bg="gray.200">
             <Text>💻 개발자 로그인 선택</Text>
           </LongButton>
-        )}
       </VStack>
     </Box>
   )
