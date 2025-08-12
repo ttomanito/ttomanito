@@ -16,6 +16,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -25,6 +27,31 @@ public class RoomUserService {
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
+
+    @Transactional(readOnly = true)
+    public Long getRoomUserId(Long roomId, Long userId) {
+        RoomUser ru = roomUserRepository.findByRoomIdAndUserId(roomId, userId)
+                .orElseThrow(() -> new NotFoundException(
+                        "해당 방(" + roomId + ")에서 사용자(" + userId + ")의 참여 정보가 없습니다."));
+        return ru.getRoomUserId();
+    }
+
+    @Transactional(readOnly = true)
+    public Long getRoomUserIdInActiveRoom(Long userId) {
+        List<RoomStatus> active = List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS);
+
+        // 사용자가 속한 활성 방 한 개 찾기 (레포지토리 시그니처가 단건 반환이므로 null 체크)
+        Room room = roomUserRepository.findActiveRoomByUserId(userId, active);
+        if (room == null) {
+            throw new NotFoundException("사용자(" + userId + ")가 참여 중인 활성 방이 없습니다.");
+        }
+
+        RoomUser ru = roomUserRepository.findByRoomIdAndUserId(room.getRoomId(), userId)
+                .orElseThrow(() -> new NotFoundException(
+                        "활성 방(" + room.getRoomId() + ")에서 사용자(" + userId + ")의 참여 정보가 없습니다."));
+        return ru.getRoomUserId();
+    }
+
 
     /**
      * 상태메시지 작성 + 대기방 입장 처리 (room_user insert + 소켓 broadcast)

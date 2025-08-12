@@ -62,8 +62,7 @@ public class SecurityConfig {
                                 "/login/oauth2/code/**",
                                 "/auth/**"
                         ).permitAll()
-
-                        //   .requestMatchers("/notice/**").authenticated()
+                        .requestMatchers("/auth/dev/**").permitAll()
                         .requestMatchers("/ws/**", "/ws/signal/**", "/topic/**", "/app/**").permitAll()
                         .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
@@ -81,9 +80,9 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
                         .deleteCookies("accessToken", "refreshToken", "JSESSIONID")
-                        .logoutSuccessHandler((req, res, auth) -> {
-                            res.sendRedirect(frontendRedirectUrl + "/login");  // http://localhost:5173/login
-                        })
+//                        .logoutSuccessHandler((req, res, auth) -> {
+//                            res.sendRedirect(frontendRedirectUrl + "/login");  // http://localhost:5173/login
+//                        })
                 )
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> res.sendError(401)));
 

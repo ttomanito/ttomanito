@@ -198,3 +198,15 @@ CREATE TABLE `poke_log` (
                             CONSTRAINT `FK_pl_assignment`   FOREIGN KEY (`manito_assignment_id`) REFERENCES `manito_assignment`(`manito_assignment_id`),
                             CONSTRAINT `FK_pl_room_user`    FOREIGN KEY (`room_user_id`) REFERENCES `room_user`(`room_user_id`)
 );
+
+CREATE TABLE `push_token` (
+                              `push_token_id`         BIGINT NOT NULL AUTO_INCREMENT,
+                              `user_id`    BIGINT NOT NULL,
+                              `token`      VARCHAR(500) NOT NULL,
+                              `enabled`    BOOLEAN NOT NULL,
+                              `updated_at` DATETIME NOT NULL,
+                              PRIMARY KEY (`push_token_id`),
+                              UNIQUE KEY `UK_push_token_token` (`token`),
+                              KEY `IX_pt_user` (`user_id`),
+                              CONSTRAINT `FK_pt_user` FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
