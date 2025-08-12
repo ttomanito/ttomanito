@@ -87,6 +87,19 @@ const ReportDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 공유하기 버튼 클릭 시 링크를 복사하는 함수
+  const handleShareClick = () => {
+    const currentUrl = window.location.href;
+    navigator.clipboard.writeText(currentUrl)
+      .then(() => {
+        alert('링크가 복사되었어요!');
+      })
+      .catch(err => {
+        console.error('클립보드 복사 실패:', err);
+        alert('복사에 실패했습니다. 다시 시도해주세요.');
+      });
+  };
+
   useEffect(() => {
     console.log("1. useEffect 시작, roomId:", roomId); 
 
@@ -153,12 +166,19 @@ const ReportDetailPage = () => {
             <Text textStyle="title_mlg">✪ {report.roomName}리포트</Text>
             <Text textStyle="caption_sm">너와 나 사이 관찰 보고서</Text>
         </Box>
-        <Button colorScheme="purple" variant="outline" size="sm" alignSelf="flex-end">
-            공유하기
-        </Button>
+        <HStack justifyContent="flex-end">
+        <Button bg="#C39CFF"
+            color="white"
+            _hover={{ bg: '#B388FF' }}
+            size="sm" 
+            borderRadius="2xl"
+            flexShrink={0}  onClick={handleShareClick}>
+              공유하기
+          </Button>
+        </HStack>
         
         {/* 마니또와의 기록 */}
-        <VStack gap={4} align="stretch" w="100%">
+        <VStack gap={4} align="stretch" w="100%"  mb={3}>
             <Text textStyle="title_md">마니또와의 기록</Text>
             <ProfileCard 
                 title="내 마니또"
@@ -188,7 +208,7 @@ const ReportDetailPage = () => {
         <Box h="20px" />
 
         {/* 마니띠와의 기록 */}
-        <VStack gap={4} align="stretch" w="100%">
+        <VStack gap={4} align="stretch" w="100%" mb={3}>
             <Text textStyle="title_md">마니띠와의 기록</Text>
             <ProfileCard 
                 title="내 마니띠"
