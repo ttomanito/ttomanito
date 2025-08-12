@@ -5,10 +5,7 @@ import Loading from '@/routes/Loading'
 
 export default function RequireAuth() {
   const hydrated = useAuth((s) => s.hydrated)
-
-  // ✅ getter 대신 직접 accessToken 여부로 판별
-  const accessToken = useAuth((s) => s.tokens.accessToken)
-  const isAuthed = !!accessToken
+  const isAuthed  = useAuth((s) => s.isAuthenticated)
 
   const loc = useLocation()
 
