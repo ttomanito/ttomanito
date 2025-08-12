@@ -1,11 +1,11 @@
 package com.ssafy.ttomanito.domain.chatting.voice.service;
 
 import io.openvidu.java.client.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-
+@Slf4j
 @Service
 public class OpenViduService {
 
@@ -15,40 +15,71 @@ public class OpenViduService {
             @Value("${openvidu.url}") String url,
             @Value("${openvidu.secret}") String secret
     ) {
-        this.openVidu = new OpenVidu(url, secret);
+        // URL 공백 제거 및 끝 슬래시 제거
+        String normalized = (url == null ? "" : url).trim().replaceAll("/+$", "");
+        // http/https 스킴은 그대로 유지 (2.20.0은 강제 변환 안 함)
+        this.openVidu = new OpenVidu(normalized, secret);
+
+        log.info("[OV] baseUrl='{}'", normalized);
+        log.info("[OV] secret(hash)={}", Integer.toHexString(secret.hashCode())); // 비밀키 직접 노출 X
     }
 
-    /**
-     * customSessionId로 세션 생성 시도. 이미 존재하면 HTTP 409 에러를 받아
-     * 기존 세션을 fetch()로 가져옵니다.
-     */
+    /** 세션 생성 (이미 있으면 409 → fetch → 기존 세션 반환) */
     public Session getOrCreateSession(String customSessionId)
             throws OpenViduJavaClientException, OpenViduHttpException {
+
+        if (customSessionId == null || customSessionId.isBlank()) {
+            throw new IllegalArgumentException("sessionId must not be null or blank");
+        }
+
+        // sessionId 형식 재검증 (영문 숫자 - _ 만 허용)
+        if (!customSessionId.matches("^[a-zA-Z0-9_-]+$")) {
+            throw new IllegalArgumentException("Invalid sessionId format");
+        }
+
+        SessionProperties props = new SessionProperties.Builder()
+                .customSessionId(customSessionId)
+                .build();
+
         try {
-            return openVidu.createSession(
-                    SessionProperties.fromJson(Map.of("customSessionId", customSessionId)).build()
-            );
+            Session session = openVidu.createSession(props);
+            log.info("[OV] createSession OK id='{}'", session.getSessionId());
+            return session;
+
         } catch (OpenViduHttpException e) {
+            log.warn("[OV] createSession EX status={} msg={}", e.getStatus(), e.getMessage());
+
             if (e.getStatus() == 409) {
-                // 이미 생성된 세션이 있을 때는 기존 세션 반환
-                openVidu.fetch();  // 🔄 fetches up-to-date list :contentReference[oaicite:2]{index=2}
-                return openVidu.getActiveSession(customSessionId);
+                openVidu.fetch(); // 세션 목록 갱신
+                openVidu.fetch(); // 최신 세션 목록 동기화
+                Session existing = openVidu.getActiveSessions().stream()
+                        .filter(s -> customSessionId.equals(s.getSessionId())
+                                || (s.getProperties() != null && customSessionId.equals(s.getProperties().customSessionId())))
+                        .findFirst()
+                        .orElse(null);
+                if (existing != null) {
+                    log.info("[OV] existing session id='{}'", existing.getSessionId());
+                    return existing;
+                }
             }
             throw e;
         }
     }
 
-    /**
-     * 주어진 세션에 대해 Connection(token)을 생성합니다.
-     *
-     * @param session 기존 또는 새로 생성된 OpenVidu 세션
-     * @param data    클라이언트에 전달할 메타데이터(예: nickname)
-     * @return 발급된 connection token
-     */
+    /** 토큰 생성 */
     public String generateConnectionToken(Session session, String data)
             throws OpenViduJavaClientException, OpenViduHttpException {
-        return session.createConnection(
-                ConnectionProperties.fromJson(Map.of("data", data)).build()
-        ).getToken();
+
+        if (session == null) {
+            throw new IllegalArgumentException("session must not be null");
+        }
+
+        ConnectionProperties conn = new ConnectionProperties.Builder()
+                .data(data == null ? "" : data)
+                .build();
+
+        String token = session.createConnection(conn).getToken();
+        log.info("[OV] createConnection OK tokenLen={}", token != null ? token.length() : 0);
+        return token;
     }
 }

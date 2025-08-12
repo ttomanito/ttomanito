@@ -45,10 +45,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
-    // OpenVidu Java Client (v2.31.0)
-    implementation 'io.openvidu:openvidu-java-client:2.31.0'
+    implementation "org.apache.commons:commons-lang3:3.18.0"
+    // OpenVidu Java Client (v2.20.0)
+    implementation 'io.openvidu:openvidu-java-client:2.20.0'
     // firebase
-    implementation("com.google.firebase:firebase-admin:9.2.0")
+    implementation "com.google.firebase:firebase-admin:9.5.0"
+    implementation "com.google.protobuf:protobuf-java:3.25.8"
+    implementation "com.google.protobuf:protobuf-javalite:3.25.8"
 }
 
 test {
