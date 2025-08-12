@@ -10,18 +10,18 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
+import java.util.Map;
+
+@Slf4j
 @RestController
 @RequestMapping("/openvidu")
-@Tag(name = "OpenVidu", description = "OpenVidu 세션·토큰 관리 API")
 public class SessionController {
 
     private final OpenViduService openViduService;
@@ -29,7 +29,6 @@ public class SessionController {
     public SessionController(OpenViduService openViduService) {
         this.openViduService = openViduService;
     }
-
     @Operation(
             summary = "OpenVidu 연결 토큰 발급",
             description = "주어진 세션 ID로 OpenVidu 세션을 생성 또는 조회하고, 해당 세션에 연결할 커넥션 토큰을 발급합니다."
@@ -42,29 +41,65 @@ public class SessionController {
             @ApiResponse(responseCode = "502", description = "OpenVidu 클라이언트 예외 발생"),
             @ApiResponse(responseCode = "503", description = "OpenVidu 서버 연결 실패")
     })
-    @PostMapping("/token")
-    public ResponseEntity<String> generateToken(@RequestBody TokenRequest req) {
+    @PostMapping(
+            value = "/token",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Map<String, String>> generateToken(@Valid @RequestBody TokenRequest req) {
+        // record 접근 → req.sessionId(), req.nickname()
+        log.info("[/openvidu/token] IN sessionId={}, nickname={}", req.sessionId(), req.nickname());
+
+        // 간단 sessionId 형식 검증
+        if (!req.sessionId().matches("^[a-zA-Z0-9_-]+$")) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("error", "BadRequest", "message", "Invalid sessionId format"));
+        }
+
         try {
-            // 1) 세션 생성 또는 조회
+            log.debug("[/openvidu/token] Requesting session from OpenVidu server...");
             Session session = openViduService.getOrCreateSession(req.sessionId());
-            // 2) 커넥션 토큰 발급
+
+            log.debug("[/openvidu/token] Generating token for nickname={}", req.nickname());
             String token = openViduService.generateConnectionToken(session, req.nickname());
-            return ResponseEntity.ok(token);
+
+            return ResponseEntity.ok(Map.of("token", token));
+
+        } catch (IllegalArgumentException e) {
+            log.warn("[/openvidu/token] BAD REQUEST: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("error", "BadRequest", "message", e.getMessage()));
+
         } catch (OpenViduHttpException e) {
-            // OpenVidu 서버가 반환한 HTTP 상태 코드와 메시지 그대로 전달
-            return ResponseEntity
-                    .status(e.getStatus())
-                    .body("OpenVidu error: " + e.getMessage());
+            // OpenVidu 서버에서 발생한 HTTP 예외 - 상태 코드 그대로 전달
+            log.warn("[/openvidu/token] OV HTTP EX status={} msg={}", e.getStatus(), e.getMessage());
+            return ResponseEntity.status(e.getStatus())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of(
+                            "error", "OpenViduHttpException",
+                            "status", String.valueOf(e.getStatus()),
+                            "message", e.getMessage()
+                    ));
+
         } catch (OpenViduJavaClientException e) {
-            // Java client 예외
-            return ResponseEntity
-                    .status(HttpStatus.BAD_GATEWAY)
-                    .body("OpenVidu client error: " + e.getMessage());
+            log.warn("[/openvidu/token] OV JAVA EX msg={}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of(
+                            "error", "OpenViduJavaClientException",
+                            "message", e.getMessage()
+                    ));
+
         } catch (Exception e) {
-            // 네트워크 오류 등 기타 예외
-            return ResponseEntity
-                    .status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body("Cannot connect to OpenVidu Server");
+            log.error("[/openvidu/token] OTHER EX", e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of(
+                            "error", "ServiceUnavailable",
+                            "message", "Cannot connect to OpenVidu Server"
+                    ));
         }
     }
 }
