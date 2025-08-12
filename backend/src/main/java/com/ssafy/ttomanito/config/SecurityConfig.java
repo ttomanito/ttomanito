@@ -62,8 +62,7 @@ public class SecurityConfig {
                                 "/login/oauth2/code/**",
                                 "/auth/**"
                         ).permitAll()
-
-                        //   .requestMatchers("/notice/**").authenticated()
+                        .requestMatchers("/auth/dev/**").permitAll()
                         .requestMatchers("/ws/**", "/ws/signal/**", "/topic/**", "/app/**").permitAll()
                         .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
