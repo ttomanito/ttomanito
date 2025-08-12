@@ -65,7 +65,6 @@ public class OpenViduService {
             throw e;
         }
     }
-    
 
     /** 토큰 생성 */
     public String generateConnectionToken(Session session, String data)
