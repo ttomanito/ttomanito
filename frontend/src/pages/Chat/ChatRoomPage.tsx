@@ -189,7 +189,7 @@ const ChatRoomPage = () => {
   const { 
     sendMessage: socketSendMessage, 
     sendPoke, 
-    startCall,
+    // startCall,
     acceptCall,
     rejectCall,
     loadMoreHistory,
@@ -337,7 +337,7 @@ const ChatRoomPage = () => {
           data={messages}
           firstItemIndex={firstItemIndex}
           startReached={hasMoreHistory ? handleStartReached : undefined}
-          itemContent={(index, msg) => (
+          itemContent={(_, msg) => (
             <Box px={4} py={2}>
               <ChatMessageRenderer 
                 message={msg} 

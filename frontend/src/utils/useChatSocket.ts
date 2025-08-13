@@ -163,18 +163,7 @@ export const useChatSocket = ({
           
           // 초기 히스토리 로드 (최신 50개)
           console.log('[CHAT] 🚀 초기 히스토리 요청 시작...');
-          
-          // 🔥 5초 후에도 응답이 없으면 경고
-          const timeoutId = setTimeout(() => {
-            console.warn('[CHAT] ⚠️ 히스토리 응답이 5초 동안 없습니다!');
-            console.warn('[CHAT] 백엔드에서 응답을 보내지 않는 것 같습니다.');
-            console.warn('[CHAT] 가능한 원인: Principal 인증 문제, 채팅방 권한 문제, DB 오류');
-            
-            // 임시로 빈 응답 처리
-            onHistoryLoadedRef.current?.([], false);
-            setIsLoadingHistory(false);
-          }, 5000);
-          
+        
           
           loadHistory();
           
