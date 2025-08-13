@@ -363,7 +363,7 @@ export const useAuth = create<AuthState>()(
       // 로그아웃
       logout: async () => {
         try {
-          await api.post('/auth/logout')
+          await postRequest('/auth/logout')
           console.log('[AUTH] 서버 로그아웃 완료')
         } catch (error) {
           console.error('[AUTH] 서버 로그아웃 실패:', error)

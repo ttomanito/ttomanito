@@ -1,4 +1,4 @@
-// ChatRoomPage.tsx - Virtuoso 무한 스크롤 적용 버전
+// ChatRoomPage.tsx - roomUserId 조회 추가
 import { Box, Flex, Icon, Text, Image, Spinner, Center } from '@chakra-ui/react';
 import { FiPhone } from 'react-icons/fi';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -13,6 +13,11 @@ import { useAuth } from '@/stores/authStore';
 import { getRequest } from '@/api/requests';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 
+// API 응답 타입 정의
+interface RoomUserResponse {
+  roomUserId: number;
+}
+
 type AccessState = 'checking' | 'granted' | 'denied' | 'error';
 
 const ChatRoomPage = () => {
@@ -23,6 +28,7 @@ const ChatRoomPage = () => {
   const myUserId = user?.id || null;
 
   const [accessState, setAccessState] = useState<AccessState>('checking');
+  const [roomUserId, setRoomUserId] = useState<string | null>(null); // 👈 roomUserId 상태 추가
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [message, setMessage] = useState('');
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
@@ -33,31 +39,39 @@ const ChatRoomPage = () => {
   const [firstItemIndex, setFirstItemIndex] = useState(0);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
-  // 채팅방 접근 권한 확인
+  // 채팅방 접근 권한 확인 및 roomUserId 조회
   useEffect(() => {
-    const checkAccess = async () => {
+    const checkAccessAndGetRoomUserId = async () => {
       if (!isReady || !myUserId || !chatRoomId) {
         return;
       }
 
       try {
         setAccessState('checking');
+        
+        // 1. 채팅방 접근 권한 확인
         const hasAccess = await getRequest<boolean>(`/chat/${chatRoomId}/is-user/${myUserId}`);
         
         if (hasAccess === true) {
           console.log('[CHAT] 채팅방 접근 권한 확인됨');
+          
+          // 2. roomUserId 조회
+          const roomUserData = await getRequest<RoomUserResponse>(`/room-user/me/active`);
+          console.log('[CHAT] roomUserId 조회 결과:', roomUserData);
+          
+          setRoomUserId(roomUserData.roomUserId.toString());
           setAccessState('granted');
         } else {
           console.warn('[CHAT] 채팅방 접근 권한 없음');
           setAccessState('denied');
         }
       } catch (error) {
-        console.error('[CHAT] 접근 권한 확인 중 오류:', error);
+        console.error('[CHAT] 접근 권한 확인 또는 roomUserId 조회 중 오류:', error);
         setAccessState('error');
       }
     };
 
-    checkAccess();
+    checkAccessAndGetRoomUserId();
   }, [isReady, myUserId, chatRoomId]);
 
   // 접근 거부시 자동 리다이렉트
@@ -95,7 +109,7 @@ const ChatRoomPage = () => {
   // 실시간 메시지 처리 (새 메시지는 맨 아래 추가)
   const handleNewMessage = useCallback((receivedMessage: ReceivedMessage) => {
     console.log('[DEBUG] 새 메시지 수신:', receivedMessage);
-    if (!myUserId) return;
+    if (!roomUserId) return; // 👈 roomUserId로 변경
 
     const newMessage = convertToClientMessage(receivedMessage);
     console.log('[DEBUG] 변환된 메시지:', newMessage);
@@ -115,26 +129,12 @@ const ChatRoomPage = () => {
       
       return updatedMessages;
     });
-  }, [myUserId, convertToClientMessage]);
+  }, [roomUserId, convertToClientMessage]); // 👈 roomUserId로 변경
 
   // 히스토리 로드 완료 처리 (이전 메시지는 맨 위에 추가)
   const handleHistoryLoaded = useCallback((history: ReceivedMessage[], hasMore: boolean) => {
     console.log('[DEBUG] 히스토리 로드됨:', history.length, '개 메시지');
     console.log('[DEBUG] 첫 번째 메시지:', history[0]);
-    
-    // 🔥 임시: 빈 히스토리일 때 테스트 메시지 추가
-    if (history.length === 0) {
-      console.log('[DEBUG] 빈 히스토리 - 테스트 메시지 추가');
-      const testMessage: ReceivedMessage = {
-        chattingRoomId: parseInt(chatRoomId || '0'),
-        senderRoomUserId: parseInt(myUserId || '0') + 1, // 다른 사용자로 설정
-        senderUserId: 999,
-        content: '테스트 메시지입니다!',
-        type: 'TEXT',
-        sentAt: new Date().toISOString()
-      };
-      history = [testMessage];
-    }
     
     const convertedHistory = history.map(convertToClientMessage);
     
@@ -163,7 +163,7 @@ const ChatRoomPage = () => {
     
     setHasMoreHistory(hasMore);
     setIsLoadingHistory(false);
-  }, [convertToClientMessage, firstItemIndex, chatRoomId, myUserId]);
+  }, [convertToClientMessage, firstItemIndex, chatRoomId, roomUserId]); // 👈 roomUserId 추가
 
   // 연결 상태 변경 처리
   const handleConnectionStateChange = useCallback((state: any) => {
@@ -185,19 +185,18 @@ const ChatRoomPage = () => {
     }
   }, [hasMoreHistory, isLoadingHistory, messages]);
 
-  // 웹소켓 훅 사용
+  // 웹소켓 훅 사용 - roomUserId 전달
   const { 
     sendMessage: socketSendMessage, 
     sendPoke, 
-    // startCall,
     acceptCall,
     rejectCall,
     loadMoreHistory,
     connectionState, 
     isConnected 
   } = useChatSocket({
-    chatRoomId: accessState === 'granted' && myUserId ? chatRoomId || '1' : null,
-    myUserId: accessState === 'granted' ? myUserId : null,
+    chatRoomId: accessState === 'granted' && roomUserId ? chatRoomId || '1' : null,
+    roomUserId: roomUserId, // 👈 명확하게 roomUserId로 전달
     onMessage: handleNewMessage,
     onHistoryLoaded: handleHistoryLoaded,
     onConnectionStateChange: handleConnectionStateChange,
@@ -273,6 +272,15 @@ const ChatRoomPage = () => {
     );
   }
 
+  // roomUserId가 없으면 로딩 상태 표시
+  if (!roomUserId) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" h="100vh" flexDirection="column" gap={4}>
+        <Text fontSize="lg">채팅방 정보를 불러오는 중...</Text>
+      </Box>
+    );
+  }
+
   // 연결 상태 표시
   const getConnectionStatus = () => {
     switch (connectionState) {
@@ -291,7 +299,7 @@ const ChatRoomPage = () => {
       <Box as="header" position="sticky" top="0" zIndex="10" bg="white" borderBottom="1px solid #ccc" p={4}>
         <Flex align="center" justify="space-between">
           <Text fontWeight="bold" fontSize="lg" textAlign="center" flex="1">
-            마니또 ({getConnectionStatus()})
+            마니또 ({getConnectionStatus()}) | roomUserId: {roomUserId} | roomId : {chatRoomId}
           </Text>
           <Icon as={FiPhone} boxSize={5} />
         </Flex>
@@ -341,7 +349,7 @@ const ChatRoomPage = () => {
             <Box px={4} py={2}>
               <ChatMessageRenderer 
                 message={msg} 
-                myUserId={myUserId}
+                myUserId={roomUserId} // 👈 roomUserId로 변경
                 onCallAccept={acceptCall}
                 onCallReject={rejectCall}
               />
