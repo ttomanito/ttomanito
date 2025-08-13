@@ -1,11 +1,14 @@
 package com.ssafy.ttomanito.domain.chatting.voice.service;
 
-import io.openvidu.java.client.*;
-import lombok.extern.slf4j.Slf4j;
+import io.openvidu.java.client.ConnectionProperties;
+import io.openvidu.java.client.OpenVidu;
+import io.openvidu.java.client.OpenViduHttpException;
+import io.openvidu.java.client.OpenViduJavaClientException;
+import io.openvidu.java.client.Session;
+import io.openvidu.java.client.SessionProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 public class OpenViduService {
 
@@ -15,71 +18,48 @@ public class OpenViduService {
             @Value("${openvidu.url}") String url,
             @Value("${openvidu.secret}") String secret
     ) {
-        // URL 공백 제거 및 끝 슬래시 제거
-        String normalized = (url == null ? "" : url).trim().replaceAll("/+$", "");
-        // http/https 스킴은 그대로 유지 (2.20.0은 강제 변환 안 함)
-        this.openVidu = new OpenVidu(normalized, secret);
-
-        log.info("[OV] baseUrl='{}'", normalized);
-        log.info("[OV] secret(hash)={}", Integer.toHexString(secret.hashCode())); // 비밀키 직접 노출 X
+        this.openVidu = new OpenVidu(url, secret);
     }
 
-    /** 세션 생성 (이미 있으면 409 → fetch → 기존 세션 반환) */
+    /**
+     * customSessionId로 세션 생성. 이미 존재(409)하면 fetch 후 기존 세션 반환.
+     */
     public Session getOrCreateSession(String customSessionId)
             throws OpenViduJavaClientException, OpenViduHttpException {
-
-        if (customSessionId == null || customSessionId.isBlank()) {
-            throw new IllegalArgumentException("sessionId must not be null or blank");
-        }
-
-        // sessionId 형식 재검증 (영문 숫자 - _ 만 허용)
-        if (!customSessionId.matches("^[a-zA-Z0-9_-]+$")) {
-            throw new IllegalArgumentException("Invalid sessionId format");
-        }
 
         SessionProperties props = new SessionProperties.Builder()
                 .customSessionId(customSessionId)
                 .build();
 
         try {
-            Session session = openVidu.createSession(props);
-            log.info("[OV] createSession OK id='{}'", session.getSessionId());
-            return session;
-
+            return openVidu.createSession(props);
         } catch (OpenViduHttpException e) {
-            log.warn("[OV] createSession EX status={} msg={}", e.getStatus(), e.getMessage());
-
             if (e.getStatus() == 409) {
-                openVidu.fetch(); // 세션 목록 갱신
-                openVidu.fetch(); // 최신 세션 목록 동기화
-                Session existing = openVidu.getActiveSessions().stream()
-                        .filter(s -> customSessionId.equals(s.getSessionId())
-                                || (s.getProperties() != null && customSessionId.equals(s.getProperties().customSessionId())))
-                        .findFirst()
-                        .orElse(null);
-                if (existing != null) {
-                    log.info("[OV] existing session id='{}'", existing.getSessionId());
-                    return existing;
+                openVidu.fetch();
+                // sessionId 혹은 properties.customSessionId 둘 다 체크
+                for (Session s : openVidu.getActiveSessions()) {
+                    if (customSessionId.equals(s.getSessionId())
+                            || (s.getProperties() != null
+                            && customSessionId.equals(s.getProperties().customSessionId()))) {
+                        return s;
+                    }
                 }
+                // 못 찾으면 원래 예외 던짐
             }
             throw e;
         }
     }
 
-    /** 토큰 생성 */
+    /**
+     * 커넥션 생성 후 '풀 URL 토큰' 그대로 반환 (wss://...&token=tok_xxx).
+     */
     public String generateConnectionToken(Session session, String data)
             throws OpenViduJavaClientException, OpenViduHttpException {
-
-        if (session == null) {
-            throw new IllegalArgumentException("session must not be null");
-        }
 
         ConnectionProperties conn = new ConnectionProperties.Builder()
                 .data(data == null ? "" : data)
                 .build();
 
-        String token = session.createConnection(conn).getToken();
-        log.info("[OV] createConnection OK tokenLen={}", token != null ? token.length() : 0);
-        return token;
+        return session.createConnection(conn).getToken();
     }
 }
