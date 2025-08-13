@@ -74,7 +74,7 @@ services:
       SPRING_PORT: ${SPRING_PORT}
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
       JWT_SECRET: ${JWT_SECRET}
-      OPENVIDU_URL: https://i13b206.p.ssafy.io:4443
+      OPENVIDU_URL: https://i13b206.p.ssafy.io:4443/
       OPENVIDU_SECRET: ${OPENVIDU_SECRET}
       SPRING_PROFILES_ACTIVE: prod
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase.json
