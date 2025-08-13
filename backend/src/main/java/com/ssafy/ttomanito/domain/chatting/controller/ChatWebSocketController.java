@@ -12,6 +12,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
@@ -32,7 +33,7 @@ public class ChatWebSocketController {
     public void history(
             @DestinationVariable Long chatRoomId,
             @Payload HistoryRequest req,
-            Principal principal
+            @AuthenticationPrincipal Principal principal
     ) {
         log.info("[웹소켓] 채팅 히스토리 요청 - 채팅방ID={}, 기준시간='{}', 사용자={}",
                 chatRoomId, req.before(), principal != null ? principal.getName() : "익명");
