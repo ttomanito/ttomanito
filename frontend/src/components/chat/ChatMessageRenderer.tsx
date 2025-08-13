@@ -1,25 +1,49 @@
-// src/components/chat/ChatMessageRenderer.tsx
+// src/components/chat/ChatMessageRenderer.tsx - 통화 기능 지원
 
 import type { Message } from '@/types/chat/chat';
 import ChatBubble from './ChatBubble';
 import SystemMessage from './SystemMessage';
 
-// 👇 props 타입 정의에 myUserId: string 을 추가합니다.
 interface ChatMessageRendererProps {
   message: Message;
   myUserId: string;
+  onCallAccept?: () => void;
+  onCallReject?: () => void;
 }
 
-const ChatMessageRenderer = ({ message, myUserId }: ChatMessageRendererProps) => {
+const ChatMessageRenderer = ({ 
+  message, 
+  myUserId, 
+  onCallAccept, 
+  onCallReject 
+}: ChatMessageRendererProps) => {
   switch (message.type) {
     case 'system':
-      return <SystemMessage category={message.systemCategory} />;
+      return <SystemMessage category={message.systemCategory || 'exit'} />;
+    
     case 'poke':
-      // 👇 ChatBubble로 myUserId를 전달합니다.
-      return <ChatBubble message={message} myUserId={myUserId} />;
+    case 'text':
+    case 'call_start':
+    case 'call_accept':
+    case 'call_reject':
+      return (
+        <ChatBubble 
+          message={message} 
+          myUserId={myUserId}
+          onCallAccept={onCallAccept}
+          onCallReject={onCallReject}
+        />
+      );
+    
     default:
-      // 👇 여기에도 myUserId를 전달합니다.
-      return <ChatBubble message={message} myUserId={myUserId} />;
+      return (
+        <ChatBubble 
+          message={message} 
+          myUserId={myUserId}
+          onCallAccept={onCallAccept}
+          onCallReject={onCallReject}
+        />
+      );
   }
 };
 
