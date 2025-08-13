@@ -33,6 +33,7 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/me")
     public ResponseEntity<UserDto> me(@AuthenticationPrincipal JwtUserDetails user) {
+        if (user == null) return ResponseEntity.status(401).build();
         UserDto dto = userService.getMyPage(user.getUserId());
         return ResponseEntity.ok(dto);
     }
