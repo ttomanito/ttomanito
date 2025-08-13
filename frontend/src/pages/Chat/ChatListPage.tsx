@@ -1,8 +1,9 @@
 // src/pages/Chat/ChatListPage.tsx
+import { useNavigate } from 'react-router-dom';
 import { Box, Flex, Text, VStack, Badge, Image, Spinner, Center } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getRequest } from '@/api/requests';
+import { getRequest, postRequest } from '@/api/requests';
 import { useAuth } from '@/stores/authStore';
 import profile_manito from '@/assets/ttomas/profile_manito.png';
 import profile_manitee from '@/assets/ttomas/profile_manitee.png';
@@ -43,12 +44,23 @@ const ChatListPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   // 파트너 정보 가져오기 함수
-  const getChatPartnerInfo = (assignmentId: number) => {
-    if (assignmentId % 2 === 0) {
+  const getChatPartnerInfo = (index: number) => {
+    if (index == 0) {
       return { name: '마니또', profileImage: profile_manito };
     } else {
       return { name: '마니띠', profileImage: profile_manitee };
     }
+  };
+
+  const navigate = useNavigate();
+
+  const enterChat = async (id: number) => {
+    try {
+      await postRequest(`/chat/${id}/enter`, {});
+    } catch (e) {
+      console.warn('채팅방 입장 API 실패:', e);
+    }
+    navigate(`/chat/${id}`);
   };
 
   useEffect(() => {
@@ -67,11 +79,10 @@ const ChatListPage = () => {
 
         // 실제 API 호출
         const responseData = await getRequest<ChatApiResponse>('/chat/roomlist');
-        
+
         // API 응답에서 'manito'와 'manitee' 두 개의 채팅방 정보를 배열로 변환
         const chatDataArray = [responseData.manito, responseData.manitee];
         setChatList(chatDataArray);
-
       } catch (err) {
         console.error('채팅방 목록을 불러오는 데 실패했습니다.', err);
         setError('채팅방 목록을 불러오지 못했습니다. 다시 시도해주세요.');
@@ -132,14 +143,17 @@ const ChatListPage = () => {
       <VStack align="stretch" gap="0">
         {chatList.map((chat, index) => {
           // 파트너 정보 가져오기
-          const { name, profileImage } = getChatPartnerInfo(chat.chatRoom.manitoAssignmentId);
+          // chatList[0]: 마니또
+          // chatList[1]: 마니띠
+          const { name, profileImage } = getChatPartnerInfo(index);
 
           return (
-            <Link key={chat.chatRoom.chattingRoomId} to={`/chat/${chat.chatRoom.chattingRoomId}`}>
+            // <Link key={chat.chatRoom.chattingRoomId} to={`/chat/${chat.chatRoom.chattingRoomId}`}>
               <Flex
                 align="center"
-                _hover={{ bg: 'gray.100' }}
-                px="2"
+                _hover={{ bg: 'gray.100' , cursor: 'pointer'}}
+                onClick={() => enterChat(chat.chatRoom.chattingRoomId)}
+                px="4"
                 py="4"
                 borderBottomWidth={index === chatList.length - 1 ? '0' : '1px'}
                 borderBottomStyle="solid"
@@ -154,11 +168,7 @@ const ChatListPage = () => {
                   borderColor="border.disabled"
                   color="fg.disabled"
                 >
-                  <Image 
-                    src={profileImage} 
-                    alt={`${name} 프로필`}
-                    mr={3}
-                  />
+                  <Image src={profileImage} alt={`${name} 프로필`} mr={3} />
                 </Box>
                 <Box flex="1">
                   <Text fontWeight="bold">{name}</Text>
@@ -168,27 +178,20 @@ const ChatListPage = () => {
                 </Box>
                 <Box textAlign="right">
                   <Text fontSize="xs" color="gray.400">
-                    {chat.chatRoom.lastMessageTime && 
+                    {chat.chatRoom.lastMessageTime &&
                       new Date(chat.chatRoom.lastMessageTime).toLocaleTimeString('ko-KR', {
                         hour: '2-digit',
                         minute: '2-digit',
-                      })
-                    }
+                      })}
                   </Text>
                   {chat.chatUserInfo.unreadCount > 0 && (
-                    <Badge 
-                      mt={1} 
-                      colorScheme="purple" 
-                      borderRadius="full" 
-                      fontSize="0.7rem" 
-                      px={2}
-                    >
+                    <Badge mt={1} colorScheme="purple" borderRadius="full" fontSize="0.7rem" px={2}>
                       {chat.chatUserInfo.unreadCount}
                     </Badge>
                   )}
                 </Box>
               </Flex>
-            </Link>
+            // </Link>
           );
         })}
       </VStack>

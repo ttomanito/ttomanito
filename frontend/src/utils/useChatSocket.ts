@@ -3,6 +3,7 @@
 import { Client, type IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { postRequest } from '@/api/requests';
 
 // 백엔드 ChatMessageDto와 정확히 일치하는 타입
 interface ReceivedMessage {
@@ -93,14 +94,15 @@ export const useChatSocket = ({
     // 새 채팅방 진입시 메시지 ID 캐시 초기화
     processedMessageIds.current.clear();
 
-    const sock = new SockJS('https://i13b206.p.ssafy.io/ws/chat');
+    // const sock = new SockJS('https://i13b206.p.ssafy.io/ws/chat');
+    const sock = new SockJS('http://localhost:8080/ws/chat');
     
     const stompClient = new Client({
       webSocketFactory: () => sock,
       connectHeaders: {
-        // 인증 토큰 추가 (필요시)
-        // 'Authorization': `Bearer ${token}`,
-        // 'X-User-Id': roomUserId,
+        // httpOnly 쿠키 + 추가 헤더로 사용자 정보 전달
+        'X-User-Id': roomUserId,           // 👈 사용자 ID 헤더 추가
+        'X-Chat-Room-Id': chatRoomId,      // 👈 채팅방 ID 헤더 추가
       },
       reconnectDelay: Math.min(5000 * Math.pow(2, reconnectAttempts), 30000),
       heartbeatIncoming: 4000,
@@ -113,36 +115,58 @@ export const useChatSocket = ({
         setReconnectAttempts(0);
         
         try {
-          // 히스토리 구독 - 백엔드에서 List<ChatMessageDto> 응답
-          stompClient.subscribe('/user/queue/history', (res: IMessage) => {
-            try {
-              console.log('[CHAT] 🎯 히스토리 응답 받음!');
-              console.log('[CHAT] 응답 headers:', res.headers);
-              console.log('[CHAT] 응답 body (raw):', res.body);
+          stompClient.subscribe(`/user/queue/chat.${chatRoomId}`, (res: IMessage) => {
+          try {
+            // 서버 record 기준으로 타입 정의
+            type SocketPayload<T> = { type: 'HISTORY' | 'MESSAGE'; data: T };
+
+            const payload = JSON.parse(res.body) as SocketPayload<ReceivedMessage[] | ReceivedMessage>;
+
+            if (payload.type === 'HISTORY') {
+              const history = payload.data as ReceivedMessage[];
               
-              const history = JSON.parse(res.body) as ReceivedMessage[];
-              console.log('[CHAT] 파싱된 히스토리:', history);
-              console.log('[CHAT] 히스토리 수신:', history.length, '개 메시지');
-              
-              // 히스토리는 이미 시간순으로 정렬되어 옴 (Collections.reverse 적용됨)
-              // 중복 체크 없이 ID만 등록하고 콜백 호출
-              history.forEach(msg => {
-                const messageId = `${msg.senderRoomUserId}-${msg.sentAt}`;
-                processedMessageIds.current.add(messageId);
-              });
-              
-              // hasMore 판단: 요청한 페이지 사이즈보다 적으면 더 이상 없음
+              // 히스토리 ID 캐시 등록
+              history.forEach(msg => processedMessageIds.current.add(`${msg.senderRoomUserId}-${msg.sentAt}`));
+
               const hasMore = history.length >= HISTORY_PAGE_SIZE;
-              
               onHistoryLoadedRef.current?.(history, hasMore);
               setIsLoadingHistory(false);
-            } catch (error) {
-              console.error('[CHAT] ❌ 히스토리 파싱 오류:', error);
-              console.error('[CHAT] 원본 응답:', res.body);
-              setIsLoadingHistory(false);
+            } else if (payload.type === 'MESSAGE') {
+              handleMessage(payload.data as ReceivedMessage);
             }
-          });
-          
+          } catch (e) {
+            console.error('[CHAT] payload 파싱 오류:', e, res.body);
+            setIsLoadingHistory(false);
+          }
+        });
+          // // 히스토리 구독 - /topic/history.{chatRoomId}로 변경
+          // stompClient.subscribe(`/topic/history.${chatRoomId}`, (res: IMessage) => {
+          //   try {
+          //     console.log('[CHAT] 🎯 히스토리 응답 받음!');
+          //     console.log('[CHAT] 응답 headers:', res.headers);
+          //     console.log('[CHAT] 응답 body (raw):', res.body);
+              
+          //     const history = JSON.parse(res.body) as ReceivedMessage[];
+          //     console.log('[CHAT] 파싱된 히스토리:', history);
+          //     console.log('[CHAT] 히스토리 수신:', history.length, '개 메시지');
+              
+          //     // ✅ 히스토리는 중복 체크 없이 ID만 등록 (실시간 메시지와 구분)
+          //     history.forEach(msg => {
+          //       const messageId = `${msg.senderRoomUserId}-${msg.sentAt}`;
+          //       processedMessageIds.current.add(messageId);
+          //     });
+              
+          //     const hasMore = history.length >= HISTORY_PAGE_SIZE;
+          //     // ✅ 히스토리는 별도 콜백으로 처리 (실시간 메시지 핸들러 거치지 않음)
+          //     onHistoryLoadedRef.current?.(history, hasMore);
+          //     setIsLoadingHistory(false);
+          //   } catch (error) {
+          //     console.error('[CHAT] ❌ 히스토리 파싱 오류:', error);
+          //     console.error('[CHAT] 원본 응답:', res.body);
+          //     setIsLoadingHistory(false);
+          //   }
+          // });
+
           // 실시간 메시지 구독
           stompClient.subscribe(`/topic/chat.${chatRoomId}`, (res: IMessage) => {
             try {
@@ -159,9 +183,15 @@ export const useChatSocket = ({
             }
           });
           
-          // 초기 히스토리 로드 (최신 50개)
+          // ✅ 연결 완료 후 바로 히스토리 요청 (stompClient 직접 사용)
           console.log('[CHAT] 🚀 초기 히스토리 요청 시작...');
-          loadHistory();
+          setIsLoadingHistory(true);
+          
+          stompClient.publish({
+            destination: `/app/chat.history.${chatRoomId}`,
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({}),
+          });
           
         } catch (error) {
           console.error('[CHAT] 구독 설정 오류:', error);
@@ -235,7 +265,7 @@ export const useChatSocket = ({
         resolve(false);
       }
     });
-  }, [chatRoomId, isLoadingHistory]);
+  }, [chatRoomId, roomUserId, isLoadingHistory]);
 
   // 이전 메시지 더 로드하기 (무한 스크롤용)
   const loadMoreHistory = useCallback((oldestMessageDateTime: string) => {
@@ -274,18 +304,24 @@ export const useChatSocket = ({
 
   // 콕 찌르기 전송
   const sendPoke = useCallback(async (): Promise<boolean> => {
-    if (!client.current?.connected || !chatRoomId || !roomUserId) { // 👈 roomUserId로 변경
+    if (!client.current?.connected || !chatRoomId || !roomUserId) {
       console.warn('[CHAT] 찌르기 전송 실패: 연결되지 않음');
       return false;
     }
 
     try {
+      // 1. 찌르기 API 호출
+      await postRequest('/poke');
+
+      console.log('[CHAT] 📤 찌르기 API 호출 성공');
+
+      // 2. 웹소켓으로 찌르기 메시지 전송
       const payload = {
         chattingRoomId: +chatRoomId,
-        senderRoomUserId: +roomUserId, // 👈 roomUserId로 변경
+        senderRoomUserId: +roomUserId,
       };
       
-      console.log('[CHAT] 찌르기 전송 payload:', payload);
+      console.log('[CHAT] 📤 찌르기 웹소켓 전송:', payload);
       
       client.current.publish({
         destination: `/app/chat.poke.${chatRoomId}`,
@@ -298,7 +334,7 @@ export const useChatSocket = ({
       console.error('[CHAT] 찌르기 전송 오류:', error);
       return false;
     }
-  }, [chatRoomId, roomUserId]); // 👈 roomUserId로 변경
+  }, [chatRoomId, roomUserId]);
 
   // 통화 시작
   const startCall = useCallback(async (): Promise<boolean> => {
