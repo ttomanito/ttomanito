@@ -57,12 +57,11 @@ public class SecurityConfig {
                                 "/api/swagger-ui/index.html**"
                         ).permitAll()
                         .requestMatchers(
-                                "/",
+                                "/auth/**",
                                 "/login",
                                 "/oauth2/authorization/**",
                                 "/login/oauth2/code/**"
                         ).permitAll()
-                        .requestMatchers("/auth/dev/**").permitAll()
                         .requestMatchers("/ws/**", "/ws/signal/**", "/topic/**", "/app/**").permitAll()
                         .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
