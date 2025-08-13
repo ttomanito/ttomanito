@@ -9,6 +9,9 @@ import io.openvidu.java.client.SessionProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 @Service
 public class OpenViduService {
 
@@ -60,6 +63,24 @@ public class OpenViduService {
                 .data(data == null ? "" : data)
                 .build();
 
-        return session.createConnection(conn).getToken();
+        String rawToken = session.createConnection(conn).getToken();
+        // rawToken 예: wss://openvidu-server-kms:4443/openvidu?sessionId=room-123&token=tok_...
+
+        try {
+            URI uri = URI.create(rawToken);
+            // 새로운 URI 구성
+            URI customUri = new URI(
+                    uri.getScheme(),                     // wss
+                    null,                                 // userInfo 없음
+                    "i13b206.p.ssafy.io",                 // 하드코딩 host
+                    -1,                                   // 포트 생략 → 기본 443
+                    "/openvidu",                          // 하드코딩 path
+                    uri.getQuery(),                       // sessionId, token 등 쿼리 그대로
+                    null                                  // fragment 없음
+            );
+            return customUri.toString();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Invalid URI format", e);
+        }
     }
 }
