@@ -64,7 +64,6 @@ services:
       - mysql
       - redis
       - mongo
-      - openvidu-server-kms
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
@@ -74,7 +73,7 @@ services:
       SPRING_PORT: ${SPRING_PORT}
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
       JWT_SECRET: ${JWT_SECRET}
-      OPENVIDU_URL: https://i13b206.p.ssafy.io:4443/
+      OPENVIDU_URL: ${OPENVIDU_URL}
       OPENVIDU_SECRET: ${OPENVIDU_SECRET}
       SPRING_PROFILES_ACTIVE: prod
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase.json
@@ -114,23 +113,20 @@ services:
       - app-network
 
   openvidu-server-kms:
-    image: openvidu/openvidu-server-kms:2.20.0
+    image: openvidu/openvidu-server-kms:2.22.0
     container_name: openvidu-server-kms
     restart: always
     environment:
-      DOMAIN_OR_PUBLIC_IP: i13b206.p.ssafy.io
-      OPENVIDU_PUBLICURL: https://i13b206.p.ssafy.io:4443/
-      OPENVIDU_SECRET: ${OPENVIDU_SECRET}
-      CERTIFICATE_TYPE: owncert     
-      HTTPS_PORT: 4443
-    ports:
-      - "4443:4443"
-    volumes:
-    # Nginx가 쓰는 LE 인증서를 OpenVidu owncert 위치로 매핑
-      - /etc/letsencrypt/live/i13b206.p.ssafy.io/fullchain.pem:/opt/openvidu/owncert/certificate.cert:ro
-      - /etc/letsencrypt/live/i13b206.p.ssafy.io/privkey.pem:/opt/openvidu/owncert/certificate.key:ro
-  networks:
-    - app-network
+      - DOMAIN_OR_PUBLIC_IP=${DOMAIN_OR_PUBLIC_IP}
+      - OPENVIDU_PUBLICURL=${OPENVIDU_PUBLICURL}
+      - OPENVIDU_SECRET=${OPENVIDU_SECRET}
+      - SERVER_SSL_ENABLED=false 
+      # HTTPS_PORT: 443
+    # ports:
+    #   - "4443:4443"
+    networks:
+      - app-network
+
 
   coturn:
     image: instrumentisto/coturn
