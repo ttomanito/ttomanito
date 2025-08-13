@@ -126,6 +126,7 @@ services:
     networks:
       - app-network
 
+
   coturn:
     image: instrumentisto/coturn
     container_name: coturn
