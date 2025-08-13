@@ -47,6 +47,11 @@ dependencies {
     implementation "org.apache.commons:commons-lang3:3.18.0"
     // OpenVidu Java Client (v2.20.0)
     implementation 'io.openvidu:openvidu-java-client:2.22.0'
+
+    implementation 'com.google.code.gson:gson:2.8.9'
+
+
+
     // firebase
     implementation "com.google.firebase:firebase-admin:9.5.0"
     implementation "com.google.protobuf:protobuf-java:3.25.8"
