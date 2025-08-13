@@ -12,6 +12,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
@@ -31,11 +32,10 @@ public class ChatWebSocketController {
     @MessageMapping("/chat.history.{chatRoomId}")
     public void history(
             @DestinationVariable Long chatRoomId,
-            @Payload HistoryRequest req,
-            Principal principal
+            @Payload HistoryRequest req
     ) {
-        log.info("[웹소켓] 채팅 히스토리 요청 - 채팅방ID={}, 기준시간='{}', 사용자={}",
-                chatRoomId, req.before(), principal != null ? principal.getName() : "익명");
+        log.info("[웹소켓] 채팅 히스토리 요청 - 채팅방ID={}, 기준시간='{}'",
+                chatRoomId, req.before());
         LocalDateTime before = null;
         if (req.before() != null && !req.before().isBlank()) {
             before = LocalDateTime.parse(req.before());
@@ -44,11 +44,7 @@ public class ChatWebSocketController {
         List<ChatMessageDto> history = service.getHistory(chatRoomId, before);
         log.debug("[웹소켓] 채팅 히스토리 응답 - 채팅방ID={}, 메시지개수={}", chatRoomId, history.size());
 
-        template.convertAndSendToUser(
-                Objects.requireNonNull(principal).getName(),
-                "/queue/history",
-                history
-        );
+        template.convertAndSend("/topic/history." + chatRoomId, history);
     }
 
     @MessageMapping("/chat.send.{chatRoomId}")
