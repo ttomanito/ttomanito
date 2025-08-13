@@ -12,7 +12,7 @@ import { useState, useCallback } from 'react';
 import LongButton from '@/components/buttons/LongButton';
 import type { Message } from '@/types/chat/chat';
 import ChatMessageRenderer from '@/components/chat/ChatMessageRenderer';
-import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
+import { Virtuoso } from 'react-virtuoso';
 
 const generatePastMessages = (count: number, offset: number): Message[] => {
   return Array.from({ length: count }, (_, i) => {
@@ -100,7 +100,7 @@ const TestPage = () => {
           // ❗ 4. 초기 스크롤 위치는 전체 데이터의 마지막으로 고정합니다.
           initialTopMostItemIndex={allServerMessages.length - 1}
           startReached={handleStartReached}
-          itemContent={(index, msg) => {
+          itemContent={(_index, msg) => {
             // Virtuoso 내부 index는 0부터 시작하므로, 실제 데이터 인덱스는 firstItemIndex를 더해줘야 합니다.
             // 여기서는 msg.id가 고유하므로 index를 직접 사용할 필요는 없습니다.
             return (
