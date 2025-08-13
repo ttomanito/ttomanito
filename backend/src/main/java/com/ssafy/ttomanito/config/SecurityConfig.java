@@ -58,11 +58,11 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 "/",
+                                "/login",
                                 "/oauth2/authorization/**",
-                                "/login/oauth2/code/**",
-                                "/auth/**"
+                                "/login/oauth2/code/**"
                         ).permitAll()
-                        .requestMatchers("/auth/dev/**").permitAll()
+                        .requestMatchers("/auth/refresh", "/auth/dev/**").permitAll()
                         .requestMatchers("/ws/**", "/ws/signal/**", "/topic/**", "/app/**").permitAll()
                         .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
@@ -73,7 +73,7 @@ public class SecurityConfig {
                         .successHandler(successHandler)
                         .failureHandler((req, res, ex) -> {
                             log.error("OAuth2 fail", ex);
-                            res.sendRedirect("/login?error=" + URLEncoder.encode(ex.getMessage(), StandardCharsets.UTF_8));
+                            res.sendRedirect(frontendRedirectUrl + "/login?error=" + URLEncoder.encode(ex.getMessage(), StandardCharsets.UTF_8));
                         })
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
