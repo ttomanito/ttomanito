@@ -117,7 +117,6 @@ services:
     container_name: openvidu-server-kms
     restart: always
     environment:
-      - DOMAIN_OR_PUBLIC_IP=${DOMAIN_OR_PUBLIC_IP}
       - OPENVIDU_PUBLICURL=${OPENVIDU_PUBLICURL}
       - OPENVIDU_SECRET=${OPENVIDU_SECRET}
     networks:
