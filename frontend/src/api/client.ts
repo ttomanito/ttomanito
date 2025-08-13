@@ -1,12 +1,6 @@
 import axios from 'axios';
 import { useAuth } from '@/stores/authStore';
 
-// 🔥 토큰 갱신 전용 axios 인스턴스 (인터셉터 없음)
-const authApi = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL || '/api',
-  timeout: 10000,
-  withCredentials: true,
-});
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL || '/api',
@@ -72,7 +66,6 @@ api.interceptors.response.use(
 
       try {
         // 🔥 별도 인스턴스로 토큰 갱신 (인터셉터 작동 안함)
-        const refreshRes = await authApi.post('/auth/refresh', {});
         
         console.log('[API] Token refresh successful');
         
