@@ -64,7 +64,6 @@ services:
       - mysql
       - redis
       - mongo
-      - openvidu-server-kms
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
@@ -74,7 +73,7 @@ services:
       SPRING_PORT: ${SPRING_PORT}
       KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
       JWT_SECRET: ${JWT_SECRET}
-      OPENVIDU_URL: https://i13b206.p.ssafy.io:4443/
+      OPENVIDU_URL: ${OPENVIDU_URL}
       OPENVIDU_SECRET: ${OPENVIDU_SECRET}
       SPRING_PROFILES_ACTIVE: prod
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase.json
@@ -119,7 +118,7 @@ services:
     restart: always
     environment:
       DOMAIN_OR_PUBLIC_IP: i13b206.p.ssafy.io
-      OPENVIDU_PUBLICURL: https://i13b206.p.ssafy.io:4443/
+      OPENVIDU_PUBLICURL: https://i13b206.p.ssafy.io/openvidu
       OPENVIDU_SECRET: ${OPENVIDU_SECRET}
       # HTTPS_PORT: 443
     # ports:
