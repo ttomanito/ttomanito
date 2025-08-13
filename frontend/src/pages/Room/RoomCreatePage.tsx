@@ -40,13 +40,16 @@ const RoomCreatePage = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // 🔥 변경: setGameInfo 함수 가져오기
+  const { setGameInfo } = useAuth();
 
   dayjs.locale('ko');
   const today = dayjs().format('YYYY년 MM월 DD일 dddd');
 
   const toggleDay = (day: string) => {
     setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day] // 🔥 수정: 버그 수정
     );
   };
 
@@ -77,18 +80,27 @@ const handleCreateRoom = async () => {
 
     const { roomId } = res;
 
-     // ✨ 2. 방 생성 후 상태 업데이트 (게임 시작은 안함)
-    useAuth.getState().setGameInfo({
-      isInGame: true,  // 방에는 참여했지만
+    // ✨ 2. 방 생성 후 상태 업데이트 (대기실 상태로)
+    // 🔥 변경: gameInfo 새 구조에 맞춤
+    setGameInfo({
+      status: 'IN_WAITING', // 🔥 변경: 대기실 상태
       roomId,
       isCreator: true, // 방 생성자
     });
-    navigate(`/room/${roomId}`);
+    
     // ✨ 3. 상태 업데이트 후 대기방 페이지로 이동
+    navigate(`/room/${roomId}`);
     
   } catch (err) {
     console.error(err);
     alert('방 생성 중 오류가 발생했습니다.');
+    
+    // 🔥 추가: 실패 시 상태 롤백
+    setGameInfo({
+      status: 'IN_NONE',
+      roomId: null,
+      isCreator: false
+    });
   } finally {
     setLoading(false);
   }

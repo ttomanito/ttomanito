@@ -1,13 +1,16 @@
-// src/routes/GameStatusGuard.tsx (개선된 버전)
-import { useEffect, useState } from 'react';
+// ===================================
+// src/routes/GameStatusGuard.tsx
+// ===================================
+
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/stores/authStore';
-import { Spinner, VStack, Text, Box } from '@chakra-ui/react';
+import Loading from '@/routes/Loading';
 
-type UserStatus = 'IN_NONE' | 'IN_WAITING' | 'IN_GAME';
+// 🔥 백엔드 응답과 동일하게 맞춤
+type GameStatus = 'IN_NONE' | 'IN_WAITING' | 'IN_GAME';
 
 interface GameStatusGuardProps {
-  allowedStatuses: UserStatus[];
+  allowedStatuses: GameStatus[];
   redirectTo?: string;
   redirectByStatus?: {
     IN_NONE?: string;
@@ -16,6 +19,7 @@ interface GameStatusGuardProps {
   };
 }
 
+
 const GameStatusGuard = ({ 
   allowedStatuses, 
   redirectTo = '/', 
@@ -23,78 +27,56 @@ const GameStatusGuard = ({
 }: GameStatusGuardProps) => {
   const { 
     isAuthenticated, 
-    hydrated, 
-    userGameStatus, 
-    currentRoomId, 
-    checkUserGameStatus 
+    isReady,
+    gameInfo
   } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
 
-  useEffect(() => {
-    const checkStatus = async () => {
-      if (!hydrated || !isAuthenticated) {
-        setIsLoading(false);
-        return;
-      }
+  // 🔥 개선: 더 안전한 로딩 체크
+  const isFullyReady = isReady && (
+    !isAuthenticated || // 미로그인이면 바로 준비 완료
+    gameInfo.status !== undefined // 로그인이면 게임 상태까지 확인
+  );
 
-      try {
-        // 🔥 authStore의 함수 사용
-        await checkUserGameStatus();
-        console.log('[GUARD] 사용자 상태:', userGameStatus, '현재 경로:', location.pathname);
-      } catch (error) {
-        console.error('[GUARD] 상태 확인 실패:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkStatus();
-  }, [isAuthenticated, hydrated, location.pathname, checkUserGameStatus]);
-
-  // 로딩 중
-  if (!hydrated || isLoading) {
-    return (
-      <Box p={4} display="flex" justifyContent="center" alignItems="center" height="100vh">
-        <VStack>
-          <Spinner size="xl" />
-          <Text mt={4}>상태 확인 중...</Text>
-        </VStack>
-      </Box>
-    );
+  // 로딩 중 (완전한 초기화 대기)
+  if (!isFullyReady) {
+    return <Loading />; // 🔥 변경: 통일된 Loading 컴포넌트 사용
   }
 
-  // 로그인되지 않음
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  // 🔥 제거: RequireAuth에서 이미 인증 체크 완료
+  // GameStatusGuard는 게임 상태만 체크하면 됨
+
+  const currentStatus = gameInfo.status;
+
+  console.log(`[GUARD] 현재 상태: ${currentStatus}, 허용 상태: [${allowedStatuses.join(', ')}], 경로: ${location.pathname}`);
 
   // 상태 체크 완료 후 리다이렉트 판단
-  if (userGameStatus && !allowedStatuses.includes(userGameStatus)) {
-    // 🔥 대기 중이고 currentRoomId가 있으면 실제 방 번호로 리다이렉트
-    if (userGameStatus === 'IN_WAITING' && currentRoomId && redirectByStatus?.IN_WAITING === '/room') {
-      console.log(`[GUARD] 대기방 ${currentRoomId}로 리다이렉트`);
-      return <Navigate to={`/room/${currentRoomId}`} replace />;
+  if (!allowedStatuses.includes(currentStatus)) {
+    let redirectPath = redirectTo; // 기본값
+
+    // 상태별 리다이렉트 확인
+    if (redirectByStatus && redirectByStatus[currentStatus]) {
+      redirectPath = redirectByStatus[currentStatus]!;
     }
 
-    // 상태별 리다이렉트가 정의되어 있으면 해당 경로로
-    if (redirectByStatus && redirectByStatus[userGameStatus]) {
-      console.log(`[GUARD] ${userGameStatus} 상태로 ${redirectByStatus[userGameStatus]}로 리다이렉트`);
-      return <Navigate to={redirectByStatus[userGameStatus]!} replace />;
+    // IN_WAITING 특별 처리 (roomId 추가)
+    if (currentStatus === 'IN_WAITING' && gameInfo.roomId && redirectPath === '/room') {
+      redirectPath = `/room/${gameInfo.roomId}`;
     }
-    
-    // 기본 리다이렉트
-    console.log(`[GUARD] ${userGameStatus} 상태로 ${redirectTo}로 리다이렉트`);
-    return <Navigate to={redirectTo} replace />;
+
+    console.log(`[GUARD] ${currentStatus} 상태로 ${redirectPath}로 리다이렉트`);
+    return <Navigate to={redirectPath} replace />;
   }
 
   // 허용된 상태면 컴포넌트 렌더링
   return <Outlet />;
 };
 
+
+
 export default GameStatusGuard;
 
-// 🔥 개선된 가드들 - 실제 roomId로 리다이렉트 가능
+// 🔥 백엔드 응답과 동일한 상태명 사용
 export const GameOnlyGuard = () => (
   <GameStatusGuard 
     allowedStatuses={['IN_GAME']} 

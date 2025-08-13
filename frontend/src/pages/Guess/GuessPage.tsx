@@ -40,18 +40,14 @@ interface GuessPostResponse {
 /**
  * GuessPage 컴포넌트
  * - 현재 참여 중인 게임 방의 다른 참여자들을 대상으로 마니또를 추측하는 페이지입니다.
- * - authStore에서 실제 게임 참여 상태(isInGame)와 방 ID(roomId)를 가져와 사용합니다.
+ * - authStore에서 실제 게임 참여 상태와 방 ID를 가져와 사용합니다.
  */
 const GuessPage = () => {
-  // ✨ 디버깅을 위해 게임 참여 상태와 roomId를 강제로 설정합니다.
-  // ✨ 실제 앱에서는 이 부분을 지우고 authStore의 gameInfo를 사용해야 합니다.
-  const isInGame = true;
-  const roomId = '14';
-  const { user, hydrated } = useAuth();
+  // 🔥 변경: auth store 새 구조 사용
+  const { user, gameInfo, isReady } = useAuth();
+  const isInGame = gameInfo.status === 'IN_GAME';
+  const roomId = gameInfo.roomId;
 
-  // ✅ isAuthenticated를 제거하고, gameInfo에서 필요한 값만 가져옵니다.
-  // const { user, hydrated, gameInfo } = useAuth();
-  // const { isInGame, roomId } = gameInfo;
   const toast = useToast();
 
   // --- 상태 관리 ---
@@ -68,8 +64,7 @@ const GuessPage = () => {
 
   // --- 데이터 로딩 useEffect ---
   useEffect(() => {
-    // ✅ isAuthenticated 확인 로직을 제거하고, isInGame만으로 판단합니다.
-    if (!hydrated || !user || !isInGame || !roomId) {
+    if (!isReady || !user || !isInGame || !roomId) {
       setIsPageLoading(false);
       return;
     }
@@ -106,7 +101,7 @@ const GuessPage = () => {
     };
 
     fetchData();
-  }, [isInGame, roomId, user, hydrated, toast]); // ✅ 의존성 배열에서 isAuthenticated 제거
+  }, [isInGame, roomId, user, isReady, toast]); // 🔥 변경: hydrated → isReady
 
   // --- 파생 상태 (Derived State) ---
   const todayString = new Date().toISOString().slice(0, 10);
@@ -152,11 +147,10 @@ const GuessPage = () => {
   const handleShowHistory = () => { setHistoryOpen(true); };
 
   // --- 렌더링 로직 ---
-  if (!hydrated || isPageLoading) {
+  if (!isReady || isPageLoading) {
     return <Flex justify="center" align="center" h="100vh"><Spinner /></Flex>;
   }
 
-  // ✅ 사용자가 게임에 참여 중이 아닐 때의 화면을 렌더링합니다.
   if (!isInGame) {
     return (
       <Flex justify="center" align="center" h="100vh">
