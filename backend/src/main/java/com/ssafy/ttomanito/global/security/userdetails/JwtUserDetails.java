@@ -20,7 +20,7 @@ public class JwtUserDetails implements UserDetails, Principal {
 
     public JwtUserDetails(User user) {
         this.userId = user.getUserId();
-        this.username = user.getName();
+        this.username = String.valueOf(user.getUserId());
         this.status = user.getStatus();
         this.authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
