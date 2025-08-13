@@ -1,4 +1,4 @@
-// src/components/layout/SideMenu.tsxss
+// src/components/layout/SideMenu.tsx
 import {
   Box,
   VStack,
@@ -13,11 +13,10 @@ import { TiThMenu } from 'react-icons/ti';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logoSvg from '@/assets/ttomas/main_page_logo.svg';
-import { useAuth } from '@/stores/authStore';
 import TutorialBody from '@/components/modal/TutorialBody'
 import { useModalStore } from '@/stores/modalStore'
 import { useNavigate } from 'react-router-dom'
-
+import { useAuth } from '@/stores/authStore';
 const MotionBox = motion(Box);
 
 const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) => {

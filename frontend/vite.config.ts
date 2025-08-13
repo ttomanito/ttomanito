@@ -10,22 +10,28 @@ import { fileURLToPath } from 'node:url';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import svgr from 'vite-plugin-svgr';
+import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   base: '/',
-
+  optimizeDeps: {
+    include: ['buffer', 'process'],
+  },
   /* ------------------------------- 빌드 ------------------------------- */
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    rollupOptions: {
+      plugins: [rollupNodePolyFill],
+    },
   },
 
   /* .env 대신 define으로 넘겨야 하는 값이 있다면 이쪽에 */
-  // define: {
-  //   'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL),
-  // },
+  define: {
+    global: 'globalThis',
+  },
 
   /* ------------------------------ 플러그인 ----------------------------- */
   plugins: [
@@ -42,9 +48,7 @@ export default defineConfig({
       strategies: 'generateSW',
       workbox: {
         /* 모든 API·인증·콜백 경로를 한 방에 네트워크 전용으로 */
-        runtimeCaching: [
-          { urlPattern: /^\/(api|auth|login)\//, handler: 'NetworkOnly' },
-        ],
+        runtimeCaching: [{ urlPattern: /^\/(api|auth|login)\//, handler: 'NetworkOnly' }],
         /* index.html fallback에서도 예외 처리 */
         navigateFallbackDenylist: [/^\/(api|auth|login)\//],
       },
@@ -54,7 +58,7 @@ export default defineConfig({
         name: '또마니또',
         short_name: '또마니또',
         description: 'PWA test',
-        theme_color: '#C8C6FF',       // 토큰 대신 HEX 값 사용
+        theme_color: '#C8C6FF', // 토큰 대신 HEX 값 사용
         background_color: '#FFFFFF',
         display: 'standalone',
         start_url: '/',
@@ -105,9 +109,7 @@ export default defineConfig({
             enabled: true,
             headless: true,
             provider: 'playwright',
-            instances: [
-              { browser: 'chromium' },
-            ],
+            instances: [{ browser: 'chromium' }],
           },
           setupFiles: ['.storybook/vitest.setup.ts'],
         },
@@ -121,8 +123,19 @@ export default defineConfig({
       '/api': {
         target: 'https://i13b206.p.ssafy.io',
         changeOrigin: true,
-        secure: false,
-        rewrite: (p) => p.replace(/^\/api/, ''),
+        secure: true,
+        rewrite: p => p.replace(/^\/api/, ''),
+      },
+      // ✅ 로그인 시작/콜백도 프록시로 전달
+      '/oauth2': {
+        target: 'https://i13b206.p.ssafy.io',
+        changeOrigin: true,
+        secure: true,
+      },
+      '/login/oauth2': {
+        target: 'https://i13b206.p.ssafy.io',
+        changeOrigin: true,
+        secure: true,
       },
     },
   },
