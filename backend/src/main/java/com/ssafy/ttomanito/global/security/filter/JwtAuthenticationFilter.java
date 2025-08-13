@@ -35,9 +35,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
         // WebSocket 시그널링은 토큰 없이 통과
-        if (path.startsWith("/ws/")) {
-            return true;
-        }
+//        if (path.startsWith("/ws/")) {
+//            return true;
+//        }
         // Swagger / OpenAPI 문서도 토큰 검사 스킵
         return path.startsWith("/v3/api-docs")
                 || path.startsWith("/api/v3/api-docs")

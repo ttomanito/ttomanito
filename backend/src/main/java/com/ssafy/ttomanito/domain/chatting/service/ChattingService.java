@@ -18,6 +18,7 @@ import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import com.ssafy.ttomanito.global.exception.NotFoundException;
+import com.ssafy.ttomanito.global.exception.UnauthenticatedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -270,5 +271,14 @@ public class ChattingService {
                         cu.getUnreadCount(),
                         cu.getLastReadTime())
         );
+    }
+
+    @Transactional(readOnly = true)
+    public void assertOwner(Long roomUserId, Long userId) {
+        RoomUser ru = ruRepo.findById(roomUserId)
+                .orElseThrow(() -> new NotFoundException("RoomUser를 찾을 수 없습니다: roomUserId=" + roomUserId));
+        if (!ru.getUser().getUserId().equals(userId)) {
+            throw new UnauthenticatedException("senderRoomUserId가 인증 사용자와 일치하지 않습니다.");
+        }
     }
 }

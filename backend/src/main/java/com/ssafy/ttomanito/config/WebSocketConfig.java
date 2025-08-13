@@ -1,9 +1,11 @@
 package com.ssafy.ttomanito.config;
 
-import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
+import com.ssafy.ttomanito.global.security.filter.JwtHandshakeInterceptor;
+import com.ssafy.ttomanito.global.security.filter.WebSocketAuthChannelInterceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -12,7 +14,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 /**
  * WebSocket/STOMP 설정
  * - 채팅용 토픽: /topic/chat.*
- * - 게임용 토픽: /topic/game.*
+ * - 대기방용 토픽: /topic/wating.*
  * - 유저 대상 큐:   /user/queue/**
  */
 @Configuration
@@ -20,22 +22,21 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Slf4j
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    private final JwtProvider jwtProvider;
+
+    private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
+    private final WebSocketAuthChannelInterceptor wsAuthChannelInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-
-        // 브로커 활성화: 채팅, 게임, 개인 큐
-        config.enableSimpleBroker("/topic/chat", "/topic/history", "/topic/waiting", "/queue");
-        // 클라이언트 -> 서버 메시지 prefix
+        config.enableSimpleBroker("/queue", "/topic/chat", "/topic/waiting");
         config.setApplicationDestinationPrefixes("/app");
-        // 서버 -> 특정 사용자 메시지 prefix
         config.setUserDestinationPrefix("/user");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/chat")
+                .addInterceptors(jwtHandshakeInterceptor)
                 .setAllowedOriginPatterns(
                         "http://localhost:5173",
                         "http://localhost:8080",
@@ -44,6 +45,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS()
                 .setSessionCookieNeeded(true);
         registry.addEndpoint("/ws/waiting")
+                .addInterceptors(jwtHandshakeInterceptor)
                 .setAllowedOriginPatterns(
                         "http://localhost:5173",
                         "http://localhost:8080",
@@ -52,6 +54,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS()
                 .setSessionCookieNeeded(true);
         registry.addEndpoint("/ws")
+                .addInterceptors(jwtHandshakeInterceptor)
                 .setAllowedOriginPatterns(
                         "http://localhost:5173",
                         "http://localhost:8080",
@@ -60,5 +63,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS()
                 .setSessionCookieNeeded(true);
     }
-}
 
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(wsAuthChannelInterceptor);
+    }
+}
