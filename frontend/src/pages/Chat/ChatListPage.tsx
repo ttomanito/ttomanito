@@ -1,8 +1,9 @@
 // src/pages/Chat/ChatListPage.tsx
+import { useNavigate } from 'react-router-dom';
 import { Box, Flex, Text, VStack, Badge, Image, Spinner, Center } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getRequest } from '@/api/requests';
+import { getRequest, postRequest } from '@/api/requests';
 import { useAuth } from '@/stores/authStore';
 import profile_manito from '@/assets/ttomas/profile_manito.png';
 import profile_manitee from '@/assets/ttomas/profile_manitee.png';
@@ -49,6 +50,17 @@ const ChatListPage = () => {
     } else {
       return { name: '마니띠', profileImage: profile_manitee };
     }
+  };
+
+  const navigate = useNavigate();
+
+  const enterChat = async (id: number) => {
+    try {
+      await postRequest(`/chat/${id}/enter`, {});
+    } catch (e) {
+      console.warn('채팅방 입장 API 실패:', e);
+    }
+    navigate(`/chat/${id}`);
   };
 
   useEffect(() => {
@@ -136,10 +148,11 @@ const ChatListPage = () => {
           const { name, profileImage } = getChatPartnerInfo(index);
 
           return (
-            <Link key={chat.chatRoom.chattingRoomId} to={`/chat/${chat.chatRoom.chattingRoomId}`}>
+            // <Link key={chat.chatRoom.chattingRoomId} to={`/chat/${chat.chatRoom.chattingRoomId}`}>
               <Flex
                 align="center"
-                _hover={{ bg: 'gray.100' }}
+                _hover={{ bg: 'gray.100' , cursor: 'pointer'}}
+                onClick={() => enterChat(chat.chatRoom.chattingRoomId)}
                 px="4"
                 py="4"
                 borderBottomWidth={index === chatList.length - 1 ? '0' : '1px'}
@@ -178,7 +191,7 @@ const ChatListPage = () => {
                   )}
                 </Box>
               </Flex>
-            </Link>
+            // </Link>
           );
         })}
       </VStack>
