@@ -72,7 +72,6 @@ api.interceptors.response.use(
 
       try {
         // 🔥 별도 인스턴스로 토큰 갱신 (인터셉터 작동 안함)
-        const refreshRes = await authApi.post('/auth/refresh', {});
         
         console.log('[API] Token refresh successful');
         
