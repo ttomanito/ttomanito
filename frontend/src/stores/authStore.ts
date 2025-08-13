@@ -390,28 +390,6 @@ export const useAuth = create<AuthState>()(
         gameInfo: s.gameInfo,
         isAuthenticated: s.isAuthenticated,
       }),
-      onRehydrateStorage: () => {
-        return (state, error) => {
-          if (error) {
-            console.error('[AUTH] rehydration error:', error)
-            return
-          }
-          
-          const wasAuthenticated = state?.isAuthenticated;
-          
-          if (wasAuthenticated) {
-            // 로그인 상태였을 때만 서버 확인
-            state?.syncAllFromServer?.().catch(err => { // 🔥 변경: 전체 동기화 사용
-              console.error('[AUTH] 전체 동기화 실패:', err)
-              state?.markReady?.()
-            })
-          } else {
-            // 미로그인 상태면 바로 ready 처리
-            console.log('[AUTH] 미로그인 상태 - 서버 호출 스킵')
-            state?.markReady?.()
-          }
-        }
-      },
     },
   ),
 )
