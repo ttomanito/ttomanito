@@ -2,6 +2,8 @@ package com.ssafy.ttomanito.global.exception.handler;
 
 import com.ssafy.ttomanito.global.exception.*;
 import com.ssafy.ttomanito.global.exception.dto.ExceptionResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,8 +11,23 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ExceptionResponse> handleUnknown(Exception ex, HttpServletRequest req) {
+        String errorId = java.util.UUID.randomUUID().toString();
+
+        log.error("[{}] {} {} -> {}", errorId, req.getMethod(), req.getRequestURI(), ex.toString(), ex);
+
+        ExceptionResponse body = new ExceptionResponse(
+                String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()),
+                "서버 내부 오류가 발생했습니다. errorId=" + errorId,
+                java.time.LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ExceptionResponse> handleBadRequest(BadRequestException ex) {
@@ -62,18 +79,6 @@ public class GlobalExceptionHandler {
         ExceptionResponse body = new ExceptionResponse(
                 String.valueOf(status.value()),
                 ex.getErrorCode().getMessage(),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(status).body(body);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ExceptionResponse> handleUnknown(Exception ex) {
-
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-        ExceptionResponse body = new ExceptionResponse(
-                String.valueOf(status.value()),
-                "서버 내부 오류가 발생했습니다" + ex.getMessage(),
                 LocalDateTime.now()
         );
         return ResponseEntity.status(status).body(body);

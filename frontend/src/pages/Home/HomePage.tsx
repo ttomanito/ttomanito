@@ -98,15 +98,16 @@ const PastMissionsList = () => {
 
 // 메인 컴포넌트
 const GameHomePage = () => {
-  const isInGame = true; // 테스트용
-  const roomId = '14';
+  // 🔥 변경: auth store 새 구조 사용
+  const { gameInfo, isReady } = useAuth();
+  const isInGame = gameInfo.status === 'IN_GAME';
+  const roomId = gameInfo.roomId;
 
-  const hydrated = useAuth((s) => s.hydrated);
   const { openModal, closeModal } = useModalStore();
 
   const [room, setRoom] = useState<{ startDate: string; endDate: string; missionDays: string[] } | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [isPageLoading, setIsPageLoading] = useState(!hydrated);
+  const [isPageLoading, setIsPageLoading] = useState(!isReady);
 
   const [todayMission, setTodayMission] = useState<Mission | null>(null);
   const [isMissionRevealed, setIsMissionRevealed] = useState(false);
@@ -119,7 +120,7 @@ const GameHomePage = () => {
   const todayDay = today.format('ddd').toUpperCase();
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!isReady) return;
     if (isInGame && roomId) {
       const fetchGameData = async () => {
         setIsPageLoading(true);
@@ -140,7 +141,7 @@ const GameHomePage = () => {
     } else {
       setIsPageLoading(false);
     }
-  }, [hydrated, roomId, isInGame]);
+  }, [isReady, roomId, isInGame]);
 
   const { currentDay, totalDays } = useMemo(() => {
     if (!room) return { currentDay: 0, totalDays: 0 };
@@ -202,7 +203,6 @@ const GameHomePage = () => {
   };
 
   const handleShowManito = async () => {
-    openModal(manitoModalData);
     setIsFetchingManito(true);
     setManitoProfile(null);
     try {
@@ -219,6 +219,12 @@ const GameHomePage = () => {
       setIsFetchingManito(false);
     }
   };
+
+  useEffect(() => {
+    if (manitoProfile) {
+      openModal(manitoModalData);
+    }
+  }, [manitoProfile]); // 마니또 프로필 세팅 한 후 모달 열기
 
   const handleShowPastMissions = () => {
     openModal({
