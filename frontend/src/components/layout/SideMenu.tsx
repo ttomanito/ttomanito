@@ -16,7 +16,8 @@ import logoSvg from '@/assets/ttomas/main_page_logo.svg';
 import TutorialBody from '@/components/modal/TutorialBody'
 import { useModalStore } from '@/stores/modalStore'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/stores/authStore';
+import { useAuth } from '@/stores/authStore'; // 기존 경로 유지
+
 const MotionBox = motion(Box);
 
 const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) => {
@@ -24,9 +25,21 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
   const { openModal } = useModalStore()
   const tutorialModalData = { body: <TutorialBody /> }
   const [isOpen, setIsOpen] = useState(false);
-  const logout = useAuth((s) => s.logout);
+  const { logout } = useAuth(); // 🔥 수정: 구조분해할당으로 변경
 
   const close = () => setIsOpen(false);
+
+  // 🔥 추가: 로그아웃 에러 처리
+  const handleLogout = async () => {
+    try {
+      await logout();
+      close();
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+      // 에러가 있어도 메뉴는 닫기
+      close();
+    }
+  };
 
   return (
     <>
@@ -134,10 +147,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                   justifyContent="flex-start"
                   color="red.500"
                   textStyle="title_md"
-                  onClick={() => {
-                    logout();
-                    close();
-                  }}
+                  onClick={handleLogout} // 🔥 수정: 에러 처리가 포함된 함수 사용
                 >
                   로그아웃
                 </Button>

@@ -97,9 +97,19 @@ export const useChatSocket = ({ chatRoomId, myUserId, onMessage }: UseChatSocket
     });
   };
 
+  const loadHistory = () => {
+    if (!client.current?.connected || !chatRoomId) return;
+
+    client.current.publish({
+      destination: `/app/chat.history.${chatRoomId}`,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+
   return {
     sendMessage,
     sendPoke,
     isConnected,
+    loadHistory,
   };
 };
