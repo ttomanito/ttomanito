@@ -39,7 +39,7 @@ public class DevAuthController {
     @Value("${jwt.refresh.time}")
     private long refreshTokenTtlMs;
 
-    @Value("${url.redirect.base:https://i13b206.p.ssafy.io}")
+    @Value("${url.redirect.base}")
     private String frontendRedirectUrl;
 
     @PostMapping("/login")
