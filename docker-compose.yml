@@ -121,12 +121,16 @@ services:
       DOMAIN_OR_PUBLIC_IP: i13b206.p.ssafy.io
       OPENVIDU_PUBLICURL: https://i13b206.p.ssafy.io:4443/
       OPENVIDU_SECRET: ${OPENVIDU_SECRET}
-      CERTIFICATE_TYPE: selfsigned     
+      CERTIFICATE_TYPE: owncert     
       HTTPS_PORT: 4443
     ports:
       - "4443:4443"
-    networks:
-      - app-network
+    volumes:
+    # Nginx가 쓰는 LE 인증서를 OpenVidu owncert 위치로 매핑
+      - /etc/letsencrypt/live/i13b206.p.ssafy.io/fullchain.pem:/opt/openvidu/owncert/certificate.cert:ro
+      - /etc/letsencrypt/live/i13b206.p.ssafy.io/privkey.pem:/opt/openvidu/owncert/certificate.key:ro
+  networks:
+    - app-network
 
   coturn:
     image: instrumentisto/coturn
