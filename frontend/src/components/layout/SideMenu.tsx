@@ -9,7 +9,7 @@ import {
   CloseButton,
   Portal,
 } from '@chakra-ui/react';
-import {  LuMenu  } from 'react-icons/lu';
+import { TiThMenu } from 'react-icons/ti';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logoSvg from '@/assets/ttomas/main_page_logo.svg';
@@ -47,11 +47,11 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
       <Box p={2}>
       <IconButton
         aria-label="메뉴 열기"
-        boxSize="35px"
+        boxSize="40px"
         variant="ghost"
         onClick={() => setIsOpen(true)}
       >
-        < LuMenu style={{ width: '35px', height: '35px' }} />
+        <TiThMenu style={{ width: '40px', height: '40px' }} />
         
       </IconButton>
       </Box>

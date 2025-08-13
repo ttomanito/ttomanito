@@ -15,12 +15,6 @@ type NavItem = {
 type BottomNavProps = FlexProps & {
   items?: NavItem[];
   height?: number | string;
-  /** 아이콘 지름(px) */
-  iconSize?: number;
-  /** 버튼(원) 지름(px) */
-  buttonSize?: number;
-  /** 아이콘 간 간격 */
-  gap?: number | string;
 };
 
 const DEFAULT_ITEMS: NavItem[] = [
@@ -32,13 +26,11 @@ const DEFAULT_ITEMS: NavItem[] = [
 
 const BottomNav: React.FC<BottomNavProps> = ({
   items = DEFAULT_ITEMS,
-  height = '60px',
-  iconSize = 42,    // 아이콘 실제 크기
-  buttonSize = 55,  // 동그란 버튼 지름
-  gap = 2,
+  height = '74px',
   ...props
 }) => {
   const location = useLocation();
+
   const isActive = (to: string) =>
     location.pathname === to || location.pathname.startsWith(`${to}/`);
 
@@ -51,45 +43,37 @@ const BottomNav: React.FC<BottomNavProps> = ({
       borderColor="gray.200"
       h={height}
       align="center"
-      px={4}
-      py={3}
+      justify="space-around"
+      paddingTop="10px" // ✅ 추가
+      paddingBottom="10px" // ✅ 추가
       {...props}
     >
-      <HStack w="100%" justify="space-between" gap={gap}>
-        {items.map(({ to, icon, label }) => {
+      <HStack w="100%" justify="space-around">
+        {items.map(({ to, icon }) => {
           const active = isActive(to);
+
           return (
             <Link
               key={to}
               to={to}
-              aria-label={label}
-              aria-current={active ? 'page' : undefined}
               style={{
-                flex: 1,
+                width: '100%',
                 display: 'flex',
                 justifyContent: 'center',
               }}
             >
               <Box
-                rounded="full"
-                boxSize={`${buttonSize}px`}
+                w="55px"
+                h="55px"
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
-                bg={active ? 'accent.200' : 'transparent'}
-                _hover={{ bg: 'accent.100' }}
-                _active={{ bg: 'accent.200' }}
+                rounded="xl"
+                bg={active ? 'gray.100' : 'transparent'}
                 boxShadow={active ? 'sm' : 'none'}
-                transition="background-color 0.15s ease"
+                transition="all 0.2s ease"
               >
-                <Image
-                  src={icon}
-                  alt={label}
-                  boxSize={`${iconSize}px`}
-                  draggable={false}
-                  // 선택 시 살짝 진하게
-                  filter={active ? 'none' : 'grayscale(0%)'}
-                />
+                <Image src={icon} alt={to} boxSize={14} />
               </Box>
             </Link>
           );
