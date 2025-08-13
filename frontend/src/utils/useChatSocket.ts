@@ -1,4 +1,4 @@
-// src/utils/useChatSocket.ts - 타입 일관성 맞춤
+// src/utils/useChatSocket.ts - roomUserId로 명확히 수정
 
 import { Client, type IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -23,7 +23,7 @@ type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'reconnecti
 
 interface UseChatSocketProps {
   chatRoomId: string | null;
-  myUserId: string | null;
+  roomUserId: string | null; // 👈 명확하게 roomUserId로 변경
   onMessage: (msg: ReceivedMessage) => void;
   onHistoryLoaded?: (messages: ReceivedMessage[], hasMore: boolean) => void;
   onConnectionStateChange?: (state: ConnectionState) => void;
@@ -31,7 +31,7 @@ interface UseChatSocketProps {
 
 export const useChatSocket = ({ 
   chatRoomId, 
-  myUserId, 
+  roomUserId, // 👈 명확하게 roomUserId로 변경
   onMessage,
   onHistoryLoaded,
   onConnectionStateChange 
@@ -79,7 +79,7 @@ export const useChatSocket = ({
   }, []);
 
   useEffect(() => {
-    if (!chatRoomId || !myUserId) {
+    if (!chatRoomId || !roomUserId) { // 👈 roomUserId로 변경
       updateConnectionState('disconnected');
       return;
     }
@@ -100,7 +100,7 @@ export const useChatSocket = ({
       connectHeaders: {
         // 인증 토큰 추가 (필요시)
         // 'Authorization': `Bearer ${token}`,
-        // 'X-User-Id': myUserId,
+        // 'X-User-Id': roomUserId,
       },
       reconnectDelay: Math.min(5000 * Math.pow(2, reconnectAttempts), 30000),
       heartbeatIncoming: 4000,
@@ -108,7 +108,7 @@ export const useChatSocket = ({
       debug: (str) => console.log('[STOMP]', str),
 
       onConnect: () => {
-        console.log('[CHAT] 웹소켓 연결 성공');
+        console.log('[CHAT] 웹소켓 연결 성공, roomUserId:', roomUserId);
         updateConnectionState('connected');
         setReconnectAttempts(0);
         
@@ -116,8 +116,6 @@ export const useChatSocket = ({
           // 히스토리 구독 - 백엔드에서 List<ChatMessageDto> 응답
           stompClient.subscribe('/user/queue/history', (res: IMessage) => {
             try {
-              // 🔥 타이머 클리어
-              
               console.log('[CHAT] 🎯 히스토리 응답 받음!');
               console.log('[CHAT] 응답 headers:', res.headers);
               console.log('[CHAT] 응답 body (raw):', res.body);
@@ -163,8 +161,6 @@ export const useChatSocket = ({
           
           // 초기 히스토리 로드 (최신 50개)
           console.log('[CHAT] 🚀 초기 히스토리 요청 시작...');
-        
-          
           loadHistory();
           
         } catch (error) {
@@ -205,7 +201,7 @@ export const useChatSocket = ({
         client.current.deactivate();
       }
     };
-  }, [chatRoomId, myUserId, handleMessage, updateConnectionState, reconnectAttempts]);
+  }, [chatRoomId, roomUserId, handleMessage, updateConnectionState, reconnectAttempts]); // 👈 roomUserId로 변경
 
   // 히스토리 로드 (페이징 지원)
   const loadHistory = useCallback((beforeDateTime?: string): Promise<boolean> => {
@@ -248,7 +244,7 @@ export const useChatSocket = ({
 
   // 텍스트 메시지 전송
   const sendMessage = useCallback(async (content: string): Promise<boolean> => {
-    if (!client.current?.connected || !chatRoomId || !myUserId) {
+    if (!client.current?.connected || !chatRoomId || !roomUserId) { // 👈 roomUserId로 변경
       console.warn('[CHAT] 메시지 전송 실패: 연결되지 않음');
       return false;
     }
@@ -256,10 +252,12 @@ export const useChatSocket = ({
     try {
       // 백엔드 ChatMessageDto payload 구조에 맞게
       const payload = {
-        chattingchatRoomId: +chatRoomId,
-        senderRoomUserId: +myUserId,
+        chattingRoomId: +chatRoomId,
+        senderRoomUserId: +roomUserId, // 👈 roomUserId로 변경
         content,
       };
+      
+      console.log('[CHAT] 메시지 전송 payload:', payload);
       
       client.current.publish({
         destination: `/app/chat.send.${chatRoomId}`,
@@ -272,20 +270,22 @@ export const useChatSocket = ({
       console.error('[CHAT] 메시지 전송 오류:', error);
       return false;
     }
-  }, [chatRoomId, myUserId]);
+  }, [chatRoomId, roomUserId]); // 👈 roomUserId로 변경
 
   // 콕 찌르기 전송
   const sendPoke = useCallback(async (): Promise<boolean> => {
-    if (!client.current?.connected || !chatRoomId || !myUserId) {
+    if (!client.current?.connected || !chatRoomId || !roomUserId) { // 👈 roomUserId로 변경
       console.warn('[CHAT] 찌르기 전송 실패: 연결되지 않음');
       return false;
     }
 
     try {
       const payload = {
-        chattingchatRoomId: +chatRoomId,
-        senderRoomUserId: +myUserId,
+        chattingRoomId: +chatRoomId,
+        senderRoomUserId: +roomUserId, // 👈 roomUserId로 변경
       };
+      
+      console.log('[CHAT] 찌르기 전송 payload:', payload);
       
       client.current.publish({
         destination: `/app/chat.poke.${chatRoomId}`,
@@ -298,19 +298,22 @@ export const useChatSocket = ({
       console.error('[CHAT] 찌르기 전송 오류:', error);
       return false;
     }
-  }, [chatRoomId, myUserId]);
+  }, [chatRoomId, roomUserId]); // 👈 roomUserId로 변경
 
   // 통화 시작
   const startCall = useCallback(async (): Promise<boolean> => {
-    if (!client.current?.connected || !chatRoomId || !myUserId) {
+    if (!client.current?.connected || !chatRoomId || !roomUserId) { // 👈 roomUserId로 변경
+      console.warn('[CHAT] 통화 시작 실패: 연결되지 않음');
       return false;
     }
 
     try {
       const payload = {
-        chattingchatRoomId: +chatRoomId,
-        senderRoomUserId: +myUserId,
+        chattingRoomId: +chatRoomId,
+        senderRoomUserId: +roomUserId, // 👈 roomUserId로 변경
       };
+      
+      console.log('[CHAT] 통화 시작 payload:', payload);
       
       client.current.publish({
         destination: `/app/chat.call.start.${chatRoomId}`,
@@ -323,19 +326,22 @@ export const useChatSocket = ({
       console.error('[CHAT] 통화 시작 오류:', error);
       return false;
     }
-  }, [chatRoomId, myUserId]);
+  }, [chatRoomId, roomUserId]); // 👈 roomUserId로 변경
 
   // 통화 수락
   const acceptCall = useCallback(async (): Promise<boolean> => {
-    if (!client.current?.connected || !chatRoomId || !myUserId) {
+    if (!client.current?.connected || !chatRoomId || !roomUserId) { // 👈 roomUserId로 변경
+      console.warn('[CHAT] 통화 수락 실패: 연결되지 않음');
       return false;
     }
 
     try {
       const payload = {
-        chattingchatRoomId: +chatRoomId,
-        senderRoomUserId: +myUserId,
+        chattingRoomId: +chatRoomId,
+        senderRoomUserId: +roomUserId, // 👈 roomUserId로 변경
       };
+      
+      console.log('[CHAT] 통화 수락 payload:', payload);
       
       client.current.publish({
         destination: `/app/chat.call.accept.${chatRoomId}`,
@@ -348,19 +354,22 @@ export const useChatSocket = ({
       console.error('[CHAT] 통화 수락 오류:', error);
       return false;
     }
-  }, [chatRoomId, myUserId]);
+  }, [chatRoomId, roomUserId]); // 👈 roomUserId로 변경
 
   // 통화 거절
   const rejectCall = useCallback(async (): Promise<boolean> => {
-    if (!client.current?.connected || !chatRoomId || !myUserId) {
+    if (!client.current?.connected || !chatRoomId || !roomUserId) { // 👈 roomUserId로 변경
+      console.warn('[CHAT] 통화 거절 실패: 연결되지 않음');
       return false;
     }
 
     try {
       const payload = {
-        chattingchatRoomId: +chatRoomId,
-        senderRoomUserId: +myUserId,
+        chattingRoomId: +chatRoomId,
+        senderRoomUserId: +roomUserId, // 👈 roomUserId로 변경
       };
+      
+      console.log('[CHAT] 통화 거절 payload:', payload);
       
       client.current.publish({
         destination: `/app/chat.call.reject.${chatRoomId}`,
@@ -373,7 +382,7 @@ export const useChatSocket = ({
       console.error('[CHAT] 통화 거절 오류:', error);
       return false;
     }
-  }, [chatRoomId, myUserId]);
+  }, [chatRoomId, roomUserId]); // 👈 roomUserId로 변경
 
   // 수동 재연결
   const reconnect = useCallback(() => {
