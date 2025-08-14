@@ -28,3 +28,16 @@ storybook-static
 dev-dist/
 
 .env
+
+# Firebase
+firebase-debug.log
+firebase-debug.*.log
+.firebase/
+.firebaserc
+
+# Firebase service account keys (중요!)
+firebase-service-account.json
+*-firebase-adminsdk-*.json
+
+# FCM related
+fcm-token-cache/
