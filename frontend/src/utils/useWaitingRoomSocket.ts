@@ -71,6 +71,7 @@ export const useWaitingRoomSocket = () => {
       // SockJS를 쓰면 brokerURL 지정하지 않는 것이 권장
       // brokerURL: 'wss://i13b206.p.ssafy.io/ws/waiting',
       webSocketFactory: () => new SockJS('https://i13b206.p.ssafy.io/ws/waiting'),
+      // webSocketFactory: () => new SockJS('http://localhost:8080/ws/waiting'),
       reconnectDelay: 5000,
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
