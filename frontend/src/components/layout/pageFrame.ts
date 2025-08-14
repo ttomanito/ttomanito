@@ -1,0 +1,1 @@
+export type PageFrame = 'full' | 'header-only' | 'back-only' | 'bare';

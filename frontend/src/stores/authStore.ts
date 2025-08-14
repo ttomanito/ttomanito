@@ -5,7 +5,7 @@
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { getRequest, postRequest } from '@/api/requests'
+import { deleteRequest, getRequest, postRequest } from '@/api/requests'
 import { api } from '@/api/client.ts'
 
 type User = {
@@ -309,9 +309,10 @@ export const useAuth = create<AuthState>()(
         try {
           get().pauseAuthSync()
           await postRequest('/auth/logout')
-          console.log('[AUTH] 서버 로그아웃 완료')
-        } catch (e) {
-          console.error('[AUTH] 서버 로그아웃 실패:', e)
+          await deleteRequest('/push/token')
+          console.log('[AUTH] 서버 로그아웃 완료, FCM 토큰 비활성화 완료')
+        } catch (error) {
+          console.error('[AUTH] 서버 로그아웃 실패:', error)
         } finally {
           set({ user: null, gameInfo: INITIAL_GAME_INFO, isAuthenticated: false })
           localStorage.removeItem('auth')
