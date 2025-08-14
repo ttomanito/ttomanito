@@ -1,5 +1,5 @@
 // ChatRoomPage.tsx (수정본)
-import { Box, Flex, Icon, Text, Image, Spinner, Center, VStack } from '@chakra-ui/react';
+import { Box, Flex, Icon, Text, Image, Spinner, Center } from '@chakra-ui/react';
 import { FiPhone } from 'react-icons/fi';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import TextInput from '@/components/inputs/TextInput';
