@@ -3,6 +3,7 @@ package com.ssafy.ttomanito.config;
 import com.ssafy.ttomanito.global.security.filter.JwtAuthenticationFilter;
 import com.ssafy.ttomanito.global.security.oauth.OAuth2AuthenticationSuccessHandler;
 import com.ssafy.ttomanito.global.security.oauth.SocialUserService;
+import com.ssafy.ttomanito.global.security.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,13 +85,7 @@ public class SecurityConfig {
                         .deleteCookies("accessToken", "refreshToken", "JSESSIONID", "kakaoAccessToken")
                         .logoutSuccessHandler((req, res, auth) -> {
                             java.util.stream.Stream.of("accessToken","refreshToken","JSESSIONID","kakaoAccessToken")
-                                    .forEach(name -> {
-                                        var c = ResponseCookie.from(name, "")
-                                                .path("/")
-                                                .maxAge(0)
-                                                .build();
-                                        res.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, c.toString());
-                                    });
+                                    .forEach(name -> CookieUtils.deleteCookie(req, res, name));
                             res.setStatus(HttpServletResponse.SC_NO_CONTENT);
                         })
                 )
