@@ -5,7 +5,7 @@
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { getRequest, postRequest } from '@/api/requests'
+import { deleteRequest, getRequest, postRequest } from '@/api/requests'
 import { api } from '@/api/client.ts'
 
 type User = { 
@@ -364,7 +364,8 @@ export const useAuth = create<AuthState>()(
       logout: async () => {
         try {
           await postRequest('/auth/logout')
-          console.log('[AUTH] 서버 로그아웃 완료')
+          await deleteRequest('/push/token')
+          console.log('[AUTH] 서버 로그아웃 완료, FCM 토큰 비활성화 완료')
         } catch (error) {
           console.error('[AUTH] 서버 로그아웃 실패:', error)
         } finally {
