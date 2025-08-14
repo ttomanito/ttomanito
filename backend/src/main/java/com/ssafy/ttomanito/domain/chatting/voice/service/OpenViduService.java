@@ -10,7 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class OpenViduService {
@@ -39,7 +40,6 @@ public class OpenViduService {
         } catch (OpenViduHttpException e) {
             if (e.getStatus() == 409) {
                 openVidu.fetch();
-                // sessionId 혹은 properties.customSessionId 둘 다 체크
                 for (Session s : openVidu.getActiveSessions()) {
                     if (customSessionId.equals(s.getSessionId())
                             || (s.getProperties() != null
@@ -47,14 +47,14 @@ public class OpenViduService {
                         return s;
                     }
                 }
-                // 못 찾으면 원래 예외 던짐
             }
             throw e;
         }
     }
 
     /**
-     * 커넥션 생성 후 '풀 URL 토큰' 그대로 반환 (wss://...&token=tok_xxx).
+     * 커넥션 생성 후 OpenVidu '토큰 문자열'만 추출해서 반환.
+     * (예: tok_xxxxxxxxxxxxxxxxx)
      */
     public String generateConnectionToken(Session session, String data)
             throws OpenViduJavaClientException, OpenViduHttpException {
@@ -62,8 +62,30 @@ public class OpenViduService {
         ConnectionProperties conn = new ConnectionProperties.Builder()
                 .data(data == null ? "" : data)
                 .build();
-        
-        // URL을 수동으로 조작하는 로직을 모두 제거하고, 생성된 토큰을 바로 반환합니다.
-        return session.createConnection(conn).getToken();
+
+        // OpenVidu가 주는 rawToken은 wss 풀 URL 형태
+        // 예: wss://.../openvidu?sessionId=room-123&token=tok_xxx&...
+        String rawTokenUrl = session.createConnection(conn).getToken();
+
+        URI uri = URI.create(rawTokenUrl);
+        String token = getQueryParam(uri, "token");
+        if (token == null || token.isBlank()) {
+            throw new IllegalStateException("OpenVidu token not found in returned URL: " + rawTokenUrl);
+        }
+        return token;
+    }
+
+    private static String getQueryParam(URI uri, String key) {
+        String query = uri.getQuery();
+        if (query == null) return null;
+        for (String pair : query.split("&")) {
+            int idx = pair.indexOf('=');
+            if (idx <= 0) continue;
+            String k = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8);
+            if (!key.equals(k)) continue;
+            return URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8);
+        }
+        return null;
+
     }
 }
