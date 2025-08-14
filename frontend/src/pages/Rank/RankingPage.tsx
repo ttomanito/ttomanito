@@ -178,7 +178,7 @@ const RankingPage: React.FC = () => {
     );
   }
   return (
-    <Box bg="white" minH="100vh" px={6} py={4}>
+    <Box bg="white" minH="100vh" p={2} m={2}>
       <VStack gap={4} align="stretch" maxW="500px" mx="auto">
         <VStack align="flex-start" gap={2}>
           <Text textStyle="title_mlg">✪ 중간 랭킹</Text>
