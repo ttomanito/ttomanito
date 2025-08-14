@@ -56,6 +56,8 @@ public class OpenViduService {
      * 커넥션 생성 후 OpenVidu '토큰 문자열'만 추출해서 반환.
      * (예: tok_xxxxxxxxxxxxxxxxx)
      */
+
+
     public String generateConnectionToken(Session session, String data)
             throws OpenViduJavaClientException, OpenViduHttpException {
 
@@ -63,17 +65,28 @@ public class OpenViduService {
                 .data(data == null ? "" : data)
                 .build();
 
-        // OpenVidu가 주는 rawToken은 wss 풀 URL 형태
-        // 예: wss://.../openvidu?sessionId=room-123&token=tok_xxx&...
-        String rawTokenUrl = session.createConnection(conn).getToken();
-
-        URI uri = URI.create(rawTokenUrl);
-        String token = getQueryParam(uri, "token");
-        if (token == null || token.isBlank()) {
-            throw new IllegalStateException("OpenVidu token not found in returned URL: " + rawTokenUrl);
-        }
-        return token;
+        // 이 값을 그대로 반환
+        return session.createConnection(conn).getToken();
     }
+
+//    public String generateConnectionToken(Session session, String data)
+//            throws OpenViduJavaClientException, OpenViduHttpException {
+//
+//        ConnectionProperties conn = new ConnectionProperties.Builder()
+//                .data(data == null ? "" : data)
+//                .build();
+//
+//        // OpenVidu가 주는 rawToken은 wss 풀 URL 형태
+//        // 예: wss://.../openvidu?sessionId=room-123&token=tok_xxx&...
+//        String rawTokenUrl = session.createConnection(conn).getToken();
+//
+//        URI uri = URI.create(rawTokenUrl);
+//        String token = getQueryParam(uri, "token");
+//        if (token == null || token.isBlank()) {
+//            throw new IllegalStateException("OpenVidu token not found in returned URL: " + rawTokenUrl);
+//        }
+//        return token;
+//    }
 
     private static String getQueryParam(URI uri, String key) {
         String query = uri.getQuery();

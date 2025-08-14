@@ -10,13 +10,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.Map;
 
 @Slf4j
@@ -29,6 +29,7 @@ public class SessionController {
     public SessionController(OpenViduService openViduService) {
         this.openViduService = openViduService;
     }
+
     @Operation(
             summary = "OpenVidu 연결 토큰 발급",
             description = "주어진 세션 ID로 OpenVidu 세션을 생성 또는 조회하고, 해당 세션에 연결할 커넥션 토큰을 발급합니다."
@@ -47,10 +48,9 @@ public class SessionController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<Map<String, String>> generateToken(@Valid @RequestBody TokenRequest req) {
-        // record 접근 → req.sessionId(), req.nickname()
         log.info("[/openvidu/token] IN sessionId={}, nickname={}", req.sessionId(), req.nickname());
 
-        // 간단 sessionId 형식 검증
+        // 간단한 형식 검증 (원하면 제거 가능)
         if (!req.sessionId().matches("^[a-zA-Z0-9_-]+$")) {
             return ResponseEntity.badRequest()
                     .contentType(MediaType.APPLICATION_JSON)
@@ -58,12 +58,15 @@ public class SessionController {
         }
 
         try {
+            // 1) 세션 생성/가져오기
             log.debug("[/openvidu/token] Requesting session from OpenVidu server...");
             Session session = openViduService.getOrCreateSession(req.sessionId());
 
-
+            // 2) 커넥션 토큰 발급(서비스가 '토큰 문자열'만 반환)
+            log.debug("[/openvidu/token] Generating token for nickname={}", req.nickname());
             String token = openViduService.generateConnectionToken(session, req.nickname());
-System.out.println("                "+token);
+
+            // 3) 기존 응답 형식 유지: { "token": "tok_..." }
             return ResponseEntity.ok(Map.of("token", token));
 
         } catch (IllegalArgumentException e) {
@@ -73,7 +76,6 @@ System.out.println("                "+token);
                     .body(Map.of("error", "BadRequest", "message", e.getMessage()));
 
         } catch (OpenViduHttpException e) {
-            // OpenVidu 서버에서 발생한 HTTP 예외 - 상태 코드 그대로 전달
             log.warn("[/openvidu/token] OV HTTP EX status={} msg={}", e.getStatus(), e.getMessage());
             return ResponseEntity.status(e.getStatus())
                     .contentType(MediaType.APPLICATION_JSON)
