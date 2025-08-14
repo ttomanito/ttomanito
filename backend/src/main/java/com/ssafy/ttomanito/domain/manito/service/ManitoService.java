@@ -27,6 +27,7 @@ public class ManitoService {
     private final ManitoAssignmentRepository manitoAssignmentRepository;
     private final ManitoGuessRepository manitoGuessRepository;
     private final RoomRepository roomRepository;
+    private final ActivityAggregationService activityAggregationService;
 
     @Transactional(readOnly = true)
     public Long getManiteeId(Long userId) {
@@ -84,6 +85,12 @@ public class ManitoService {
         if (room.getStatus() == RoomStatus.FINISHED) {
             throw new BadRequestException("이미 종료된 방입니다");
         }
-        room.finish(LocalDate.now());
+
+        // 1) 종료 처리 (오늘 날짜로 종료)
+        LocalDate todayKst = LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+        room.finish(todayKst);
+
+        // 2) 오늘자 활동을 '해당 방'에 한해 즉시 집계
+        activityAggregationService.aggregateForDateAndRoom(todayKst, room.getRoomId());
     }
 }
