@@ -61,9 +61,9 @@ public class SessionController {
             log.debug("[/openvidu/token] Requesting session from OpenVidu server...");
             Session session = openViduService.getOrCreateSession(req.sessionId());
 
-            log.debug("[/openvidu/token] Generating token for nickname={}", req.nickname());
-            String token = openViduService.generateConnectionToken(session, req.nickname());
 
+            String token = openViduService.generateConnectionToken(session, req.nickname());
+System.out.println("                "+token);
             return ResponseEntity.ok(Map.of("token", token));
 
         } catch (IllegalArgumentException e) {
