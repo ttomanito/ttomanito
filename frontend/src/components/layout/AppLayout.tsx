@@ -58,7 +58,7 @@ const frameRules: Array<{ frame: PageFrame; patterns: string[] }> = [
   { // 헤더 + 하단바
   frame: 'full',
   patterns: [
-    '/home', '/guess', '/chat', '/rank' 
+    '/','/home', '/guess', '/chat', '/rank' 
   ]
 },
 { // 헤더 O + 하단바 X
@@ -76,7 +76,7 @@ const frameRules: Array<{ frame: PageFrame; patterns: string[] }> = [
 { // 헤더 X + 하단바 X
   frame: 'bare',
   patterns: [
-    '/', '/login', '/chat/:chatRoomId/call'
+    '/login', '/chat/:chatRoomId/call'
   ]
 },
 ];
@@ -131,7 +131,7 @@ export default function AppLayout() {
           <Box
             ref={containerRef}
             position="relative"
-            w={{ base: '375px', xs: '100%', mobile: '520px' }}
+            w={{ base: '375px', xs: '100%', mobile: '520px' } as any}
             h="100dvh"
             overflow="hidden"
           >
