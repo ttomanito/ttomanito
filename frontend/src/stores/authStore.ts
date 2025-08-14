@@ -1,6 +1,6 @@
 /**
  * src/stores/auth.ts
- * 정리된 인증 및 게임 상태 관리 Zustand 스토어
+ * 인증 + 게임 상태(Zustand)
  */
 
 import { create } from 'zustand'
@@ -8,7 +8,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { deleteRequest, getRequest, postRequest } from '@/api/requests'
 import { api } from '@/api/client.ts'
 
-type User = { 
+type User = {
   id: string
   name: string
 } | null
@@ -22,28 +22,41 @@ type GameInfo = {
 }
 
 type AuthState = {
+  // state
   user: User
   gameInfo: GameInfo
   isReady: boolean
   isAuthenticated: boolean
-  
+  authSyncPaused: boolean
+
+  // actions
   handleLoginSuccess: () => boolean
   setUser: (u: User) => void
   setGameInfo: (info: Partial<GameInfo>) => void
-  joinGame: (roomId: number, isCreator: boolean) => Promise<void>
-  startGame: (roomId: number) => Promise<void>
-  checkCreatorStatus: () => Promise<boolean>
-  syncGameState: () => Promise<void>
-  leaveGame: () => Promise<void>
-  finishGame: () => void
-  logout: () => Promise<void>
+  setGameStatus: (status: GameStatus, roomId?: number | null) => void
   markReady: () => void
-  // 서버 상태 전체 동기화 (인증 + 게임)
+
+  // server sync
   syncAllFromServer: () => Promise<void>
-  // 서버에서 사용자 상태 동기화 (인증만)
   bootstrapFromServer: () => Promise<void>
   syncUserGameStatus: () => Promise<GameStatus>
-  setGameStatus: (status: GameStatus, roomId?: number) => void
+  checkCreatorStatus: () => Promise<boolean>
+  syncGameState: () => Promise<void>
+
+  // game flow
+  joinGame: (roomId: number, isCreator: boolean) => Promise<void>
+  startGame: (roomId: number) => Promise<void>
+  leaveGame: () => Promise<void>
+  finishGame: () => void
+
+  // logout
+  logout: () => Promise<void>               // 기본: 카카오 로그아웃 페이지로 이동
+  logoutAppOnly: () => Promise<void>        // 서비스만 로그아웃 (XHR)
+  logoutViaKakaoPage: () => Promise<void>   // 카카오 로그아웃 페이지로 이동
+
+  // auth sync on/off
+  pauseAuthSync: () => void
+  resumeAuthSync: () => void
 }
 
 const INITIAL_GAME_INFO: GameInfo = {
@@ -53,181 +66,151 @@ const INITIAL_GAME_INFO: GameInfo = {
 }
 
 const INITIAL_STATE = {
-  user: null,
+  user: null as User,
   gameInfo: INITIAL_GAME_INFO,
   isAuthenticated: false,
-  isReady: false
+  isReady: false,
+  authSyncPaused: false,
 }
+
+// 백엔드 베이스 URL (카카오 로그아웃 페이지로 이동할 때 필요)
+const backendBase = (() => {
+  try {
+    const b = api?.defaults?.baseURL ?? ''
+    return b.endsWith('/') ? b.slice(0, -1) : b
+  } catch {
+    return ''
+  }
+})()
 
 export const useAuth = create<AuthState>()(
   persist(
     (set, get) => ({
-      // Initial State
       ...INITIAL_STATE,
 
-     handleLoginSuccess: () => {
-        const redirectDataStr = localStorage.getItem('redirectAfterLogin');
-        
+      // ---------- small setters ----------
+      setUser: (user) => set({ user }),
+      setGameInfo: (info) =>
+        set((state) => ({ gameInfo: { ...state.gameInfo, ...info } })),
+      setGameStatus: (status, roomId = null) =>
+        set((state) => ({
+          gameInfo: { status, roomId, isCreator: state.gameInfo.isCreator },
+        })),
+      markReady: () => set({ isReady: true }),
+
+      pauseAuthSync: () => set({ authSyncPaused: true }),
+      resumeAuthSync: () => set({ authSyncPaused: false }),
+
+      // ---------- after login redirect ----------
+      handleLoginSuccess: () => {
+        const redirectDataStr = localStorage.getItem('redirectAfterLogin')
         if (redirectDataStr) {
           try {
-            const redirectData = JSON.parse(redirectDataStr);
-            console.log('[AUTH] 로그인 성공 - 리다이렉트 데이터:', redirectData);
-            
-            localStorage.removeItem('redirectAfterLogin');
-            
-            const isValid = Date.now() - redirectData.timestamp < 24 * 60 * 60 * 1000;
-            
+            const redirectData = JSON.parse(redirectDataStr)
+            localStorage.removeItem('redirectAfterLogin')
+            const isValid =
+              Date.now() - redirectData.timestamp < 24 * 60 * 60 * 1000
             if (isValid && redirectData.url) {
-              console.log('[AUTH] 원래 페이지로 리다이렉트:', redirectData.url);
               setTimeout(() => {
-                window.location.href = redirectData.url;
-              }, 500);
-              return true;
-            } else {
-              // 🔥 추가: 데이터가 유효하지 않은 경우
-              console.log('[AUTH] 리다이렉트 데이터 만료/무효 - 메인으로 이동');
+                window.location.href = redirectData.url
+              }, 500)
+              return true
             }
-          } catch (error) {
-            console.error('[AUTH] 리다이렉트 데이터 파싱 실패:', error);
-            localStorage.removeItem('redirectAfterLogin');
-            // 🔥 추가: 에러 시에도 메인으로 가야 함
-            console.log('[AUTH] 파싱 오류 - 메인으로 이동');
+          } catch {
+            localStorage.removeItem('redirectAfterLogin')
           }
         }
-        
-        // 🔥 수정: 모든 "메인으로 가야 하는" 경우들이 여기로 도달
-        console.log('[AUTH] 리다이렉트 정보 없음/오류 - 메인으로 이동');
         setTimeout(() => {
-          window.location.href = '/main';
-        }, 500);
-        return true;
+          window.location.href = '/main'
+        }, 500)
+        return true
       },
 
-
-      // 사용자 게임 상태 동기화
+      // ---------- server sync ----------
       syncUserGameStatus: async () => {
         try {
-          const { isAuthenticated } = get();
+          const { isAuthenticated } = get()
           if (!isAuthenticated) {
-            set({ gameInfo: { ...INITIAL_GAME_INFO } });
-            return 'IN_NONE';
+            set({ gameInfo: { ...INITIAL_GAME_INFO } })
+            return 'IN_NONE'
           }
 
-          const status = await getRequest<GameStatus>('/room/check');
-          
-          // 대기 중이면 방 정보도 가져오기
-          let roomId = null;
+          const status = await getRequest<GameStatus>('/room/check')
+
+          let roomId: number | null = null
           if (status !== 'IN_NONE') {
             try {
-              roomId = await getRequest<number>('/room/roomId');
-            } catch (error) {
-              console.warn('현재 방 ID 조회 실패:', error);
+              roomId = await getRequest<number>('/room/roomId')
+            } catch (e) {
+              console.warn('[AUTH] 현재 방 ID 조회 실패:', e)
             }
           }
 
-          set({ 
-            gameInfo: { 
-              status, 
-              roomId, 
-              isCreator: get().gameInfo.isCreator 
-            } 
-          });
-          return status;
-        } catch (error) {
-          console.error('[authStore] 게임 상태 확인 실패:', error);
-          set({ gameInfo: { ...INITIAL_GAME_INFO } });
-          return 'IN_NONE';
+          set({
+            gameInfo: {
+              status,
+              roomId,
+              isCreator: get().gameInfo.isCreator,
+            },
+          })
+          return status
+        } catch (e) {
+          console.error('[AUTH] 게임 상태 확인 실패:', e)
+          set({ gameInfo: { ...INITIAL_GAME_INFO } })
+          return 'IN_NONE'
         }
       },
 
-      // 게임 상태 직접 설정
-      setGameStatus: (status, roomId) => {
-        set({ 
-          gameInfo: { 
-            status, 
-            roomId: roomId || null,
-            isCreator: get().gameInfo.isCreator
-          } 
-        });
-      },
-
-      setUser: (user) => set({ user }),
-
-      // 게임 정보 부분 업데이트
-      setGameInfo: (info) => set((state) => ({
-        gameInfo: { ...state.gameInfo, ...info }
-      })),
-
-      // 서버 상태 전체 동기화 (인증 + 게임 상태)
       syncAllFromServer: async () => {
-        try {
-          const wasNotAuthenticated = !get().isAuthenticated
-          
-          // 1. 인증 상태 확인
-          const { data } = await api.get('/auth/me')
-          set({
-            user: { id: String(data.userId), name: data.name },
-            isAuthenticated: true,
-          })
-          
-          // 2. 게임 상태 동기화
-          await get().syncUserGameStatus()
-          
-          // 3. 새 로그인 시 리다이렉트 처리
-          if (wasNotAuthenticated) {
-            console.log('[AUTH] 새 로그인 감지');
-            const hasRedirect = get().handleLoginSuccess();
-            if (!hasRedirect) {
-              console.log('[AUTH] 리다이렉트 없음 - 기본 동작 유지');
-            }
-          }
-          
-          console.log('[AUTH] 전체 상태 동기화 완료')
-        } catch (error) {
-          console.log('[AUTH] 미로그인 상태 확인됨')
-          set({
-            user: null,
-            isAuthenticated: false,
-            gameInfo: INITIAL_GAME_INFO,
-          })
-        } finally {
-          get().markReady()
+        const { authSyncPaused } = get()
+        if (authSyncPaused) {
+          console.log('[AUTH] /auth/me 호출 스킵 (logout mode)')
+          return
         }
-      },
-      // 서버에서 인증 상태만 동기화 (기존 함수)
-      bootstrapFromServer: async () => {
         try {
           const wasNotAuthenticated = !get().isAuthenticated
-          
           const { data } = await api.get('/auth/me')
           set({
             user: { id: String(data.userId), name: data.name },
             isAuthenticated: true,
           })
-          
-          // 새 로그인 감지 시 리다이렉트 처리
-          if (wasNotAuthenticated) {
-            console.log('[AUTH] 새 로그인 감지');
-            const hasRedirect = get().handleLoginSuccess();
-            if (!hasRedirect) {
-              console.log('[AUTH] 리다이렉트 없음 - 기본 동작 유지');
-            }
-          }
-          
-          console.log('[AUTH] 서버 인증 상태 동기화 완료')
-        } catch (error) {
+          get().resumeAuthSync()
+          await get().syncUserGameStatus()
+          if (wasNotAuthenticated) get().handleLoginSuccess()
+          console.log('[AUTH] 전체 상태 동기화 완료')
+        } catch {
           console.log('[AUTH] 미로그인 상태 확인됨')
-          set({
-            user: null,
-            isAuthenticated: false,
-            gameInfo: INITIAL_GAME_INFO,
-          })
+          set({ user: null, isAuthenticated: false, gameInfo: INITIAL_GAME_INFO })
         } finally {
           get().markReady()
         }
       },
 
-      // 현재 사용자가 방장인지 서버에서 확인
+      bootstrapFromServer: async () => {
+        const { authSyncPaused } = get()
+        if (authSyncPaused) {
+          console.log('[AUTH] /auth/me 호출 스킵 (logout mode)')
+          return
+        }
+        try {
+          const wasNotAuthenticated = !get().isAuthenticated
+          const { data } = await api.get('/auth/me')
+          set({
+            user: { id: String(data.userId), name: data.name },
+            isAuthenticated: true,
+          })
+          get().resumeAuthSync()
+          if (wasNotAuthenticated) get().handleLoginSuccess()
+          console.log('[AUTH] 서버 인증 상태 동기화 완료')
+        } catch {
+          console.log('[AUTH] 미로그인 상태 확인됨')
+          set({ user: null, isAuthenticated: false, gameInfo: INITIAL_GAME_INFO })
+        } finally {
+          get().markReady()
+        }
+      },
+
+      // ---------- game helpers ----------
       checkCreatorStatus: async () => {
         try {
           const { isAuthenticated } = get()
@@ -235,121 +218,81 @@ export const useAuth = create<AuthState>()(
             console.warn('[AUTH] 미로그인 상태에서 방장 여부 확인 시도')
             return false
           }
-
           const response = await postRequest('/room/creator')
           const isCreator = response === true || response === 'true'
-          
-          // 상태 업데이트 (현재 상태와 다를 때만)
-          const currentState = get()
-          if (currentState.gameInfo.isCreator !== isCreator) {
+          const current = get().gameInfo.isCreator
+          if (current !== isCreator) {
             set((state) => ({
-              gameInfo: { ...state.gameInfo, isCreator }
+              gameInfo: { ...state.gameInfo, isCreator },
             }))
           }
-          
           return isCreator
-        } catch (error) {
-          console.error('[AUTH] 방장 여부 확인 중 오류:', error)
-          // API 오류 시 게임 상태 초기화
+        } catch (e) {
+          console.error('[AUTH] 방장 여부 확인 중 오류:', e)
           set({ gameInfo: INITIAL_GAME_INFO })
           return false
         }
       },
 
-      // 게임 상태 전체 동기화
       syncGameState: async () => {
         try {
           const { isAuthenticated, gameInfo } = get()
-          
-          // 로그인 상태가 아니거나 게임 중이 아니면 스킵
           if (!isAuthenticated || gameInfo.status === 'IN_NONE') {
             console.log('[AUTH] 게임 상태 동기화 스킵 (조건 미충족)')
             return
           }
-
-          // 게임 상태 동기화
           await get().syncUserGameStatus()
-
-          // 방장 여부 확인 및 동기화
           const isCreator = await get().checkCreatorStatus()
-          
-          console.log(`[AUTH] 게임 상태 동기화 완료 - roomId: ${gameInfo.roomId}, isCreator: ${isCreator}`)
-        } catch (error) {
-          console.error('[AUTH] 게임 상태 동기화 중 오류:', error)
-          // 오류 시 게임 상태 초기화
+          console.log(
+            `[AUTH] 게임 상태 동기화 완료 - roomId: ${get().gameInfo.roomId}, isCreator: ${isCreator}`,
+          )
+        } catch (e) {
+          console.error('[AUTH] 게임 상태 동기화 중 오류:', e)
           set({ gameInfo: INITIAL_GAME_INFO })
         }
       },
 
-      // 방 생성 후 게임 참여
       joinGame: async (roomId, isCreator) => {
         try {
           const { isAuthenticated } = get()
-          if (!isAuthenticated) {
-            throw new Error('로그인이 필요합니다.')
-          }
-
-          // 1. 상태를 먼저 업데이트
-          set({
-            gameInfo: {
-              status: 'IN_GAME',
-              roomId,
-              isCreator,
-            },
-          })
-
-          // 2. 게임 시작 API 호출 (방 생성자만)
-          if (isCreator) {
-            await postRequest(`/room/${roomId}/start`)
-          }
-          
-          console.log(`[AUTH] 게임 참여 완료 - roomId: ${roomId}, isCreator: ${isCreator}`)
-        } catch (error) {
-          console.error('[AUTH] 게임 참여 중 오류:', error)
-          // API 실패 시 상태 롤백
+          if (!isAuthenticated) throw new Error('로그인이 필요합니다.')
+          set({ gameInfo: { status: 'IN_GAME', roomId, isCreator } })
+          if (isCreator) await postRequest(`/room/${roomId}/start`)
+          console.log(
+            `[AUTH] 게임 참여 완료 - roomId: ${roomId}, isCreator: ${isCreator}`,
+          )
+        } catch (e) {
+          console.error('[AUTH] 게임 참여 중 오류:', e)
           set({ gameInfo: INITIAL_GAME_INFO })
-          throw error
+          throw e
         }
       },
 
-      // 대기실에서 게임 시작
       startGame: async (roomId) => {
         try {
           const { isAuthenticated } = get()
-          if (!isAuthenticated) {
-            throw new Error('로그인이 필요합니다.')
-          }
-
-          // 방장 여부 확인
+          if (!isAuthenticated) throw new Error('로그인이 필요합니다.')
           const isCreator = await get().checkCreatorStatus()
-          if (!isCreator) {
-            throw new Error('방장만 게임을 시작할 수 있습니다.')
-          }
-
+          if (!isCreator) throw new Error('방장만 게임을 시작할 수 있습니다.')
           await postRequest(`/room/${roomId}/start`)
-          
           console.log(`[AUTH] 게임 시작 완료 - roomId: ${roomId}`)
-        } catch (error) {
-          console.error('[AUTH] 게임 시작 중 오류:', error)
-          throw error
+        } catch (e) {
+          console.error('[AUTH] 게임 시작 중 오류:', e)
+          throw e
         }
       },
 
-      // 게임에서 나가기
       leaveGame: async () => {
         try {
           const { gameInfo, isAuthenticated } = get()
-          
           if (isAuthenticated && gameInfo.roomId) {
-            // 서버에 나가기 알림
-            await postRequest(`/room/${gameInfo.roomId}/leave`).catch(err => {
-              console.warn('[AUTH] 게임 나가기 API 실패:', err)
-            })
+            await postRequest(`/room/${gameInfo.roomId}/leave`).catch((err) =>
+              console.warn('[AUTH] 게임 나가기 API 실패:', err),
+            )
           }
-        } catch (error) {
-          console.error('[AUTH] 게임 나가기 중 오류:', error)
+        } catch (e) {
+          console.error('[AUTH] 게임 나가기 중 오류:', e)
         } finally {
-          // 상태는 항상 초기화
           set({ gameInfo: INITIAL_GAME_INFO })
           console.log('[AUTH] 게임 나가기 완료')
         }
@@ -360,32 +303,47 @@ export const useAuth = create<AuthState>()(
         console.log('[AUTH] 게임 종료')
       },
 
-      // 로그아웃
-      logout: async () => {
+      // ---------- logout ----------
+      /** 서비스만 로그아웃 (XHR, 204) */
+      logoutAppOnly: async () => {
         try {
+          get().pauseAuthSync()
           await postRequest('/auth/logout')
           await deleteRequest('/push/token')
           console.log('[AUTH] 서버 로그아웃 완료, FCM 토큰 비활성화 완료')
         } catch (error) {
           console.error('[AUTH] 서버 로그아웃 실패:', error)
         } finally {
-          // 클라이언트 상태 정리
-          set({
-            user: null,
-            gameInfo: INITIAL_GAME_INFO,
-            isAuthenticated: false,
-          })
-          
+          set({ user: null, gameInfo: INITIAL_GAME_INFO, isAuthenticated: false })
           localStorage.removeItem('auth')
           console.log('[AUTH] 클라이언트 로그아웃 완료')
+          window.location.replace('/login')
         }
       },
-    
-      markReady: () => set({ isReady: true }),
+
+      /** 카카오 로그아웃 안내 페이지로 이동 (두 버튼 화면) */
+      logoutViaKakaoPage: async () => {
+        try {
+          get().pauseAuthSync()
+          set({ user: null, gameInfo: INITIAL_GAME_INFO, isAuthenticated: false })
+          localStorage.removeItem('auth')
+        } finally {
+          const url =
+            (backendBase ? `${backendBase}` : '') + '/auth/kakao/logout-page'
+          // 전체 페이지 네비게이션 → 카카오 페이지 → (백엔드 콜백) → /login
+          window.location.href = url
+        }
+      },
+
+      /** 기본 로그아웃 동작: 카카오 페이지 띄우기 */
+      logout: async () => {
+        await get().logoutViaKakaoPage()
+      },
     }),
     {
       name: 'auth',
       storage: createJSONStorage(() => localStorage),
+      // 굳이 pause 상태는 저장하지 않음
       partialize: (s) => ({
         user: s.user,
         gameInfo: s.gameInfo,
