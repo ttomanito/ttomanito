@@ -1,5 +1,5 @@
 // ChatRoomPage.tsx (수정본)
-import { Box, Flex, Icon, Text, Image, Spinner, Center } from '@chakra-ui/react';
+import { Box, Flex, Icon, Text, Image, Spinner, Center, VStack } from '@chakra-ui/react';
 import { FiPhone } from 'react-icons/fi';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import TextInput from '@/components/inputs/TextInput';
@@ -299,19 +299,19 @@ const ChatRoomPage = () => {
     return <AccessErrorCard onRetry={() => window.location.reload()} onGoMain={() => navigate('/main', { replace: true })} />;
   if (!roomUserId) return <AccessCheckingCard text="채팅방 정보를 불러오는 중" />;
 
-  const getConnectionStatus = () => {
-    switch (connectionState) {
-      case 'connected': return '✅ 연결됨';
-      case 'connecting': return '🔄 연결 중...';
-      case 'reconnecting': return '🔄 재연결 중...';
-      case 'failed': return '❌ 연결 실패';
-      default: return '❌ 연결 안됨';
-    }
-  };
+  // const getConnectionStatus = () => {
+  //   switch (connectionState) {
+  //     case 'connected': return '✅ 연결됨';
+  //     case 'connecting': return '🔄 연결 중...';
+  //     case 'reconnecting': return '🔄 재연결 중...';
+  //     case 'failed': return '❌ 연결 실패';
+  //     default: return '❌ 연결 안됨';
+  //   }
+  // };
 
   const headerLabel =
     partner?.role === '마니띠'
-      ? `마니띠 (${partner?.name ?? ''})`
+      ? `마니띠`
       : partner?.role ?? '대화상대';
 
   return (
@@ -321,10 +321,11 @@ const ChatRoomPage = () => {
         <Flex align="center" justify="space-between">
           <Flex align="center" gap={3} flex="1" justify="center">
             {partner?.profileImage && (
-              <Image src={partner.profileImage} alt={partner.role} boxSize="28px" borderRadius="full" />
+              <Image src={partner.profileImage} alt={partner.role} boxSize="30px" borderRadius="full" mr={2} />
             )}
-            <Text fontWeight="bold" fontSize="lg">
-              {headerLabel} ({getConnectionStatus()})
+            <Text textStyle="title_ml">
+              {headerLabel}
+               {/* ({getConnectionStatus()}) */}
             </Text>
           </Flex>
           <Icon as={FiPhone} boxSize={5} />
