@@ -12,6 +12,8 @@ import { useChatSocket } from '@/utils/useChatSocket';
 import { useAuth } from '@/stores/authStore';
 import { getRequest } from '@/api/requests';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
+import CommonCard from '@/components/cards/CommonCard';
+import { TbShieldX } from 'react-icons/tb'
 
 // API 응답 타입 정의
 interface RoomUserResponse {
@@ -19,6 +21,81 @@ interface RoomUserResponse {
 }
 
 type AccessState = 'checking' | 'granted' | 'denied' | 'error';
+
+// 접근 제어 카드 UI
+const AccessCardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Center minH="100vh" bg="gray.50" px={4}>
+    <CommonCard maxW="520px" w="full" textAlign="center" py={16}>
+      {children}
+    </CommonCard>
+  </Center>
+);
+
+const AccessCheckingCard = ({ text }: { text: string }) => (
+  <AccessCardLayout>
+    <Box mb={6}>
+      <Spinner size="lg" />
+    </Box>
+    <Text fontSize="xl" fontWeight="bold" mb={2}>{text}</Text>
+    <Text color="gray.500">잠시만 기다려 주세요…</Text>
+  </AccessCardLayout>
+);
+
+const AccessDeniedCard = ({ onGoMain }: { onGoMain: () => void }) => (
+  <AccessCardLayout>
+    {/* 아이콘 배지 */}
+    <Center mb={6}>
+      <Box
+        w="64px"
+        h="64px"
+        borderRadius="full"
+        bg="red.50"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Icon as={TbShieldX} color="red.500" boxSize={7} />
+      </Box>
+    </Center>
+    {/* 제목/설명 */}
+    <Text fontSize="2xl" fontWeight="extrabold" mb={2}>
+      접근이 제한되었습니다
+    </Text>
+    <Text color="gray.500" mb={8}>
+      이 채팅방에 접근할 권한이 없습니다.
+    </Text>
+    {/* 액션 */}
+    <LongButton onClick={onGoMain}>메인으로 이동</LongButton>
+  </AccessCardLayout>
+);
+
+const AccessErrorCard = ({ onRetry, onGoMain }: { onRetry: () => void; onGoMain: () => void }) => (
+  <AccessCardLayout>
+    <Center mb={6}>
+      <Box
+        w="64px"
+        h="64px"
+        borderRadius="full"
+        bg="orange.50"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Icon as={TbShieldX} color="orange.500" boxSize={7} />
+      </Box>
+    </Center>
+    <Text fontSize="xl" fontWeight="bold" mb={2}>
+      접근 권한 확인 중 오류가 발생했어요
+    </Text>
+    <Text color="gray.500" mb={8}>
+      네트워크 연결을 확인한 뒤 다시 시도해 주세요.
+    </Text>
+    <Flex gap={2} justify="center">
+      <LongButton onClick={onRetry}>다시 시도</LongButton>
+      <LongButton onClick={onGoMain}>메인으로</LongButton>
+    </Flex>
+  </AccessCardLayout>
+);
 
 const ChatRoomPage = () => {
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
@@ -79,7 +156,7 @@ const ChatRoomPage = () => {
     if (accessState === 'denied') {
       const timer = setTimeout(() => {
         navigate('/main', { replace: true });
-      }, 3000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [accessState, navigate]);
@@ -226,59 +303,31 @@ const ChatRoomPage = () => {
     }
   };
 
-  // 로딩 상태들
+  // 로딩 상태 별 화면 (CommonCard 활용)
   if (!isReady || !myUserId) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" h="100vh" flexDirection="column" gap={4}>
-        <Text fontSize="lg">사용자 정보를 불러오는 중...</Text>
-      </Box>
-    );
+    return <AccessCheckingCard text="사용자 정보를 불러오는 중" />;
   }
 
   if (accessState === 'checking') {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" h="100vh" flexDirection="column" gap={4}>
-        <Text fontSize="lg">채팅방 접근 권한을 확인 중...</Text>
-      </Box>
-    );
+    return <AccessCheckingCard text="채팅방 접근 권한을 확인 중" />;
   }
 
   if (accessState === 'denied') {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" h="100vh" flexDirection="column" gap={4} bg="red.50">
-        <Text fontSize="xl" fontWeight="bold" color="red.600">
-          채팅방 접근 권한이 없습니다
-        </Text>
-        <Text color="gray.600">3초 후 메인 페이지로 이동합니다...</Text>
-        <LongButton onClick={() => navigate('/main', { replace: true })}>
-          지금 이동하기
-        </LongButton>
-      </Box>
-    );
+    return <AccessDeniedCard onGoMain={() => navigate('/main', { replace: true })} />;
   }
 
   if (accessState === 'error') {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" h="100vh" flexDirection="column" gap={4} bg="yellow.50">
-        <Text fontSize="xl" fontWeight="bold" color="orange.600">
-          채팅방 접근 권한 확인 중 오류가 발생했습니다
-        </Text>
-        <Text color="gray.600">네트워크 연결을 확인하고 다시 시도해주세요.</Text>
-        <Flex gap={2}>
-          <LongButton onClick={() => window.location.reload()}>다시 시도</LongButton>
-          <LongButton onClick={() => navigate('/main', { replace: true })}>메인으로 돌아가기</LongButton>
-        </Flex>
-      </Box>
+      <AccessErrorCard
+        onRetry={() => window.location.reload()}
+        onGoMain={() => navigate('/main', { replace: true })}
+      />
     );
   }
 
-  // roomUserId가 없으면 로딩 상태 표시
+  // roomUserId가 없으면 로딩 상태 표시 
   if (!roomUserId) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" h="100vh" flexDirection="column" gap={4}>
-        <Text fontSize="lg">채팅방 정보를 불러오는 중...</Text>
-      </Box>
-    );
+    return <AccessCheckingCard text="채팅방 정보를 불러오는 중" />;
   }
 
   // 연결 상태 표시
