@@ -3,12 +3,14 @@ package com.ssafy.ttomanito.config;
 import com.ssafy.ttomanito.global.security.filter.JwtAuthenticationFilter;
 import com.ssafy.ttomanito.global.security.oauth.OAuth2AuthenticationSuccessHandler;
 import com.ssafy.ttomanito.global.security.oauth.SocialUserService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -78,9 +80,17 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
-                        .deleteCookies("accessToken", "refreshToken", "JSESSIONID")
+                        .deleteCookies("accessToken", "refreshToken", "JSESSIONID", "kakaoAccessToken")
                         .logoutSuccessHandler((req, res, auth) -> {
-                            res.sendRedirect(frontendRedirectUrl + "/login");  // http://localhost:5173/login
+                            java.util.stream.Stream.of("accessToken","refreshToken","JSESSIONID","kakaoAccessToken")
+                                    .forEach(name -> {
+                                        var c = ResponseCookie.from(name, "")
+                                                .path("/")
+                                                .maxAge(0)
+                                                .build();
+                                        res.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, c.toString());
+                                    });
+                            res.setStatus(HttpServletResponse.SC_NO_CONTENT);
                         })
                 )
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> res.sendError(401)));
