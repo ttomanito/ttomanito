@@ -15,6 +15,7 @@ import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import com.ssafy.ttomanito.domain.user.entity.User;
 import com.ssafy.ttomanito.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,9 @@ public class NoticeService {
     private final RoomUserRepository roomUserRepository;
     private final PushTokenService pushTokenService;
     private final FcmService fcmService;
+
+    @Value("${url.redirect.base}")
+    private String redirectUrl;
 
     public List<NoticeResponse> getNotices(Long userId) {
         return noticeRepository.findByUser_UserIdAndCheckFalseOrderByNoticeIdDesc(userId)
@@ -86,7 +90,7 @@ public class NoticeService {
         List<Long> userIds = users.stream().map(u -> u.getUser().getUserId()).toList();
         List<String> tokens = pushTokenService.findTokensByUserIds(userIds);
         fcmService.sendMulticastMessage(tokens, new FcmChatPayload(
-                "게임 종료", "결과를 확인해 보세요!", "https://i13b206.p.ssafy.io/room/" + roomId + "/result"
+                "게임 종료", "결과를 확인해 보세요!", redirectUrl + "/room/" + roomId + "/result"
         ));
     }
 
@@ -113,6 +117,6 @@ public class NoticeService {
 
     private void pushNotice(Long userId, String title, String body, String link) {
         List<String> tokens = pushTokenService.findTokensByUserIds(List.of(userId));
-        fcmService.sendMulticastMessage(tokens, new FcmChatPayload(title, body, "https://i13b206.p.ssafy.io" + link));
+        fcmService.sendMulticastMessage(tokens, new FcmChatPayload(title, body, redirectUrl + link));
     }
 }
