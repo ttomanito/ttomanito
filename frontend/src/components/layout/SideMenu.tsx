@@ -9,36 +9,43 @@ import {
   CloseButton,
   Portal,
 } from '@chakra-ui/react';
-import {  LuMenu  } from 'react-icons/lu';
+import { LuMenu } from 'react-icons/lu';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logoSvg from '@/assets/ttomas/main_page_logo.svg';
-import TutorialBody from '@/components/modal/TutorialBody'
-import { useModalStore } from '@/stores/modalStore'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/stores/authStore'; // 기존 경로 유지
+import TutorialBody from '@/components/modal/TutorialBody';
+import { useModalStore } from '@/stores/modalStore';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/stores/authStore'; // ✅ 스토어 경로 통일
 
 const MotionBox = motion(Box);
 
 const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) => {
-  const navigate = useNavigate()  
-  const { openModal } = useModalStore()
-  const tutorialModalData = { body: <TutorialBody /> }
+  const navigate = useNavigate();
+  const { openModal } = useModalStore();
+  const tutorialModalData = { body: <TutorialBody /> };
   const [isOpen, setIsOpen] = useState(false);
-  const { logout } = useAuth(); // 🔥 수정: 구조분해할당으로 변경
+
+  // ✅ 필요한 것만 타입 안전하게 셀렉트
+  const status = useAuth((s) => s.gameInfo.status);
+  const logout = useAuth((s) => s.logout);
 
   const close = () => setIsOpen(false);
 
-  // 🔥 추가: 로그아웃 에러 처리
   const handleLogout = async () => {
     try {
       await logout();
       close();
     } catch (error) {
       console.error('로그아웃 실패:', error);
-      // 에러가 있어도 메뉴는 닫기
       close();
     }
+  };
+
+  const handleLogoClick = () => {
+    const isInGame = status === 'IN_GAME';
+    navigate(isInGame ? '/home' : '/'); // 라우터 가드가 / → /main 처리
+    close();
   };
 
   return (
@@ -54,12 +61,14 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
         < LuMenu style={{ width: '35px', height: '35px' }} />
         
       </IconButton>
+
       </Box>
+
       {/* 사이드 메뉴 및 백드롭 */}
       <AnimatePresence>
         {isOpen && containerRef.current && (
           <Portal container={containerRef}>
-            {/* ✅ 백드롭 */}
+            {/* Backdrop */}
             <MotionBox
               bg="blackAlpha.400"
               position="absolute"
@@ -72,7 +81,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
               transition={{ duration: 0.2 }}
             />
 
-            {/* ✅ 사이드 메뉴 */}
+            {/* Drawer */}
             <MotionBox
               position="absolute"
               top={0}
@@ -93,7 +102,15 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
               <VStack align="stretch" gap={4} p={4}>
                 <HStack justify="space-between">
                   <HStack gap={2}>
-                    <Image src={logoSvg} alt="또마니또 로고" h="40x" />
+                    {/* ✅ 로고 클릭 이동 */}
+                    <Box
+                      as="button"
+                      onClick={handleLogoClick}
+                      cursor="pointer"
+                      aria-label="메인으로 이동"
+                    >
+                      <Image src={logoSvg} alt="또마니또 로고" h="40x" />
+                    </Box>
                   </HStack>
                   <CloseButton variant="ghost" size="sm" onClick={close} />
                 </HStack>
@@ -106,7 +123,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                     textStyle="title_md"
                     onClick={() => {
                       openModal(tutorialModalData);
-                      close(); // 메뉴 닫기
+                      close();
                     }}
                   >
                     튜토리얼 확인하기
@@ -119,7 +136,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                     textStyle="title_md"
                     onClick={() => {
                       navigate('/report/reportlist');
-                      close(); // 메뉴 닫기
+                      close();
                     }}
                   >
                     보고서 보러가기
@@ -132,12 +149,11 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                     textStyle="title_md"
                     onClick={() => {
                       navigate('/user/update');
-                      close(); // 메뉴 닫기
+                      close();
                     }}
                   >
                     회원 정보 수정
                   </Button>
-
                 </VStack>
               </VStack>
 
@@ -147,7 +163,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                   justifyContent="flex-start"
                   color="red.500"
                   textStyle="title_md"
-                  onClick={handleLogout} // 🔥 수정: 에러 처리가 포함된 함수 사용
+                  onClick={handleLogout}
                 >
                   로그아웃
                 </Button>
