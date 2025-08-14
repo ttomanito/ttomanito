@@ -76,11 +76,11 @@ services:
       OPENVIDU_URL: ${OPENVIDU_URL}
       OPENVIDU_SECRET: ${OPENVIDU_SECRET}
       SPRING_PROFILES_ACTIVE: prod
-      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase.json
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase-service-account.json
       FCM_ENABLED: "true"
       FCM_CREDENTIALS_LOCATION: file:/run/secrets/firebase.json
     volumes:
-      - /home/ubuntu/project/secrets/prod/firebase-service-account.json:/run/secrets/firebase.json:ro
+      - ./secrets/prod:/run/secrets:ro
     networks:
       - app-network
 
@@ -111,6 +111,8 @@ services:
     restart: always
     networks:
       - app-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   openvidu-server-kms:
     image: openvidu/openvidu-server-kms:2.22.0
