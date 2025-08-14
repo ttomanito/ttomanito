@@ -58,13 +58,13 @@ const frameRules: Array<{ frame: PageFrame; patterns: string[] }> = [
   { // 헤더 + 하단바
   frame: 'full',
   patterns: [
-    '/','/home', '/guess', '/chat', '/rank' 
+    '/home', '/guess', '/chat', '/rank' 
   ]
 },
 { // 헤더 O + 하단바 X
   frame: 'header-only',
   patterns: [
-    '/main', '/manito/:roomId/matching', '/report/reportlist'
+    '/','/main', '/manito/:roomId/matching', '/report/reportlist'
   ]
 },
 { // 뒤로 가기만
