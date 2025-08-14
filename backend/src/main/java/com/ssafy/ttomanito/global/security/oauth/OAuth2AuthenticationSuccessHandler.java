@@ -5,26 +5,26 @@ import com.ssafy.ttomanito.domain.auth.repository.RefreshTokenRepository;
 import com.ssafy.ttomanito.domain.user.dto.UserDto;
 import com.ssafy.ttomanito.global.security.jwt.JwtProvider;
 import com.ssafy.ttomanito.global.security.jwt.JwtToken;
+import com.ssafy.ttomanito.global.security.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import java.time.Duration;
-import java.time.Instant;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
+
     private final JwtProvider jwtProvider;
     private final RefreshTokenRepository refreshTokenRepo;
     private final OAuth2AuthorizedClientService authorizedClientService;
@@ -43,10 +43,10 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             SocialUser principal = (SocialUser) authentication.getPrincipal();
             UserDto user = principal.getUser();
 
-            // 1) 토큰 발급 (DB 재조회 불필요)
+            // 1) 액세스/리프레시 토큰 발급
             JwtToken tokens = jwtProvider.generateTokens(user.userId(), user.name());
 
-            // 2) refresh 저장
+            // 2) 리프레시 토큰 저장
             long ttlSeconds = refreshTokenTtlMs / 1000;
             refreshTokenRepo.save(new RefreshToken(
                     tokens.getRefreshToken(),
@@ -54,46 +54,37 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                     ttlSeconds
             ));
 
-            // 3) 쿠키
-            addCookie(request, response, "accessToken",  tokens.getAccessToken(),  jwtProvider.getAccessTokenTtlMs()/1000);
-            addCookie(request, response, "refreshToken", tokens.getRefreshToken(), refreshTokenTtlMs/1000);
+            // 3) 쿠키로 내려주기(발급/삭제와 동일 속성 유지)
+            CookieUtils.addCookie(request, response, "accessToken",
+                    tokens.getAccessToken(), jwtProvider.getAccessTokenTtlMs() / 1000);
+            CookieUtils.addCookie(request, response, "refreshToken",
+                    tokens.getRefreshToken(), refreshTokenTtlMs / 1000);
 
-            // 4) 카카오 액세스 토큰을 쿠키로 내려주기
+            // 4) 카카오 액세스 토큰도 동일 속성으로 쿠키에 저장 (있을 때만)
             if (authentication instanceof OAuth2AuthenticationToken oauth) {
                 String registrationId = oauth.getAuthorizedClientRegistrationId(); // "kakao"
-                OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(registrationId, oauth.getName());
+                OAuth2AuthorizedClient client =
+                        authorizedClientService.loadAuthorizedClient(registrationId, oauth.getName());
+
                 if (client != null && client.getAccessToken() != null) {
                     var at = client.getAccessToken();
-                    long maxAge = 0;
+                    long maxAge = 60; // 최소 60초
                     if (at.getExpiresAt() != null) {
-                        maxAge = Duration.between(Instant.now(), at.getExpiresAt()).getSeconds();
+                        maxAge = Math.max(
+                                60,
+                                Duration.between(Instant.now(), at.getExpiresAt()).getSeconds()
+                        );
                     }
-                    maxAge = Math.max(maxAge, 60);
-                    addCookie(request, response, "kakaoAccessToken", at.getTokenValue(), maxAge);
+                    CookieUtils.addCookie(request, response, "kakaoAccessToken",
+                            at.getTokenValue(), maxAge);
                 }
             }
 
+            // 5) 프론트로 리다이렉트
             response.sendRedirect(frontendRedirectUrl + "/main");
         } catch (Exception e) {
             String msg = java.net.URLEncoder.encode(e.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
             response.sendRedirect(frontendRedirectUrl + "/login?error=" + msg);
         }
     }
-
-    private void addCookie(HttpServletRequest req, HttpServletResponse res,
-                           String name, String value, long maxAgeSeconds) {
-        boolean isLocal = "localhost".equalsIgnoreCase(req.getServerName())
-                || "127.0.0.1".equals(req.getServerName());
-
-        ResponseCookie cookie = ResponseCookie.from(name, value)
-                .httpOnly(true)
-                .secure(!isLocal)
-                .sameSite(isLocal ? "Lax" : "None")
-                .path("/")
-                .maxAge(maxAgeSeconds)
-                .build();
-
-        res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-    }
 }
-
