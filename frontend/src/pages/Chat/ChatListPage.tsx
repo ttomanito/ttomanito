@@ -46,21 +46,21 @@ const ChatListPage = () => {
   // 파트너 정보 가져오기 함수
   const getChatPartnerInfo = (index: number) => {
     if (index == 0) {
-      return { name: '마니또', profileImage: profile_manito };
+      return { role: '마니또', profileImage: profile_manito };
     } else {
-      return { name: '마니띠', profileImage: profile_manitee };
+      return { role: '마니띠', profileImage: profile_manitee };
     }
   };
 
   const navigate = useNavigate();
 
-  const enterChat = async (id: number) => {
+  const enterChat = async (id: number, partner: { role: string; profileImage: string }) => {
     try {
       await postRequest(`/chat/${id}/enter`, {});
     } catch (e) {
       console.warn('채팅방 입장 API 실패:', e);
     }
-    navigate(`/chat/${id}`);
+    navigate(`/chat/${id}`, { state: { partner } });
   };
 
   useEffect(() => {
@@ -145,14 +145,15 @@ const ChatListPage = () => {
           // 파트너 정보 가져오기
           // chatList[0]: 마니또
           // chatList[1]: 마니띠
-          const { name, profileImage } = getChatPartnerInfo(index);
+          const { profileImage } = getChatPartnerInfo(index);
+          const partner = getChatPartnerInfo(index);
 
           return (
             // <Link key={chat.chatRoom.chattingRoomId} to={`/chat/${chat.chatRoom.chattingRoomId}`}>
               <Flex
                 align="center"
                 _hover={{ bg: 'gray.100' , cursor: 'pointer'}}
-                onClick={() => enterChat(chat.chatRoom.chattingRoomId)}
+                onClick={() => enterChat(chat.chatRoom.chattingRoomId, partner)}
                 px="4"
                 py="4"
                 borderBottomWidth={index === chatList.length - 1 ? '0' : '1px'}
@@ -168,10 +169,10 @@ const ChatListPage = () => {
                   borderColor="border.disabled"
                   color="fg.disabled"
                 >
-                  <Image src={profileImage} alt={`${name} 프로필`} mr={3} />
+                  <Image src={profileImage} alt={`${partner.role} 프로필`} mr={3} />
                 </Box>
                 <Box flex="1">
-                  <Text fontWeight="bold">{name}</Text>
+                  <Text fontWeight="bold">{partner.role}</Text>
                   <Text fontSize="sm" color="gray.500">
                     {chat.chatRoom.lastMessage || '아직 메시지가 없습니다.'}
                   </Text>
