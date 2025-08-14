@@ -1,4 +1,9 @@
-// src/components/layout/SideMenu.tsx
+import { postRequest } from '@/api/requests'; // ✅ API 유틸 불러오기
+import { useAuth } from '@/stores/authStore';
+import { useNavigate } from 'react-router-dom';
+import { useModalStore } from '@/stores/modalStore';
+import TutorialBody from '@/components/modal/TutorialBody';
+import logoSvg from '@/assets/ttomas/main_page_logo.svg';
 import {
   Box,
   VStack,
@@ -12,11 +17,6 @@ import {
 import { LuMenu } from 'react-icons/lu';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import logoSvg from '@/assets/ttomas/main_page_logo.svg';
-import TutorialBody from '@/components/modal/TutorialBody';
-import { useModalStore } from '@/stores/modalStore';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/stores/authStore'; // ✅ 스토어 경로 통일
 
 const MotionBox = motion(Box);
 
@@ -24,13 +24,27 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
   const navigate = useNavigate();
   const { openModal } = useModalStore();
   const tutorialModalData = { body: <TutorialBody /> };
+
   const [isOpen, setIsOpen] = useState(false);
 
-  // ✅ 필요한 것만 타입 안전하게 셀렉트
   const status = useAuth((s) => s.gameInfo.status);
+  const isCreator = useAuth((s) => s.gameInfo.isCreator);
+
   const logout = useAuth((s) => s.logout);
 
   const close = () => setIsOpen(false);
+  console.log({ status, isCreator })
+  // ✅ API 호출을 postRequest로 변경
+  const finishRoom = async () => {
+    try {
+      await postRequest('/manito/finish'); // 데이터 바디 필요 없으므로 두 번째 인자 생략
+      close();
+      navigate('/home'); // 게임 종료 후 홈으로 이동
+    } catch (error) {
+      console.error('방 종료 실패:', error);
+      close();
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -44,31 +58,29 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
 
   const handleLogoClick = () => {
     const isInGame = status === 'IN_GAME';
-    navigate(isInGame ? '/home' : '/'); // 라우터 가드가 / → /main 처리
+    navigate(isInGame ? '/home' : '/');
     close();
   };
 
   return (
     <>
-      {/* 메뉴 버튼 */}
+      {/* 메뉴 열기 버튼 */}
       <Box p={2}>
-      <IconButton
-        aria-label="메뉴 열기"
-        boxSize="35px"
-        variant="ghost"
-        onClick={() => setIsOpen(true)}
-      >
-        < LuMenu style={{ width: '35px', height: '35px' }} />
-        
-      </IconButton>
-
+        <IconButton
+          aria-label="메뉴 열기"
+          boxSize="35px"
+          variant="ghost"
+          onClick={() => setIsOpen(true)}
+        >
+          <LuMenu style={{ width: '35px', height: '35px' }} />
+        </IconButton>
       </Box>
 
-      {/* 사이드 메뉴 및 백드롭 */}
+      {/* 사이드 메뉴 & 백드롭 */}
       <AnimatePresence>
         {isOpen && containerRef.current && (
           <Portal container={containerRef}>
-            {/* Backdrop */}
+            {/* 백드롭 */}
             <MotionBox
               bg="blackAlpha.400"
               position="absolute"
@@ -81,7 +93,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
               transition={{ duration: 0.2 }}
             />
 
-            {/* Drawer */}
+            {/* 드로어 */}
             <MotionBox
               position="absolute"
               top={0}
@@ -102,14 +114,14 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
               <VStack align="stretch" gap={4} p={4}>
                 <HStack justify="space-between">
                   <HStack gap={2}>
-                    {/* ✅ 로고 클릭 이동 */}
+                    {/* 로고 클릭 */}
                     <Box
                       as="button"
                       onClick={handleLogoClick}
                       cursor="pointer"
                       aria-label="메인으로 이동"
                     >
-                      <Image src={logoSvg} alt="또마니또 로고" h="40x" />
+                      <Image src={logoSvg} alt="또마니또 로고" h="40px" />
                     </Box>
                   </HStack>
                   <CloseButton variant="ghost" size="sm" onClick={close} />
@@ -154,6 +166,20 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                   >
                     회원 정보 수정
                   </Button>
+
+                  {/* ✅ 방 종료 버튼 - 게임 중 + 방장일 때만 */}
+                  {status === 'IN_GAME' && isCreator && (
+                    <Button
+                      variant="ghost"
+                      justifyContent="flex-start"
+                      py={6}
+                      textStyle="title_md"
+                      color="red.500"
+                      onClick={finishRoom}
+                    >
+                      방 종료하기
+                    </Button>
+                  )}
                 </VStack>
               </VStack>
 
