@@ -111,6 +111,8 @@ services:
     restart: always
     networks:
       - app-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   openvidu-server-kms:
     image: openvidu/openvidu-server-kms:2.22.0
