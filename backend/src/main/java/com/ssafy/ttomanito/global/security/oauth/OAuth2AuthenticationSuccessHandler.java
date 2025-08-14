@@ -14,6 +14,11 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import java.time.Duration;
+import java.time.Instant;
 
 import java.io.IOException;
 
@@ -22,6 +27,7 @@ import java.io.IOException;
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtProvider jwtProvider;
     private final RefreshTokenRepository refreshTokenRepo;
+    private final OAuth2AuthorizedClientService authorizedClientService;
 
     @Value("${url.redirect.base}")
     private String frontendRedirectUrl;
@@ -48,9 +54,25 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                     ttlSeconds
             ));
 
-            // 3) 쿠키 + 리다이렉트
+            // 3) 쿠키
             addCookie(request, response, "accessToken",  tokens.getAccessToken(),  jwtProvider.getAccessTokenTtlMs()/1000);
             addCookie(request, response, "refreshToken", tokens.getRefreshToken(), refreshTokenTtlMs/1000);
+
+            // 4) 카카오 액세스 토큰을 쿠키로 내려주기
+            if (authentication instanceof OAuth2AuthenticationToken oauth) {
+                String registrationId = oauth.getAuthorizedClientRegistrationId(); // "kakao"
+                OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(registrationId, oauth.getName());
+                if (client != null && client.getAccessToken() != null) {
+                    var at = client.getAccessToken();
+                    long maxAge = 0;
+                    if (at.getExpiresAt() != null) {
+                        maxAge = Duration.between(Instant.now(), at.getExpiresAt()).getSeconds();
+                    }
+                    maxAge = Math.max(maxAge, 60);
+                    addCookie(request, response, "kakaoAccessToken", at.getTokenValue(), maxAge);
+                }
+            }
+
             response.sendRedirect(frontendRedirectUrl + "/main");
         } catch (Exception e) {
             String msg = java.net.URLEncoder.encode(e.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
