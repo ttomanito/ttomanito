@@ -64,7 +64,7 @@ const frameRules: Array<{ frame: PageFrame; patterns: string[] }> = [
 { // 헤더 O + 하단바 X
   frame: 'header-only',
   patterns: [
-    '/main', '/manito/:roomId/matching', '/report/reportlist'
+    '/','/main', '/manito/:roomId/matching', '/report/reportlist'
   ]
 },
 { // 뒤로 가기만
@@ -76,7 +76,7 @@ const frameRules: Array<{ frame: PageFrame; patterns: string[] }> = [
 { // 헤더 X + 하단바 X
   frame: 'bare',
   patterns: [
-    '/', '/login', '/chat/:chatRoomId/call'
+    '/login', '/chat/:chatRoomId/call'
   ]
 },
 ];
@@ -131,7 +131,7 @@ export default function AppLayout() {
           <Box
             ref={containerRef}
             position="relative"
-            w={{ base: '375px', xs: '100%', mobile: '520px' }}
+            w={{ base: '375px', xs: '100%', mobile: '520px' } as any}
             h="100dvh"
             overflow="hidden"
           >
