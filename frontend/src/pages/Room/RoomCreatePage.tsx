@@ -114,8 +114,8 @@ const handleCreateRoom = async () => {
   };
 
   return (
-    <Box px={8} py={6}>
-      <Text textStyle="title_mlg" m={8}>방 생성하기</Text>
+    <Box p={3} m={3}>
+      <Text textStyle="title_mlg" m={8}>✪ 방 생성하기</Text>
 
       <CommonCard>
         <VStack align="start">
