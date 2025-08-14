@@ -33,7 +33,7 @@ import ttoma_notes from '@/assets/mission_icons/ttoma_notes.svg';
 import ttoma_observation from '@/assets/mission_icons/ttoma_observation.svg';
 import ttoma_performance from '@/assets/mission_icons/ttoma_performance.svg';
 import { useAuth } from '@/stores/authStore';
-import ttoma_profile from '@/assets/ttomas/ttoma_profile.png';
+import profile_manitee from '@/assets/ttomas/profile_manitee.png'
 
 // 타입 정의
 interface Participant {
@@ -260,7 +260,7 @@ const GameHomePage = () => {
       return <Flex justify="center" align="center" h="150px"><Spinner size="lg" /></Flex>;
     }
     if (manitoProfile) {
-      return <ProfileCard title="내 마니띠" name={manitoProfile.name} subtitle={manitoProfile.statusMessage} src={manitoProfile.profileImageUrl || ttoma_profile} />;
+      return <ProfileCard title="내 마니띠" name={manitoProfile.name} subtitle={manitoProfile.statusMessage} src={profile_manitee} />;
     }
     return <Flex justify="center" align="center" h="100px"><Text textStyle="body_md">마니띠 정보를 찾을 수 없습니다.</Text></Flex>;
   };
