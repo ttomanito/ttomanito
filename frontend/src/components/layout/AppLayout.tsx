@@ -130,6 +130,7 @@ export default function AppLayout() {
               maxW="560px"
               w="full"
               px={0}
+              py={1}
               display="grid"
               gridTemplateRows="auto 1fr auto"
               h="100dvh"
