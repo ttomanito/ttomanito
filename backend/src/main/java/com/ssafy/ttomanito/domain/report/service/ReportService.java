@@ -65,8 +65,8 @@ public class ReportService {
             Long manittoRuId  = asReceiving.getManito().getRoomUserId();
 
             // ★ assignment 기준 poke
-            int pokeReceived  = countPokeReceivedInAssignment(assignId, myUserId); // 내가 받은(Manitee=나[User])
-            int pokeSent      = countPokeSentInAssignment(assignId, myRuId);       // 내가 보낸(Manito=나[RoomUser])
+            int pokeReceived  = countPokeReceivedInAssignment(assignId, myUserId); // 내가 받은
+            int pokeSent      = countPokeSentInAssignment(assignId, myUserId);     // 내가 보낸
 
             int pairChatCnt   = pairChatCountByAssignment(assignId, myRuId, manittoRuId);
             long pairCallSec  = pairCallSecondsByAssignment(assignId, myRuId, manittoRuId);
@@ -93,8 +93,8 @@ public class ReportService {
             Long manitteeRuId  = asGiving.getManitee().getRoomUserId();
 
             // ★ assignment 기준 poke
-            int pokeReceived   = countPokeReceivedInAssignment(assignId, myUserId); // 내가 받은
-            int pokeSent       = countPokeSentInAssignment(assignId, myRuId);       // 내가 보낸
+            int pokeReceived   = countPokeReceivedInAssignment(assignId, myUserId);
+            int pokeSent       = countPokeSentInAssignment(assignId, myUserId);
 
             int pairChatCnt    = pairChatCountByAssignment(assignId, myRuId, manitteeRuId);
             long pairCallSec   = pairCallSecondsByAssignment(assignId, myRuId, manitteeRuId);
@@ -204,28 +204,28 @@ public class ReportService {
     // PokeLog 필드명이 manito/manitee 라고 가정
     // (만약 manitee가 RoomUser면 .manitee.userId -> .manitee.roomUserId 로 변경)
 
-    /** 내가 보낸 찌르기: assignment + manito(=내 roomUserId) */
-    private int countPokeSentInAssignment(Long assignId, Long myRuId) {
+    /** 내가 보낸 찌르기: assignment + (실제 저장에서 보낸 사람은 manitee에 들어감) */
+    private int countPokeSentInAssignment(Long assignId, Long myUserId) {
         Long n = em.createQuery("""
-            select count(p)
-            from PokeLog p
-            where p.assignment.manitoAssignmentId = :aid
-              and p.manito.userId = :sid
-        """, Long.class)
+        select count(p)
+        from PokeLog p
+        where p.assignment.manitoAssignmentId = :aid
+          and p.manitee.userId = :uid
+    """, Long.class)
                 .setParameter("aid", assignId)
-                .setParameter("sid", myRuId)
+                .setParameter("uid", myUserId)
                 .getSingleResult();
         return n.intValue();
     }
 
-    /** 내가 받은 찌르기: assignment + manitee(=내 userId) */
+    /** 내가 받은 찌르기: assignment + (실제 저장에서 받은 사람은 manito에 들어감) */
     private int countPokeReceivedInAssignment(Long assignId, Long myUserId) {
         Long n = em.createQuery("""
-            select count(p)
-            from PokeLog p
-            where p.assignment.manitoAssignmentId = :aid
-              and p.manitee.userId = :uid
-        """, Long.class)
+        select count(p)
+        from PokeLog p
+        where p.assignment.manitoAssignmentId = :aid
+          and p.manito.userId = :uid
+    """, Long.class)
                 .setParameter("aid", assignId)
                 .setParameter("uid", myUserId)
                 .getSingleResult();
