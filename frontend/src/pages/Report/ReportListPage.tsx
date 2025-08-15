@@ -73,7 +73,7 @@ const ReportListPage = () => {
   }
   
   return (
-    <Box maxW="md" mx="auto">
+    <Box p={3} m={3}>
           <VStack align="stretch">
 
     <Box>

@@ -127,40 +127,57 @@ export const useAuth = create<AuthState>()(
       },
 
       // ---------- server sync ----------
-      syncUserGameStatus: async () => {
-        try {
-          const { isAuthenticated } = get()
-          if (!isAuthenticated) {
-            set({ gameInfo: { ...INITIAL_GAME_INFO } })
-            return 'IN_NONE'
-          }
+syncUserGameStatus: async () => {
+  try {
+    const { isAuthenticated } = get()
+    if (!isAuthenticated) {
+      set({ gameInfo: { ...INITIAL_GAME_INFO } })
+      return 'IN_NONE'
+    }
 
-          const status = await getRequest<GameStatus>('/room/check')
+    const status = await getRequest<GameStatus>('/room/check')
 
-          let roomId: number | null = null
-          if (status !== 'IN_NONE') {
-            try {
-              roomId = await getRequest<number>('/room/roomId')
-            } catch (e) {
-              console.warn('[AUTH] 현재 방 ID 조회 실패:', e)
-            }
-          }
+    let roomId: number | null = null
+    let isCreator = false
 
-          set({
-            gameInfo: {
-              status,
-              roomId,
-              isCreator: get().gameInfo.isCreator,
-            },
-          })
-          return status
-        } catch (e) {
-          console.error('[AUTH] 게임 상태 확인 실패:', e)
-          set({ gameInfo: { ...INITIAL_GAME_INFO } })
-          return 'IN_NONE'
+    if (status !== 'IN_NONE') {
+      try {
+        // 🔥 병렬로 roomId와 creator 정보 조회
+        const [roomIdResponse, creatorResponse] = await Promise.allSettled([
+          getRequest<number>('/room/roomId'),
+          getRequest('/room/creator')
+        ])
+
+        if (roomIdResponse.status === 'fulfilled') {
+          roomId = roomIdResponse.value
         }
-      },
 
+        if (creatorResponse.status === 'fulfilled') {
+          isCreator = creatorResponse.value === true || creatorResponse.value === 'true'
+        }
+
+      } catch (e) {
+        console.warn('[AUTH] 방 정보 조회 실패:', e)
+      }
+    }
+
+    set({
+      gameInfo: {
+        status,
+        roomId,
+        isCreator,
+      },
+    })
+    
+    console.log(`[AUTH] 게임 상태 동기화: status=${status}, roomId=${roomId}, isCreator=${isCreator}`)
+    return status
+    
+  } catch (e) {
+    console.error('[AUTH] 게임 상태 확인 실패:', e)
+    set({ gameInfo: { ...INITIAL_GAME_INFO } })
+    return 'IN_NONE'
+  }
+},
       syncAllFromServer: async () => {
         const { authSyncPaused } = get()
         if (authSyncPaused) {
@@ -211,27 +228,11 @@ export const useAuth = create<AuthState>()(
       },
 
       // ---------- game helpers ----------
+      // 🔥 checkCreatorStatus는 제거하거나 단순화
       checkCreatorStatus: async () => {
-        try {
-          const { isAuthenticated } = get()
-          if (!isAuthenticated) {
-            console.warn('[AUTH] 미로그인 상태에서 방장 여부 확인 시도')
-            return false
-          }
-          const response = await postRequest('/room/creator')
-          const isCreator = response === true || response === 'true'
-          const current = get().gameInfo.isCreator
-          if (current !== isCreator) {
-            set((state) => ({
-              gameInfo: { ...state.gameInfo, isCreator },
-            }))
-          }
-          return isCreator
-        } catch (e) {
-          console.error('[AUTH] 방장 여부 확인 중 오류:', e)
-          set({ gameInfo: INITIAL_GAME_INFO })
-          return false
-        }
+        // syncUserGameStatus 호출하고 결과만 반환
+        await get().syncUserGameStatus()
+        return get().gameInfo.isCreator
       },
 
       syncGameState: async () => {
@@ -272,8 +273,6 @@ export const useAuth = create<AuthState>()(
         try {
           const { isAuthenticated } = get()
           if (!isAuthenticated) throw new Error('로그인이 필요합니다.')
-          const isCreator = await get().checkCreatorStatus()
-          if (!isCreator) throw new Error('방장만 게임을 시작할 수 있습니다.')
           await postRequest(`/room/${roomId}/start`)
           console.log(`[AUTH] 게임 시작 완료 - roomId: ${roomId}`)
         } catch (e) {

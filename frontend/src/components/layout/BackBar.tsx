@@ -17,7 +17,6 @@ export default function BackBar() {
     <Box
       as="header"
       bg="white"
-      borderBottom="1px solid"
       borderColor="gray.100"
     >
       <Flex h="48px" align="center" px={2} gap={2}>

@@ -33,7 +33,7 @@ import ttoma_notes from '@/assets/mission_icons/ttoma_notes.svg';
 import ttoma_observation from '@/assets/mission_icons/ttoma_observation.svg';
 import ttoma_performance from '@/assets/mission_icons/ttoma_performance.svg';
 import { useAuth } from '@/stores/authStore';
-import ttoma_profile from '@/assets/ttomas/ttoma_profile.png';
+import profile_manitee from '@/assets/ttomas/profile_manitee.png'
 
 // 타입 정의
 interface Participant {
@@ -246,7 +246,7 @@ const GameHomePage = () => {
 
   const getTypeImage = (type: Mission['type']) => {
     switch (type) {
-      case 'GIFT': return ttoma_gift;
+      case 'GIFTS': return ttoma_gift;
       case 'NOTES': return ttoma_notes;
       case 'COMMUNICATION': return ttoma_communication;
       case 'OBSERVATION': return ttoma_observation;
@@ -260,7 +260,7 @@ const GameHomePage = () => {
       return <Flex justify="center" align="center" h="150px"><Spinner size="lg" /></Flex>;
     }
     if (manitoProfile) {
-      return <ProfileCard title="내 마니띠" name={manitoProfile.name} subtitle={manitoProfile.statusMessage} src={manitoProfile.profileImageUrl || ttoma_profile} />;
+      return <ProfileCard title="내 마니띠" name={manitoProfile.name} subtitle={manitoProfile.statusMessage} src={profile_manitee} />;
     }
     return <Flex justify="center" align="center" h="100px"><Text textStyle="body_md">마니띠 정보를 찾을 수 없습니다.</Text></Flex>;
   };
@@ -315,7 +315,7 @@ const GameHomePage = () => {
                   <Image src={getDifficultyImage(todayMission.difficulty)} alt={todayMission.difficulty} mx="auto" maxW="120px" mb={4} />
                   <Text textStyle="title_ml" textAlign="center" mb={1}>{todayMission.title}</Text>
                   <Text textStyle="caption_xs_light" textAlign="center">{todayMission.description ?? ""}</Text>
-                  <Image src={getTypeImage(todayMission.type)} alt={todayMission.type} mx="auto" maxW="120px" mb={4} />
+                  <Image src={getTypeImage(todayMission.type)} alt={todayMission.type} mx="auto" maxW="160px" mb={4} />
                   <LongButton onClick={(e) => { e.stopPropagation(); openModal(missionCompleteModalData); }} disabled={isMissionCompletedToday}>
                     {isMissionCompletedToday ? '오늘의 미션 완료됨' : '미션 완료!'}
                   </LongButton>
