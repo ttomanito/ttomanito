@@ -19,11 +19,11 @@ const WaitingRoomPage = () => {
     const { roomId } = useParams<{ roomId: string }>();
     const navigate = useNavigate();
     
-    // 🔥 변경: auth store 새 구조 사용
-    const { user, gameInfo, setGameInfo, startGame } = useAuth();
+    // 🔥 변경: auth store에서 상태 동기화 함수들만 가져오기
+    const { user, gameInfo, startGame, syncUserGameStatus } = useAuth();
     const myUserId = user?.id;
     
-    const { connected, participants, lastMessage, connect, disconnect} = useWaitingRoomSocket();
+    const { connected, participants, lastMessage, connect, disconnect, updateParticipants } = useWaitingRoomSocket();
     const { openModal, closeModal } = useModalStore();
     const [isLoading, setIsLoading] = useState(true);
     const [initialParticipants, setInitialParticipants] = useState<Participant[]>([]);
@@ -58,18 +58,11 @@ const WaitingRoomPage = () => {
                     // ✅ 이미 참여 중인 경우: 모든 검증을 건너뛰고 바로 연결 준비
                     console.log('이미 참여 중인 사용자입니다. 바로 연결합니다.');
                     setInitialParticipants(currentParticipants);
-                    
-                    // 🔥 추가: 게임 상태 업데이트 (대기방 상태로)
-                    setGameInfo({
-                        status: 'IN_WAITING',
-                        roomId: parseInt(roomId),
-                        isCreator: String(myUserId) === String(roomInfo?.creatorId)
-                    });
                 } else {
                     // ❌ 참여 중이 아닌 신규 유저인 경우: 자격 검증 시작
                     console.log('신규 사용자입니다. 자격 검증을 시작합니다.');
 
-                    // 🔥 변경: gameInfo.status 사용
+                    // 🔥 변경: gameInfo.status 사용 (클라이언트 상태는 참고용)
                     if (gameInfo.status !== 'IN_NONE') {
                         openModal({
                             title: '입장 불가', body: <Text>이미 다른 방에 참여 중입니다.</Text>,
@@ -105,8 +98,7 @@ const WaitingRoomPage = () => {
         initialize();
 
         return () => { void disconnect(); };
-    // 🔥 변경: gameInfo 의존성 추가
-    }, [roomId, myUserId, gameInfo.status]);
+    }, [roomId, myUserId]);
 
     // 내가 참가자 목록에 있을 때만 자동 연결
     useEffect(() => {
@@ -118,45 +110,70 @@ const WaitingRoomPage = () => {
         }
     }, [roomId, hasMe, connected, initialParticipants, connect]);
 
-    // 3. 킥/방 닫기 메시지 처리 useEffect 추가
+    // 🔥 웹소켓 메시지 처리 useEffect - ENTER/EXIT 추가
     useEffect(() => {
-        if (!lastMessage) return;
+        if (!lastMessage || !roomId) return;
+
+        const refreshParticipants = async () => {
+            try {
+                const updatedList = await getRequest<Participant[]>(`/room/${roomId}/participants`);
+                setInitialParticipants(updatedList);
+                
+                // 웹소켓이 연결되어 있으면 participants도 업데이트
+                if (connected) {
+                    updateParticipants(updatedList);
+                }
+            } catch (error) {
+                console.error('참가자 목록 새로고침 실패:', error);
+            }
+        };
 
         switch (lastMessage.type) {
+            case 'ENTER':  // 🔥 ENTER만 API로 새로고침 (name 정보 필요)
+                refreshParticipants();
+                break;
+                
+            case 'EXIT':
+                // 🔥 EXIT은 웹소켓에서 이미 처리됨 (userId 기반 필터링)
+                break;
+                
             case 'KICK':
                 const messageUserId = String(lastMessage.userId);
                 const isMe = messageUserId === String(myUserId);
                 
                 if (isMe) {
                     alert('방장에 의해 대기방에서 내보내졌습니다.');
-                    
-                    // 🔥 추가: 상태 초기화
-                    setGameInfo({
-                        status: 'IN_NONE',
-                        roomId: null,
-                        isCreator: false
-                    });
-                    
                     disconnect();
                     navigate('/');
                 }
+                // 🔥 다른 사람이 킥당한 경우는 웹소켓에서 이미 처리됨
                 break;
                 
             case 'CLOSE':
                 alert('방장이 대기방을 닫았습니다.');
-                
-                // 🔥 추가: 상태 초기화
-                setGameInfo({
-                    status: 'IN_NONE',
-                    roomId: null,
-                    isCreator: false
-                });
-                
                 disconnect();
                 navigate('/');
                 break;
+                
+            case 'START':
+                console.log('게임 시작! 로딩 표시 후 홈으로 이동');
+                disconnect();
+                
+                // 🔥 참가자들에게 로딩 모달 표시
+                openModal({
+                    title: '게임 시작!',
+                    body: '🎯 게임이 시작됩니다! 잠시만 기다려주세요!',
+                    footer: null,
+                });
+                
+                // 🔥 1.5초 후에 홈으로 이동
+                setTimeout(() => {
+                    closeModal();
+                    syncUserGameStatus();
+                }, 1500);
+                break;
         }
-    }, [lastMessage, myUserId, disconnect, navigate, setGameInfo]);
+    }, [lastMessage, myUserId, disconnect, navigate, roomId, connected, updateParticipants]);
 
     // 5. 모든 함수들
     const handleJoin = () => {
@@ -170,12 +187,8 @@ const WaitingRoomPage = () => {
                 const newList = await getRequest<Participant[]>(`/room/${roomId}/participants`);
                 setInitialParticipants(newList);
                 
-                // 🔥 추가: 참여 후 상태 업데이트
-                setGameInfo({
-                    status: 'IN_WAITING',
-                    roomId: parseInt(roomId),
-                    isCreator: false
-                });
+                // 🔥 변경: 서버 상태 동기화로 대체
+                await syncUserGameStatus();
                 
                 connect(roomId, newList);
             } catch (e) {
@@ -202,13 +215,6 @@ const WaitingRoomPage = () => {
         try {
             await deleteRequest(`/room/${roomId}/exit`);
             
-            // 🔥 추가: 나가기 후 상태 초기화
-            setGameInfo({
-                status: 'IN_NONE',
-                roomId: null,
-                isCreator: false
-            });
-            
             // 내 연결만 종료합니다.
             setInitialParticipants(prev =>
                 prev.filter(p => String(p.userId) !== String(myUserId))
@@ -218,6 +224,9 @@ const WaitingRoomPage = () => {
             }
             const updatedList = await getRequest<Participant[]>(`/room/${roomId}/participants`);
             setInitialParticipants(updatedList);
+
+            // 🔥 변경: 서버 상태 동기화로 대체
+            await syncUserGameStatus();
 
         } catch (e) {
             console.error('나가기 실패:', e);
@@ -229,12 +238,7 @@ const WaitingRoomPage = () => {
         try {
             await deleteRequest(`/room/${roomId}/participants/${userId}`);
             closeModal();
-            
-            // 소켓 연결되어 있으면 실시간 업데이트, 아니면 API로 다시 조회
-            if (!connected) {
-                const updatedList = await getRequest<Participant[]>(`/room/${roomId}/participants`);
-                setInitialParticipants(updatedList);
-            }
+            // 🔥 웹소켓 KICK 메시지가 자동으로 처리함
             
         } catch (error) {
             console.error('참가자 내보내기 실패:', error);
@@ -265,22 +269,26 @@ const WaitingRoomPage = () => {
         alert("초대 링크가 복사되었습니다!");
     };
 
-    // 🔥 변경: auth store의 startGame 함수 사용
+    // 🔥 변경: auth store의 startGame 함수 사용 (상태 업데이트 제거)
     const handleStart = async () => {
         if (!roomId) return;
         
         try {
             await startGame(parseInt(roomId));
-            closeModal();
             
-            // 🔥 추가: 게임 시작 후 상태 업데이트
-            setGameInfo({
-                status: 'IN_GAME',
-                roomId: parseInt(roomId),
-                isCreator: true
+            await syncUserGameStatus();
+            openModal({
+                title: '게임 시작!',
+                body: '🎯 게임이 시작됩니다! 잠시만 기다려주세요!',
+                footer: null,
             });
             
-            navigate('/home'); // 메인으로 이동
+            // 🔥 참가자와 동일한 1.5초 후 이동
+            setTimeout(() => {
+                closeModal();
+                navigate('/home');
+            }, 1500);
+            
         } catch (error) {
             console.error('게임 시작 실패:', error);
             alert('게임 시작에 실패했습니다.');
@@ -326,13 +334,7 @@ const WaitingRoomPage = () => {
             await postRequest(`/room/exit`);
             closeModal();
             
-            // 🔥 추가: 방 삭제 후 상태 초기화
-            setGameInfo({
-                status: 'IN_NONE',
-                roomId: null,
-                isCreator: false
-            });
-            
+            // 🔥 변경: 상태 업데이트 제거, 서버가 관리함
             navigate('/'); // 메인으로 이동
         } catch (error) {
             console.error('대기방 삭제 실패:', error);
@@ -384,8 +386,8 @@ const WaitingRoomPage = () => {
         const isMe = String(p.userId) === String(myUserId);
 
         return {
-            name: `User ID: ${p.userId}`,
-            statusMessage: p.statusMessage || '상태메세지를 설정해주세요!',
+            name: p.name || `User ${p.userId}`, // 🔥 템플릿 리터럴 수정
+            statusMessage: p.statusMessage || '방장입니다.',
             rightSideChild: rightContent,
             // 내 프로필이면 볼드 테두리 스타일 추가
             borderWidth: isMe ? "2px" : "1px",
@@ -446,13 +448,6 @@ const WaitingRoomPage = () => {
                                 </Button>
                             )}
                         </Flex>
-                        <Box bg="blackAlpha.400">삭제예정박스
-                            <Text fontSize="2xl" fontWeight="bold">
-                                대기실 (Room ID: {roomId})
-                            </Text>
-                            <Text>내 ID: {myUserId || '로그인 필요'}</Text>
-                            <Text>연결 상태: {connected ? '✅ 연결됨' : '❌ 끊어짐'}</Text>
-                        </Box>
                     </Box>
 
                     <Box>
@@ -462,15 +457,15 @@ const WaitingRoomPage = () => {
             </Box>
             
             {/* 고정된 하단 버튼 */}
-    <Box
-      as="footer"
-      position="sticky"
-      bottom="0"
-      px={4}
-      py={4}
-      bg="transparent"
-      zIndex={1000}
-    >
+            <Box
+                as="footer"
+                position="sticky"
+                bottom="0"
+                px={4}
+                py={4}
+                bg="transparent"
+                zIndex={1000}
+            >
                 {actionButton}
             </Box>
 

@@ -6,7 +6,7 @@ import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs'
 export interface Participant {
   userId: number | string
   statusMessage?: string
-  name?: string; //
+  name?: string
 }
 export type MessageType = 'ENTER' | 'EXIT' | 'CLOSE' | 'START' | 'KICK'
 export interface MessagePayload {
@@ -17,7 +17,7 @@ export interface MessagePayload {
 
 export const useWaitingRoomSocket = () => {
   const stompClient = useRef<Client | null>(null)
-  const topicSubRef = useRef<StompSubscription | null>(null) // 👈 구독 핸들 저장
+  const topicSubRef = useRef<StompSubscription | null>(null)
   const [connected, setConnected] = useState(false)
   const [participants, setParticipants] = useState<Participant[]>([])
   const [lastMessage, setLastMessage] = useState<any>(null)
@@ -30,21 +30,11 @@ export const useWaitingRoomSocket = () => {
 
       switch (body.type as MessageType) {
         case 'ENTER':
-          setParticipants(prev => {
-            const uid = normalizeId(body.userId)
-            const idx = prev.findIndex(p => normalizeId(p.userId) === uid)
-            if (idx > -1) {
-              const next = [...prev]
-              next[idx] = { ...next[idx], ...body }
-              return next
-            }
-            return [...prev, { userId: body.userId, statusMessage: body.statusMessage }]
-          })
+          // 🔥 ENTER만 WaitingRoomPage에서 API로 처리 (name 정보 필요)
           break
         case 'EXIT':
-          setParticipants(prev => prev.filter(p => normalizeId(p.userId) !== normalizeId(body.userId)))
-          break
         case 'KICK':
+          // 🔥 EXIT/KICK은 기존 로직 유지 (userId만 있으면 충분)
           setParticipants(prev => prev.filter(p => normalizeId(p.userId) !== normalizeId(body.userId)))
           break
         case 'START':
@@ -68,8 +58,6 @@ export const useWaitingRoomSocket = () => {
     setParticipants(initialParticipants)
 
     const client = new Client({
-      // SockJS를 쓰면 brokerURL 지정하지 않는 것이 권장
-      // brokerURL: 'wss://i13b206.p.ssafy.io/ws/waiting',
       webSocketFactory: () => new SockJS('https://i13b206.p.ssafy.io/ws/waiting'),
       // webSocketFactory: () => new SockJS('http://localhost:8080/ws/waiting'),
       reconnectDelay: 5000,
@@ -79,7 +67,6 @@ export const useWaitingRoomSocket = () => {
         setConnected(true)
         console.log('✅ 웹소켓 연결 성공')
 
-        // 이전 구독이 남아있다면 안전하게 해제
         topicSubRef.current?.unsubscribe()
         topicSubRef.current = client.subscribe(`/topic/waiting/${roomId}`, onMessageReceived)
       },
@@ -97,7 +84,6 @@ export const useWaitingRoomSocket = () => {
   }, [onMessageReceived])
 
   const disconnect = useCallback(async () => {
-    // 구독 먼저 해제
     try { topicSubRef.current?.unsubscribe() } catch {}
     topicSubRef.current = null
 
@@ -106,7 +92,7 @@ export const useWaitingRoomSocket = () => {
 
     if (client?.active) {
       try {
-        await client.deactivate() // 비동기 완료 보장
+        await client.deactivate()
       } catch (e) {
         console.warn('deactivate 실패 무시:', e)
       }
@@ -128,12 +114,24 @@ export const useWaitingRoomSocket = () => {
     })
   }, [])
 
+  // 🔥 외부에서 participants를 업데이트할 수 있는 함수 추가
+  const updateParticipants = useCallback((newParticipants: Participant[]) => {
+    setParticipants(newParticipants)
+  }, [])
+
   useEffect(() => {
     return () => {
-      // 언마운트 시 정리
       void disconnect()
     }
   }, [disconnect])
 
-  return { connected, participants, lastMessage, connect, disconnect, sendMessage }
+  return { 
+    connected, 
+    participants, 
+    lastMessage, 
+    connect, 
+    disconnect, 
+    sendMessage,
+    updateParticipants
+  }
 }

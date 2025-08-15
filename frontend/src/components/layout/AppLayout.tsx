@@ -70,7 +70,7 @@ const frameRules: Array<{ frame: PageFrame; patterns: string[] }> = [
 { // 뒤로 가기만
   frame: 'back-only',
   patterns: [
-   '/user/update', '/room', '/room/:roomId', '/chat/:chatRoomId', '/report/reportlist/:reportId'
+   '/user/update', '/room', '/room/:roomId', '/chat/:chatRoomId', '/report/reportdetail/:reportId'
   ]
 },
 { // 헤더 X + 하단바 X

@@ -7,7 +7,7 @@ export interface Mission {
   description: string | null;
   difficulty: 'EASY' | 'NORMAL' | 'HARD' | 'VERY_HARD';
   channels: 'MEET' | 'CHAT' | 'CALL';
-  type: 'GIFT' | 'COMMUNICATION' | 'PERFORMANCE' | 'NOTES' |'OBSERVATION';
+  type: 'GIFTS' | 'COMMUNICATION' | 'PERFORMANCE' | 'NOTES' |'OBSERVATION';
   missionDate: string;
   completed: boolean;
 }

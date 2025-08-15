@@ -139,7 +139,7 @@ const ChatListPage = () => {
   }
 
   return (
-    <Box p={2} m={2}>
+    <Box p={3} m={3}>
       <Text textStyle="title_mlg" mb={2}>✪ 채팅룸</Text>
       <Text textStyle="caption_sm" color="gray.600" mb={4}>익명으로 자유롭게 마음을 표현하며 따뜻한 대화를 나눠보세요!</Text>
       <VStack align="stretch" gap="0">

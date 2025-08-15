@@ -5,7 +5,8 @@ import type { StackProps } from '@chakra-ui/react'
 import { getRequest } from '@/api/requests';
 import { isAxiosError } from 'axios';
 import ProfileCard from '@/components/profile/ProfileCard';
-
+import profile_manito from '@/assets/ttomas/profile_manito.png'
+import profile_manitee from '@/assets/ttomas/profile_manitee.png'
 interface ReportDetail {
   roomId: number;
   roomName: string;
@@ -159,7 +160,7 @@ const ReportDetailPage = () => {
   }
 
   return (
-    <Box maxW="md" mx="auto">
+    <Box p={3} m={3}>
       <VStack align="stretch">
         {/* 헤더 */}
         <Box>
@@ -184,6 +185,7 @@ const ReportDetailPage = () => {
                 title="내 마니또"
                 name={report.receivingHelp.manittoName || '알 수 없음'}
                 subtitle="나의 소중한 마니또"
+                src={profile_manito}
             />
             <VStack gap={0} align="stretch" textStyle="body_sm">
                 <StatsDisplay title="내 정답 순위" value={`${report.receivingHelp.stats.myCorrectGuessCount > 0 ? '1위' : '-'}`} borderBottomWidth="1px" borderColor="gray.200" />
@@ -214,6 +216,7 @@ const ReportDetailPage = () => {
                 title="내 마니띠"
                 name={report.givingHelp.manitteeName || '알 수 없음'}
                 subtitle="내가 도와준 마니띠"
+                src={profile_manitee}
             />
             <VStack gap={0} align="stretch" textStyle="body_sm">
                 <StatsDisplay title="내 정답 순위" value={`${report.givingHelp.stats.myCorrectGuessCount > 0 ? '1위' : '-'}`} borderBottomWidth="1px" borderColor="gray.200" />
