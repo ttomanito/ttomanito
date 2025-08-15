@@ -114,53 +114,7 @@ export default function AppInitializer({ children, fcmDelayMs = 3000 }: Props) {
   return (
     <>
       {children}
-      
-      {/* 개발 모드에서만 FCM 상태 표시 */}
-      {import.meta.env.DEV && (
-        <div style={{
-          position: 'fixed',
-          bottom: '10px',
-          right: '10px',
-          padding: '8px',
-          backgroundColor: fcmToken ? '#10B981' : '#EF4444',
-          color: 'white',
-          fontSize: '12px',
-          borderRadius: '4px',
-          zIndex: 9999
-        }}>
-          FCM: {fcmToken ? '✅' : '❌'}
-        </div>
-      )}
 
-      {/* FCM 테스트 버튼 (개발 모드에서만) */}
-      {import.meta.env.DEV && (
-        <button
-          onClick={async () => {
-            console.log('🔄 수동 FCM 테스트 시작...');
-            const token = await requestForToken();
-            if (token) {
-              setFcmToken(token);
-              localStorage.setItem('fcm:token', token);
-              localStorage.setItem('fcm:project', import.meta.env.VITE_FIREBASE_PROJECT_ID ?? '');
-              console.log('✅ 수동 FCM 토큰 발급 성공:', token.substring(0, 50) + '...');
-            }
-          }}
-          style={{
-            position: 'fixed',
-            bottom: '50px',
-            right: '10px',
-            padding: '10px',
-            backgroundColor: '#4285f4',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            zIndex: 9999
-          }}
-        >
-          FCM 테스트
-        </button>
-      )}
     </>
   );
 }
