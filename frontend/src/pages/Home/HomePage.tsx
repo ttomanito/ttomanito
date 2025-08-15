@@ -246,7 +246,7 @@ const GameHomePage = () => {
 
   const getTypeImage = (type: Mission['type']) => {
     switch (type) {
-      case 'GIFT': return ttoma_gift;
+      case 'GIFTS': return ttoma_gift;
       case 'NOTES': return ttoma_notes;
       case 'COMMUNICATION': return ttoma_communication;
       case 'OBSERVATION': return ttoma_observation;
@@ -315,7 +315,7 @@ const GameHomePage = () => {
                   <Image src={getDifficultyImage(todayMission.difficulty)} alt={todayMission.difficulty} mx="auto" maxW="120px" mb={4} />
                   <Text textStyle="title_ml" textAlign="center" mb={1}>{todayMission.title}</Text>
                   <Text textStyle="caption_xs_light" textAlign="center">{todayMission.description ?? ""}</Text>
-                  <Image src={getTypeImage(todayMission.type)} alt={todayMission.type} mx="auto" maxW="120px" mb={4} />
+                  <Image src={getTypeImage(todayMission.type)} alt={todayMission.type} mx="auto" maxW="160px" mb={4} />
                   <LongButton onClick={(e) => { e.stopPropagation(); openModal(missionCompleteModalData); }} disabled={isMissionCompletedToday}>
                     {isMissionCompletedToday ? '오늘의 미션 완료됨' : '미션 완료!'}
                   </LongButton>
