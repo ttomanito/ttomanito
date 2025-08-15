@@ -6,6 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 // Make sure AuthGuard.tsx exists at src/routes or update the path below if it's elsewhere
 import RequireAuthGuard, { PreventAuthGuard } from '@/routes/AuthGuard'; // 🔥 변경: 새로운 가드 import
 import { GameOnlyGuard, NonGameGuard } from '@/routes/GameStatusGuard';
+import RoomGuard from '@/routes/RoomGuard'; // 🔥 추가: RoomGuard import
 import Loading from '@/routes/Loading';
 
 // === lazy 로딩 타입 보조 함수 ===
@@ -44,11 +45,15 @@ export default function AppRoutes() {
 
           {/* 🔓 ─────────── 비로그인 허용 (기타 공개 페이지) ─────────── */}
           <Route path="/report/reportdetail/:reportId" element={<ReportDetailPage />} />
-          <Route path="/room/:roomId" element={<WaitingRoomPage />} />
           <Route path="/test" element={<TestPage />} />
 
           {/* 🔒 ─────────── 로그인 필요 + 상태별 가드 ─────────── */}
           <Route element={<RequireAuthGuard />}>
+            {/* 🏠 대기방 접근 - 방 상태 검증 필요 */}
+            <Route element={<RoomGuard />}>
+              <Route path="/room/:roomId" element={<WaitingRoomPage />} />
+            </Route>
+
             {/* 🎮 게임 중인 사용자만 접근 가능 (IN_GAME) */}
             <Route element={<GameOnlyGuard />}>
               <Route path="/home" element={<HomePage />} />

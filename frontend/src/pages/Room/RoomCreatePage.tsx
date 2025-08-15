@@ -22,7 +22,6 @@ import { format } from 'date-fns';
 import DateInput from '@/components/inputs/DateInput';
 import { useNavigate } from 'react-router-dom';
 import { postRequest } from '@/api/requests'; 
-import { useAuth } from '@/stores/authStore';
 
 const korToEngDay = {
   '월': 'MON',
@@ -40,71 +39,53 @@ const RoomCreatePage = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  
-  // 🔥 변경: setGameInfo 함수 가져오기
-  const { setGameInfo } = useAuth();
 
   dayjs.locale('ko');
   const today = dayjs().format('YYYY년 MM월 DD일 dddd');
 
   const toggleDay = (day: string) => {
     setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day] // 🔥 수정: 버그 수정
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
   };
 
   const dayOptions = ['월', '화', '수', '목', '금', '토', '일'];
 
-const handleCreateRoom = async () => {
-  if (!groupName || !endDate || selectedDays.length === 0) {
-    alert('모든 항목을 입력해주세요.');
-    return;
-  }
-  setLoading(true);
+  const handleCreateRoom = async () => {
+    if (!groupName || !endDate || selectedDays.length === 0) {
+      alert('모든 항목을 입력해주세요.');
+      return;
+    }
+    setLoading(true);
 
-  const missionDays = selectedDays.map(
-    (kor) => korToEngDay[kor as keyof typeof korToEngDay]
-  );
-  const startDate = dayjs().format('YYYY-MM-DD'); // 오늘 날짜
-  const selectedEnd = dayjs(endDate).format('YYYY-MM-DD');
+    const missionDays = selectedDays.map(
+      (kor) => korToEngDay[kor as keyof typeof korToEngDay]
+    );
+    const startDate = dayjs().format('YYYY-MM-DD');
+    const selectedEnd = dayjs(endDate).format('YYYY-MM-DD');
 
-  try {
-    // ✨ 1. 방 생성 API 호출
-    const res = await postRequest('/room', {
-      name: groupName,
-      startDate: startDate, // 시작일 추가
-      endDate: selectedEnd,
-      missionDays,
-    });
-    console.log('방 생성 응답:', res); // 🔍 디버깅: 응답 확인
+    try {
+      // 방 생성 API 호출 (서버가 HttpOnly 쿠키로 상태 관리)
+      const res = await postRequest('/room', {
+        name: groupName,
+        startDate: startDate,
+        endDate: selectedEnd,
+        missionDays,
+      });
+      console.log('방 생성 응답:', res);
 
-    const { roomId } = res;
-
-    // ✨ 2. 방 생성 후 상태 업데이트 (대기실 상태로)
-    // 🔥 변경: gameInfo 새 구조에 맞춤
-    setGameInfo({
-      status: 'IN_WAITING', // 🔥 변경: 대기실 상태
-      roomId,
-      isCreator: true, // 방 생성자
-    });
-    
-    // ✨ 3. 상태 업데이트 후 대기방 페이지로 이동
-    navigate(`/room/${roomId}`);
-    
-  } catch (err) {
-    console.error(err);
-    alert('방 생성 중 오류가 발생했습니다.');
-    
-    // 🔥 추가: 실패 시 상태 롤백
-    setGameInfo({
-      status: 'IN_NONE',
-      roomId: null,
-      isCreator: false
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+      const { roomId } = res;
+      
+      // 페이지 이동 - AppInitializer가 상태 동기화를 처리함
+      navigate(`/room/${roomId}`);
+      
+    } catch (err) {
+      console.error(err);
+      alert('방 생성 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const longButtonProps: LongButtonProps = {
     loading,
@@ -145,17 +126,17 @@ const handleCreateRoom = async () => {
             <DatePicker
               selected={endDate}
               onChange={(date: Date | null) => setEndDate(date)}
-                renderCustomHeader={({
-    date,
-    decreaseMonth,
-    increaseMonth,
-  }) => (
-    <div className="custom-datepicker-header">
-      <button onClick={decreaseMonth}>{'<ㅤㅤㅤ'}</button>
-      <span>{format(date, 'yyyy년 M월', { locale: ko })}</span>
-      <button onClick={increaseMonth}>{'ㅤㅤㅤ>'}</button>
-    </div>
-  )}
+              renderCustomHeader={({
+                date,
+                decreaseMonth,
+                increaseMonth,
+              }) => (
+                <div className="custom-datepicker-header">
+                  <button onClick={decreaseMonth}>{'<ㅤㅤㅤ'}</button>
+                  <span>{format(date, 'yyyy년 M월', { locale: ko })}</span>
+                  <button onClick={increaseMonth}>{'ㅤㅤㅤ>'}</button>
+                </div>
+              )}
               wrapperClassName="datepicker-full-width"
               minDate={new Date()}
               maxDate={addDays(new Date(), 30)}
