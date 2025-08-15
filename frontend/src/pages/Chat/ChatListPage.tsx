@@ -46,9 +46,9 @@ const ChatListPage = () => {
   // 파트너 정보 가져오기 함수
   const getChatPartnerInfo = (index: number) => {
     if (index == 0) {
-      return { role: '마니또', profileImage: profile_manito };
+      return { role: '마니띠', profileImage: profile_manito };
     } else {
-      return { role: '마니띠', profileImage: profile_manitee };
+      return { role: '마니또', profileImage: profile_manitee };
     }
   };
 
