@@ -21,7 +21,6 @@ const MainPage = lazyImport(() => import('@/pages/MainPage'));
 const LoginPage = lazyImport(() => import('@/pages/User/LoginPage'));
 const RoomCreatePage = lazyImport(() => import('@/pages/Room/RoomCreatePage'));
 const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage'));
-const MatchingPage = lazyImport(() => import('@/pages/Room/MatchingPage'));
 const HomePage = lazyImport(() => import('@/pages/Home/HomePage'));
 const ChatListPage = lazyImport(() => import('@/pages/Chat/ChatListPage'));
 const ChatRoomPage = lazyImport(() => import('@/pages/Chat/ChatRoomPage'));
@@ -69,7 +68,6 @@ export default function AppRoutes() {
               <Route path="/" element={<MainPage />} />
               <Route path="/main" element={<MainPage />} />
               <Route path="/room" element={<RoomCreatePage />} />
-              <Route path="/manito/:roomId/matching" element={<MatchingPage />} />
             </Route>
 
             <Route path="/user/update" element={<EditProfile />} />

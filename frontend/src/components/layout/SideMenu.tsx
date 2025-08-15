@@ -17,14 +17,13 @@ import {
 import { LuMenu } from 'react-icons/lu';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
 const MotionBox = motion(Box);
 
 const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) => {
   const navigate = useNavigate();
   const { openModal } = useModalStore();
   const tutorialModalData = { body: <TutorialBody /> };
-
+  const { syncUserGameStatus } = useAuth()
   const [isOpen, setIsOpen] = useState(false);
 
   const status = useAuth((s) => s.gameInfo.status);
@@ -38,8 +37,9 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
   const finishRoom = async () => {
     try {
       await postRequest('/manito/finish'); // 데이터 바디 필요 없으므로 두 번째 인자 생략
+      await syncUserGameStatus()
       close();
-      navigate('/home'); // 게임 종료 후 홈으로 이동
+      navigate('/main'); // 게임 종료 후 홈으로 이동
     } catch (error) {
       console.error('방 종료 실패:', error);
       close();
