@@ -1,4 +1,3 @@
-//src/pages/RoomCreatePage.tsx
 import {
   Box,
   Text,
@@ -65,22 +64,17 @@ const RoomCreatePage = () => {
     const selectedEnd = dayjs(endDate).format('YYYY-MM-DD');
 
     try {
-      // 방 생성 API 호출 (서버가 HttpOnly 쿠키로 상태 관리)
       const res = await postRequest('/room', {
         name: groupName,
         startDate: startDate,
         endDate: selectedEnd,
         missionDays,
       });
-      console.log('방 생성 응답:', res);
 
       const { roomId } = res;
-      
-      // 페이지 이동 - AppInitializer가 상태 동기화를 처리함
       navigate(`/room/${roomId}`);
       
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert('방 생성 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);

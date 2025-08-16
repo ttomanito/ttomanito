@@ -17,14 +17,6 @@ export const downloadPrompt = createOverlay<PromptProps>((props) => {
   const handleInstall = async () => {
     if (deferredInstallPrompt) {
       deferredInstallPrompt.prompt();
-
-      const choiceResult = await deferredInstallPrompt.userChoice;
-      if (choiceResult.outcome === 'accepted') {
-        console.log('👍 유저가 설치를 수락했어요!');
-      } else {
-        console.log('👎 유저가 설치를 취소했어요.');
-      }
-
       deferredInstallPrompt = null;
     } else {
       window.open("https://your-app-download-link.com", "_blank");

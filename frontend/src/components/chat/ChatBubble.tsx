@@ -1,5 +1,3 @@
-// src/components/chat/ChatBubble.tsx - 새로운 메시지 타입 지원
-
 import { Box, Text, Flex, Image, Button, HStack } from '@chakra-ui/react';
 import type { Message } from '@/types/chat/chat';
 import ttoma_poke from '@/assets/ttoma_poke.png';

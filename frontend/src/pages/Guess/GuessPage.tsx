@@ -37,20 +37,12 @@ interface GuessPostResponse {
   isCorrect: boolean;
 }
 
-/**
- * GuessPage 컴포넌트
- * - 현재 참여 중인 게임 방의 다른 참여자들을 대상으로 마니또를 추측하는 페이지입니다.
- * - authStore에서 실제 게임 참여 상태와 방 ID를 가져와 사용합니다.
- */
 const GuessPage = () => {
-  // 🔥 변경: auth store 새 구조 사용
   const { user, gameInfo, isReady } = useAuth();
   const isInGame = gameInfo.status === 'IN_GAME';
   const roomId = gameInfo.roomId;
 
   const toast = useToast();
-
-  // --- 상태 관리 ---
   const [allParticipants, setAllParticipants] = useState<User[]>([]);
   const [usersToGuess, setUsersToGuess] = useState<User[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -62,7 +54,6 @@ const GuessPage = () => {
   const [alertOpen, setAlertOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  // --- 데이터 로딩 useEffect ---
   useEffect(() => {
     if (!isReady || !user || !isInGame || !roomId) {
       setIsPageLoading(false);
@@ -85,8 +76,7 @@ const GuessPage = () => {
         setUsersToGuess(sorted);
         setGuessHistory(fetchedHistory);
 
-      } catch (err) {
-        console.error('데이터 불러오기 실패:', err);
+      } catch {
         toast({
           title: '데이터를 불러올 수 없습니다.',
           description: '네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요.',
@@ -103,7 +93,6 @@ const GuessPage = () => {
     fetchData();
   }, [isInGame, roomId, user, isReady, toast]); // 🔥 변경: hydrated → isReady
 
-  // --- 파생 상태 (Derived State) ---
   const todayString = new Date().toISOString().slice(0, 10);
   const todaysGuess = guessHistory.find(g => g.guessedDate === todayString);
   const hasGuessedToday = !!todaysGuess;
@@ -111,7 +100,6 @@ const GuessPage = () => {
     ? allParticipants.find(u => u.userId === todaysGuess.guessedUserId)
     : null;
 
-  // --- 핸들러 함수 (이하 로직은 기존과 동일) ---
   const handleSelect = (userId: number) => {
     if (hasGuessedToday) return;
     setSelectedId(userId);
@@ -138,15 +126,13 @@ const GuessPage = () => {
       setConfirmOpen(false);
       setSelectedId(null);
       toast({ title: '추측이 완료되었습니다!', status: 'success', duration: 3000, isClosable: true, position: 'top' });
-    } catch (err) {
-      console.error('추측 제출 실패:', err);
+    } catch {
       toast({ title: '추측 제출에 실패했습니다.', status: 'error', duration: 4000, isClosable: true, position: 'top' });
     }
   };
 
   const handleShowHistory = () => { setHistoryOpen(true); };
 
-  // --- 렌더링 로직 ---
   if (!isReady || isPageLoading) {
     return <Flex justify="center" align="center" h="100vh"><Spinner /></Flex>;
   }

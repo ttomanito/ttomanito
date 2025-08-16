@@ -1,8 +1,3 @@
-/**
- * ✅ JWT 문자열에서 payload(중앙 부분)를 추출해 JSON으로 반환합니다.
- * - atob + decodeURIComponent로 안전하게 디코딩
- * - 실패하면 null 반환
- */
 
 export function jwtParser<T = any>(token: string): T | null {
   try {
@@ -18,8 +13,7 @@ export function jwtParser<T = any>(token: string): T | null {
     )
 
     return JSON.parse(jsonPayload)
-  } catch (err) {
-    console.error('❌ JWT 파싱 실패:', err)
+  } catch {
     return null
   }
 }

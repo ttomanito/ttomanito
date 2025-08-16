@@ -1,4 +1,3 @@
-//src/components/inputs/TextInput.tsx
 import { Input, type InputProps } from '@chakra-ui/react';
 
 interface TextInputProps extends InputProps {
@@ -17,7 +16,7 @@ const TextInput: React.FC<TextInputProps> = ({ value, onChange, placeholder, ...
       bg="white"
       borderRadius="xl"
       borderColor="gray.300"
-      textStyle="caption_xs_light" // ✅ 여기에 적용!
+      textStyle="caption_xs_light"
       _placeholder={{ color: 'gray.400' }}
       _focus={{
         borderColor: 'blue.300',

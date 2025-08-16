@@ -1,4 +1,3 @@
-// src/layouts/BackBar.tsx
 import { Box, Flex, Button } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 

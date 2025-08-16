@@ -1,4 +1,3 @@
-// vite.config.ts
 /// <reference types="vitest/config" />
 
 import { defineConfig } from 'vite';

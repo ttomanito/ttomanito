@@ -1,4 +1,3 @@
-// src/firebase/config.ts
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getAnalytics, type Analytics } from "firebase/analytics";
 import { getMessaging, type Messaging } from "firebase/messaging";
@@ -25,7 +24,7 @@ const firebaseConfig: FirebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// 환경변수 검증
+// 환경변수 검증 (단순 존재 확인)
 const requiredEnvVars = [
   'VITE_FIREBASE_API_KEY',
   'VITE_FIREBASE_AUTH_DOMAIN',
@@ -39,7 +38,7 @@ const requiredEnvVars = [
 
 requiredEnvVars.forEach(envVar => {
   if (!import.meta.env[envVar]) {
-    console.error(`❌ ${envVar} 환경변수가 설정되지 않았습니다`);
+    //  환경변수가 없으면 무시
   }
 });
 
@@ -54,8 +53,6 @@ if (typeof window !== 'undefined') {
 
 // Messaging 초기화 (FCM용)
 const messaging: Messaging = getMessaging(app);
-
-console.log('🔥 Firebase 초기화 완료');
 
 export { app, analytics, messaging };
 export type { FirebaseConfig };
