@@ -120,8 +120,7 @@ services:
     restart: always
     environment:
       - DOMAIN_OR_PUBLIC_IP=i13b206.p.ssafy.io
-      - HTTPS_PORT=443
-     # - OPENVIDU_PUBLICURL=${OPENVIDU_PUBLICURL}
+      - OPENVIDU_PUBLICURL=${OPENVIDU_PUBLICURL}
       - OPENVIDU_SECRET=${OPENVIDU_SECRET}
       - OPENVIDU_RECORDING=false
 
