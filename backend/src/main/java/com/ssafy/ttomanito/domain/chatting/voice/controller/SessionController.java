@@ -1,6 +1,9 @@
 package com.ssafy.ttomanito.domain.chatting.voice.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.ttomanito.domain.chatting.voice.dto.TokenRequest;
+import com.ssafy.ttomanito.domain.chatting.voice.dto.TokenResponse;
 import com.ssafy.ttomanito.domain.chatting.voice.service.OpenViduService;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
@@ -18,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
+
 
 @Slf4j
 @RestController
@@ -29,6 +34,7 @@ public class SessionController {
     public SessionController(OpenViduService openViduService) {
         this.openViduService = openViduService;
     }
+    private final ObjectMapper om = new ObjectMapper();
 
     @Operation(
             summary = "OpenVidu 연결 토큰 발급",
@@ -47,61 +53,22 @@ public class SessionController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<Map<String, String>> generateToken(@Valid @RequestBody TokenRequest req) {
+    public ResponseEntity<Map<String, String>> generateToken(@Valid @RequestBody TokenRequest req)
+            throws OpenViduJavaClientException, OpenViduHttpException {
+
         log.info("[/openvidu/token] IN sessionId={}, nickname={}", req.sessionId(), req.nickname());
 
-        // 간단한 형식 검증 (원하면 제거 가능)
-        if (!req.sessionId().matches("^[a-zA-Z0-9_-]+$")) {
-            return ResponseEntity.badRequest()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of("error", "BadRequest", "message", "Invalid sessionId format"));
-        }
+        // 1) 세션 생성 or 조회
+        Session session = openViduService.getOrCreateSession(req.sessionId());
 
-        try {
-            // 1) 세션 생성/가져오기
-            log.debug("[/openvidu/token] Requesting session from OpenVidu server...");
-            Session session = openViduService.getOrCreateSession(req.sessionId());
+        // 2) 토큰 발급 (여기서 주소+토큰 형태 반환됨)
+        String rawToken = openViduService.generateConnectionToken(session, req.nickname());
+// rawToken에서 tok_만 뽑든, 처음부터 tok_만 만들든 상관없음
+        String tokOnly = rawToken.contains("token=") ? rawToken.substring(rawToken.indexOf("token=")+6) : rawToken;
 
-            // 2) 커넥션 토큰 발급(서비스가 '토큰 문자열'만 반환)
-            log.debug("[/openvidu/token] Generating token for nickname={}", req.nickname());
-            String token = openViduService.generateConnectionToken(session, req.nickname());
-
-            // 3) 기존 응답 형식 유지: { "token": "tok_..." }
-            return ResponseEntity.ok(Map.of("token", token));
-
-        } catch (IllegalArgumentException e) {
-            log.warn("[/openvidu/token] BAD REQUEST: {}", e.getMessage());
-            return ResponseEntity.badRequest()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of("error", "BadRequest", "message", e.getMessage()));
-
-        } catch (OpenViduHttpException e) {
-            log.warn("[/openvidu/token] OV HTTP EX status={} msg={}", e.getStatus(), e.getMessage());
-            return ResponseEntity.status(e.getStatus())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of(
-                            "error", "OpenViduHttpException",
-                            "status", String.valueOf(e.getStatus()),
-                            "message", e.getMessage()
-                    ));
-
-        } catch (OpenViduJavaClientException e) {
-            log.warn("[/openvidu/token] OV JAVA EX msg={}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of(
-                            "error", "OpenViduJavaClientException",
-                            "message", e.getMessage()
-                    ));
-
-        } catch (Exception e) {
-            log.error("[/openvidu/token] OTHER EX", e);
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of(
-                            "error", "ServiceUnavailable",
-                            "message", "Cannot connect to OpenVidu Server"
-                    ));
-        }
+        return ResponseEntity.ok(Map.of(
+                "token", tokOnly,                 // tok_.... 만
+                "sessionId", session.getSessionId() // 실제 세션ID (custom 사용시 동일)
+        ));
     }
 }
