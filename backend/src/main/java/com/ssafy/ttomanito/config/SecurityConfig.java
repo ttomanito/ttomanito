@@ -26,6 +26,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Slf4j
 @Configuration
@@ -82,12 +83,11 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
-                        .deleteCookies("accessToken", "refreshToken", "JSESSIONID", "kakaoAccessToken")
-                        .logoutSuccessHandler((req, res, auth) -> {
-                            java.util.stream.Stream.of("accessToken","refreshToken","JSESSIONID","kakaoAccessToken")
-                                    .forEach(name -> CookieUtils.deleteCookie(req, res, name));
-                            res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                        .addLogoutHandler((req, res, auth) -> {
+                            Stream.of("accessToken","refreshToken","JSESSIONID","kakaoAccessToken")
+                                    .forEach(n -> CookieUtils.deleteCookie(req, res, n));
                         })
+                        .logoutSuccessHandler((req, res, auth) -> res.setStatus(204))
                 )
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> res.sendError(401)));
 
