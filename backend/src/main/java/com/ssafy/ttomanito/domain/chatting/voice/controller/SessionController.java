@@ -65,15 +65,20 @@ public class SessionController {
 
         // 2) 토큰 발급 (여기서 주소+토큰 형태 반환됨)
         String rawToken = openViduService.generateConnectionToken(session, req.nickname());
-// rawToken 예: wss://openvidu-server-kms:4443/openvidu?sessionId=...&token=...&version=2.22.0&...
 
-        URI u = new URI(rawToken);
-        String qs = u.getRawQuery(); // 전체 쿼리스트링 보존(중요)
-        String publicBase = "wss://i13b206.p.ssafy.io/openvidu";
-        String publicToken = publicBase + "?" + qs;
+        URI u = new URI(rawToken); // wss://.../openvidu?sessionId=...&token=tok_...&...
+        String query = u.getRawQuery();
+        String tokOnly = null;
+        for (String p : query.split("&")) {
+            if (p.startsWith("token=")) {
+                tokOnly = p.substring("token=".length());
+                break;
+            }
+        }
+        if (tokOnly == null) throw new IllegalStateException("OpenVidu token not found");
 
         return ResponseEntity.ok(Map.of(
-                "token", publicToken,            // 전체 URL(공개 호스트 + 원본 쿼리 그대로)
+                "token", tokOnly,                 // ★ tok_… 만
                 "sessionId", session.getSessionId()
         ));
     }
