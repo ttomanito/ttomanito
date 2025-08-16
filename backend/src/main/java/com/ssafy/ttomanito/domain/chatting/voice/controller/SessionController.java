@@ -64,22 +64,18 @@ public class SessionController {
         Session session = openViduService.getOrCreateSession(req.sessionId());
 
         // 2) 토큰 발급 (여기서 주소+토큰 형태 반환됨)
-        String rawToken = openViduService.generateConnectionToken(session, req.nickname());
+        // 1) 세션 생성 or 조회
 
-        URI u = new URI(rawToken); // wss://.../openvidu?sessionId=...&token=tok_...&...
-        String query = u.getRawQuery();
-        String tokOnly = null;
-        for (String p : query.split("&")) {
-            if (p.startsWith("token=")) {
-                tokOnly = p.substring("token=".length());
-                break;
-            }
-        }
-        if (tokOnly == null) throw new IllegalStateException("OpenVidu token not found");
 
+        // 2) 토큰 발급 (여기서 주소+토큰 형태 반환됨)
+        // 1) 풀 토큰 그대로 받기 (wss://.../openvidu?... 포함)
+        String fullToken = openViduService.generateConnectionToken(session, req.nickname());
+
+// 2) 그대로 내려주기
         return ResponseEntity.ok(Map.of(
-                "token", tokOnly,                 // ★ tok_… 만
-                "sessionId", session.getSessionId()
+                "sessionId", session.getSessionId(),
+                "token",     fullToken         // ★ 풀 토큰 그대로
         ));
+
     }
 }
