@@ -107,6 +107,6 @@ public class AuthController {
     public void kakaoLogoutCallback(HttpServletRequest req, HttpServletResponse res) throws IOException {
         java.util.stream.Stream.of("kakaoAccessToken","accessToken","refreshToken","JSESSIONID")
                 .forEach(name -> CookieUtils.deleteCookie(req, res, name));
-        res.sendRedirect(frontendRedirectBase + "/login");
+        res.sendRedirect(frontendRedirectBase);
     }
 }
