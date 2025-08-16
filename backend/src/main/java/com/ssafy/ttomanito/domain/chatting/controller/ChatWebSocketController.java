@@ -182,14 +182,24 @@ public class ChatWebSocketController {
 
     /** 텍스트 메시지: content를 그대로 사용 */
     private void chatPushText(Long chatRoomId, Long senderRoomUserId, ChatMessageDto saved) {
+        // 방 브로드캐스트는 그대로
         template.convertAndSend("/topic/chat." + chatRoomId, saved);
 
+        // 👇 수신자 목록과 참가자 역할 정보
         List<Long> receiverUserIds = service.findReceivers(chatRoomId, senderRoomUserId);
-        List<String> tokens = pushTokenService.findTokensByUserIds(receiverUserIds);
+        var participants = service.participants(chatRoomId);
 
-        fcmService.sendMulticastMessage(tokens, new FcmChatPayload(
-                "새 메시지", saved.content(), chatLink(chatRoomId)
-        ));
+        for (Long uid : receiverUserIds) {
+            String title = uid.equals(participants.manitoUserId()) ? "마니띠" : "마니또";
+            List<String> tokens = pushTokenService.findTokensByUserIds(List.of(uid));
+            if (tokens != null && !tokens.isEmpty()) {
+                fcmService.sendMulticastMessage(tokens, new FcmChatPayload(
+                        title,
+                        saved.content() != null ? saved.content() : "메시지가 도착했어요",
+                        chatLink(chatRoomId)
+                ));
+            }
+        }
     }
 
     /** 이벤트 메시지(POKE/CALL_*): 보기 좋은 바디로 전달 */

@@ -6,6 +6,7 @@ import com.ssafy.ttomanito.domain.chatting.message.entity.ChatMessage;
 import com.ssafy.ttomanito.domain.chatting.message.repository.ChatMessageRepository;
 import com.ssafy.ttomanito.domain.chatting.room.dto.ChatRoomListDto;
 import com.ssafy.ttomanito.domain.chatting.room.dto.ChattingRoomDto;
+import com.ssafy.ttomanito.domain.chatting.room.dto.Participants;
 import com.ssafy.ttomanito.domain.chatting.room.entity.ChattingRoom;
 import com.ssafy.ttomanito.domain.chatting.room.repository.ChattingRoomRepository;
 import com.ssafy.ttomanito.domain.chatting.user.dto.ChatRoomWithUserDto;
@@ -280,5 +281,24 @@ public class ChattingService {
         if (!ru.getUser().getUserId().equals(userId)) {
             throw new UnauthenticatedException("senderRoomUserId가 인증 사용자와 일치하지 않습니다.");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Participants participants(Long chatRoomId) {
+        ChattingRoom room = chatRoomRepo.findById(chatRoomId)
+                .orElseThrow(() -> new NotFoundException("채팅방을 찾을 수 없습니다: roomId=" + chatRoomId));
+
+        // ChattingRoom → ManitoAssignment
+        ManitoAssignment ma = room.getManitoAssignment();
+
+        Long manitoUserId = ruRepo.findById(ma.getManito().getRoomUserId())
+                .map(ru -> ru.getUser().getUserId())
+                .orElseThrow(() -> new NotFoundException("마니또 RoomUser를 찾을 수 없습니다"));
+
+        Long maniteeUserId = ruRepo.findById(ma.getManitee().getRoomUserId())
+                .map(ru -> ru.getUser().getUserId())
+                .orElseThrow(() -> new NotFoundException("마니띠 RoomUser를 찾을 수 없습니다"));
+
+        return new Participants(manitoUserId, maniteeUserId);
     }
 }
