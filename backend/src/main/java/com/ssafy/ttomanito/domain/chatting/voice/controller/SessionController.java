@@ -50,32 +50,16 @@ public class SessionController {
             @ApiResponse(responseCode = "502", description = "OpenVidu 클라이언트 예외 발생"),
             @ApiResponse(responseCode = "503", description = "OpenVidu 서버 연결 실패")
     })
-    @PostMapping(
-            value = "/token",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public ResponseEntity<Map<String, String>> generateToken(@Valid @RequestBody TokenRequest req)
-            throws OpenViduJavaClientException, OpenViduHttpException, URISyntaxException {
+    @PostMapping("/token")
+    public ResponseEntity<Map<String, String>> generateToken(@RequestBody TokenRequest req) throws Exception {
 
-        log.info("[/openvidu/token] IN sessionId={}, nickname={}", req.sessionId(), req.nickname());
-
-        // 1) 세션 생성 or 조회
+        // sessionId만 받아서 세션 생성 or 조회
         Session session = openViduService.getOrCreateSession(req.sessionId());
-
-        // 2) 토큰 발급 (여기서 주소+토큰 형태 반환됨)
-        // 1) 세션 생성 or 조회
-
-
-        // 2) 토큰 발급 (여기서 주소+토큰 형태 반환됨)
-        // 1) 풀 토큰 그대로 받기 (wss://.../openvidu?... 포함)
-        String fullToken = openViduService.generateConnectionToken(session, req.nickname());
-
-// 2) 그대로 내려주기
+        String token = openViduService.generateConnectionToken(session, req.nickname());
         return ResponseEntity.ok(Map.of(
                 "sessionId", session.getSessionId(),
-                "token",     fullToken         // ★ 풀 토큰 그대로
+                "token", token    // ✅ tok_xxxxxx
         ));
-
     }
+
 }
