@@ -114,18 +114,18 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-openvidu-server-kms:
-  image: openvidu/openvidu-server-kms:2.22.0
-  container_name: openvidu-server-kms
-  restart: always
-  environment:
-    - DOMAIN_OR_PUBLIC_IP=i13b206.p.ssafy.io
-    - OPENVIDU_PUBLICURL=https://i13b206.p.ssafy.io/openvidu     # ✅ (nginx 통해 프록시되는 URL)
-    - OPENVIDU_SECRET=${OPENVIDU_SECRET}
-    - OPENVIDU_RECORDING=false
-    - OPENVIDU_USE_LEGACY_TOKEN=false                            # ✅ (이거 추가!)
-  networks:
-    - app-network
+  openvidu-server-kms:
+   image: openvidu/openvidu-server-kms:2.22.0
+   container_name: openvidu-server-kms
+   restart: always
+   environment:
+     - DOMAIN_OR_PUBLIC_IP=i13b206.p.ssafy.io
+     - OPENVIDU_PUBLICURL=https://i13b206.p.ssafy.io/openvidu    
+     - OPENVIDU_SECRET=${OPENVIDU_SECRET}
+     - OPENVIDU_RECORDING=false
+     - OPENVIDU_USE_LEGACY_TOKEN=false                       
+   networks:
+     - app-network
 
 
   coturn:
