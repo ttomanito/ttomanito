@@ -21,11 +21,9 @@ firebase.initializeApp(firebaseConfig);
 // Messaging 인스턴스 생성
 const messaging = firebase.messaging();
 
-console.log('🔥 Firebase 서비스 워커 초기화 완료');
 
 // 백그라운드 메시지 처리
 messaging.onBackgroundMessage((payload) => {
-  console.log('🔔 백그라운드 메시지 수신:', payload);
 
   const notificationTitle = payload.notification?.title || '새 알림';
   const notificationOptions = {
@@ -58,7 +56,6 @@ messaging.onBackgroundMessage((payload) => {
 
 // 알림 클릭 이벤트 처리
 self.addEventListener('notificationclick', (event) => {
-  console.log('🖱️ 알림 클릭:', event);
   
   event.notification.close();
   
@@ -95,12 +92,10 @@ self.addEventListener('notificationclick', (event) => {
 
 // 서비스 워커 설치 이벤트
 self.addEventListener('install', (event) => {
-  console.log('🔧 서비스 워커 설치됨');
   self.skipWaiting();
 });
 
 // 서비스 워커 활성화 이벤트
 self.addEventListener('activate', (event) => {
-  console.log('✅ 서비스 워커 활성화됨');
   event.waitUntil(self.clients.claim());
 });

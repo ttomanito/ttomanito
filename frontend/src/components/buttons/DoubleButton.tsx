@@ -1,14 +1,3 @@
-/**
- * src/components/buttons/DoubleButton.tsx
- * ✅ DoubleButton 사용법:
- * <DoubleButton
- *   leftLabel="취소"
- *   rightLabel="확인"
- *   onLeftClick={() => console.log('취소')}
- *   onRightClick={() => console.log('확인')}
- * />
- */
-
 import { forwardRef } from 'react';
 import { HStack, Button } from '@chakra-ui/react';
 import type { StackProps, ButtonProps } from '@chakra-ui/react';
@@ -20,7 +9,7 @@ export type DoubleButtonProps = {
   onRightClick?: () => void;
   leftProps?: ButtonProps;
   rightProps?: ButtonProps;
-} & Omit<StackProps, 'children'>; // 🔥 핵심: ButtonProps ❌, StackProps ✅
+} & Omit<StackProps, 'children'>; 
 
 const DoubleButton = forwardRef<HTMLDivElement, DoubleButtonProps>(
   ({ leftLabel, rightLabel, onLeftClick, onRightClick, leftProps, rightProps, ...rest }, ref) => {
@@ -34,7 +23,7 @@ const DoubleButton = forwardRef<HTMLDivElement, DoubleButtonProps>(
           borderColor="accent.500"
           borderRadius="full"
           textStyle="body_sm"
-          boxShadow="0px 2px 4px rgba(0, 0, 0, 0.2)" // ✅ 그림자 추가
+          boxShadow="0px 2px 4px rgba(0, 0, 0, 0.2)" 
           rounded="xl"
           _hover={{ bg: 'accent.50' }}
           onClick={onLeftClick}
@@ -50,7 +39,7 @@ const DoubleButton = forwardRef<HTMLDivElement, DoubleButtonProps>(
           borderColor="accent.500"
           borderRadius="full"
           textStyle="body_sm"
-          boxShadow="0px 2px 4px rgba(0, 0, 0, 0.2)" // ✅ 그림자 추가
+          boxShadow="0px 2px 4px rgba(0, 0, 0, 0.2)"
           rounded="xl"
           _hover={{ bg: 'accent.600' }}
           onClick={onRightClick}

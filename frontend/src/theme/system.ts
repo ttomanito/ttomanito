@@ -1,4 +1,3 @@
-// src/theme/system.ts
 import {
   createSystem,
   defaultConfig,
@@ -46,7 +45,7 @@ export const system = createSystem(defaultConfig, {
           200: { value: '#D5D3FF' },
           300: { value: '#CCC9FF' },
           400: { value: '#C3C0FF' },
-          500: { value: '#C8C6FF' }, // ✅ 기준색
+          500: { value: '#C8C6FF' }, //  기준색
           600: { value: '#9B94F0' },
           700: { value: '#776ED8' },
           800: { value: '#5B50B0' },
@@ -99,7 +98,7 @@ export const system = createSystem(defaultConfig, {
           fontSize: '12px',
           fontWeight: '500',
           fontFamily: '{fonts.sbaAggro}',
-          letterSpacing: '0.48px', // 4% of 12px
+          letterSpacing: '0.48px',
         },
       },
       body_md: {

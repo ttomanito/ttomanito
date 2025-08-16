@@ -7,7 +7,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import InstallBanner from './InstallBanner'; // 문서 자동화를 위한 실제 컴포넌트 연결
+import InstallBanner from './InstallBanner';
 
 const meta: Meta<typeof InstallBanner> = {
   title: 'UI/InstallBanner',
@@ -23,7 +23,7 @@ export const Default: Story = {
   render: () => <InstallBannerMock />,
 };
 
-// ✅ Storybook 전용 Mock 컴포넌트 (왼쪽 닫기 / 오른쪽 설치 버튼 스타일 반영)
+
 const InstallBannerMock = () => {
   const [visible, setVisible] = useState(true);
   if (!visible) return null;

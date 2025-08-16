@@ -1,7 +1,3 @@
-// ===================================
-// src/routes/RoomGuard.tsx
-// ===================================
-
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 import { useAuth } from '@/stores/authStore';
 import { useEffect, useState } from 'react';
@@ -51,8 +47,7 @@ const RoomGuard = () => {
         
         const data = await getRequest<RoomInfo>(`/room/${roomId}`);
         setRoomInfo(data);
-      } catch (err) {
-        console.error('방 정보 조회 실패:', err);
+      } catch {
         setError('방을 찾을 수 없습니다.');
       } finally {
         setLoading(false);
@@ -73,9 +68,8 @@ const RoomGuard = () => {
   }
 
   const currentRoomStatus = roomInfo.status;
-  const creatorId = String(roomInfo.creatorId); // API에서 number로 오니까 string으로 변환
 
-  console.log(`[ROOM_GUARD] 방 ${roomId} 상태: ${currentRoomStatus}, 사용자 게임 상태: ${gameInfo.status}, 방장: ${creatorId}`);
+  
 
   // 방 상태별 접근 제어
   switch (currentRoomStatus) {

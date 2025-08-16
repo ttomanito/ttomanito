@@ -1,4 +1,3 @@
-// stores/modalStore.ts
 import type { ReactNode } from 'react'
 import { create } from 'zustand'
 

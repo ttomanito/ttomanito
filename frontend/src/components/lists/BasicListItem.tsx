@@ -1,5 +1,3 @@
-// components/BasicListItem.tsx
-
 import { HStack, Text} from "@chakra-ui/react";
 import type { StackProps } from '@chakra-ui/react';
 import React from "react";

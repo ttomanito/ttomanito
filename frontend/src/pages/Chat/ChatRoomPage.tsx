@@ -1,4 +1,3 @@
-// ChatRoomPage.tsx (수정본)
 import { Box, Flex, Icon, Text, Image, Spinner, Center } from '@chakra-ui/react';
 import { FiPhone } from 'react-icons/fi';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
@@ -17,7 +16,7 @@ import { TbShieldX } from 'react-icons/tb';
 import profile_manito from '@/assets/ttomas/profile_manito.png';
 import profile_manitee from '@/assets/ttomas/profile_manitee.png';
 
-// ---------- 타입 ----------
+
 interface RoomUserResponse { roomUserId: number; }
 
 type Partner = {
@@ -36,7 +35,6 @@ type Participant = {
 
 type AccessState = 'checking' | 'granted' | 'denied' | 'error';
 
-// ---------- 유틸 ----------
 const toKoreanRole = (raw?: string): Partner['role'] => {
   if (!raw) return '대화상대';
   const upper = raw.toUpperCase();
@@ -47,7 +45,7 @@ const toKoreanRole = (raw?: string): Partner['role'] => {
 const defaultImageByRole = (role: Partner['role']) =>
   role === '마니또' ? profile_manito : role === '마니띠' ? profile_manitee : undefined;
 
-// ---------- 접근 제어 카드 UI ----------
+
 const AccessCardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Center minH="100vh" bg="gray.50" px={4}>
     <CommonCard maxW="520px" w="full" textAlign="center" py={16}>
@@ -93,7 +91,6 @@ const AccessErrorCard = ({ onRetry, onGoMain }: { onRetry: () => void; onGoMain:
   </AccessCardLayout>
 );
 
-// ---------- 메인 컴포넌트 ----------
 const ChatRoomPage = () => {
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
   const navigate = useNavigate();
@@ -117,7 +114,6 @@ const ChatRoomPage = () => {
   const [firstItemIndex, setFirstItemIndex] = useState(0);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
-  // 접근 권한 + 내 roomUserId
   useEffect(() => {
     const checkAccessAndGetRoomUserId = async () => {
       if (!isReady || !myUserId || !chatRoomId) return;
@@ -131,15 +127,13 @@ const ChatRoomPage = () => {
         } else {
           setAccessState('denied');
         }
-      } catch (e) {
-        console.error('[CHAT] 접근 권한/roomUserId 오류:', e);
+      } catch {
         setAccessState('error');
       }
     };
     checkAccessAndGetRoomUserId();
   }, [isReady, myUserId, chatRoomId]);
 
-  // 거부 시 자동 이동
   useEffect(() => {
     if (accessState === 'denied') {
       const t = setTimeout(() => navigate('/main', { replace: true }), 2000);
@@ -147,7 +141,6 @@ const ChatRoomPage = () => {
     }
   }, [accessState, navigate]);
 
-  // partner 없을 때만 API 호출
   useEffect(() => {
     if (accessState !== 'granted' || !chatRoomId || !roomUserId || partner) return;
     const fetchPartner = async () => {
@@ -161,15 +154,13 @@ const ChatRoomPage = () => {
         const role = toKoreanRole(other.role);
         const profileImage = other.avatar || defaultImageByRole(role);
         setPartner({ role, profileImage, name: other.nickname });
-      } catch (e) {
-        console.warn('[CHAT] 상대 정보 조회 실패:', e);
+      } catch {
         if (!partner) setPartner({ role: '대화상대' });
       }
     };
     fetchPartner();
   }, [accessState, chatRoomId, roomUserId, myUserId, partner]);
 
-  // 메시지 변환
   const convertToClientMessage = useCallback((m: ReceivedMessage): ChatMessage => {
     const sentAt = new Date(m.sentAt);
     return {
@@ -192,30 +183,25 @@ const ChatRoomPage = () => {
     };
   }, []);
 
-  // 새 메시지
   const handleNewMessage = useCallback(
   (rm: ReceivedMessage) => {
     if (!roomUserId) return;
     const nm = convertToClientMessage(rm);
 
-    // setMessages의 함수형 업데이트를 사용합니다.
     setMessages(prevMessages => {
       const newMessages = [...prevMessages, nm];
-
-      // 상태 업데이트 후, 스크롤을 강제로 실행합니다.
-      // setTimeout을 이용해 React가 새 메시지를 렌더링할 시간을 줍니다.
       setTimeout(() => {
         virtuosoRef.current?.scrollToIndex({
-          index: newMessages.length - 1, // 새로 추가된 마지막 메시지로 이동
+          index: newMessages.length - 1, 
           align: 'end',
-          behavior: 'smooth', // 새 메시지는 부드럽게 스크롤되도록 설정
+          behavior: 'smooth', 
         });
-      }, 50); // 렌더링을 보장하기 위한 최소한의 지연
+      }, 50);
 
       return newMessages;
     });
   },
-  [roomUserId, convertToClientMessage] // 의존성 배열은 그대로 둡니다.
+  [roomUserId, convertToClientMessage] 
 );
 
   // 히스토리 로드
@@ -280,7 +266,6 @@ const ChatRoomPage = () => {
     if (!ok) setLastError('찌르기 전송에 실패했습니다');
   };
 
-  // ----- [추가] messages 변경 시 자동 하단 스크롤 -----
   useEffect(() => {
     if (messages.length > 0) {
       virtuosoRef.current?.scrollToIndex({
@@ -291,23 +276,12 @@ const ChatRoomPage = () => {
     }
   }, [messages]);
 
-  // 상태별 화면
   if (!isReady || !myUserId) return <AccessCheckingCard text="사용자 정보를 불러오는 중" />;
   if (accessState === 'checking') return <AccessCheckingCard text="채팅방 접근 권한을 확인 중" />;
   if (accessState === 'denied') return <AccessDeniedCard onGoMain={() => navigate('/main', { replace: true })} />;
   if (accessState === 'error')
     return <AccessErrorCard onRetry={() => window.location.reload()} onGoMain={() => navigate('/main', { replace: true })} />;
   if (!roomUserId) return <AccessCheckingCard text="채팅방 정보를 불러오는 중" />;
-
-  // const getConnectionStatus = () => {
-  //   switch (connectionState) {
-  //     case 'connected': return '✅ 연결됨';
-  //     case 'connecting': return '🔄 연결 중...';
-  //     case 'reconnecting': return '🔄 재연결 중...';
-  //     case 'failed': return '❌ 연결 실패';
-  //     default: return '❌ 연결 안됨';
-  //   }
-  // };
 
   const headerLabel =
     partner?.role === '마니띠'
@@ -325,7 +299,6 @@ const ChatRoomPage = () => {
             )}
             <Text textStyle="title_ml">
               {headerLabel}
-               {/* ({getConnectionStatus()}) */}
             </Text>
           </Flex>
           <Icon as={FiPhone} boxSize={5} />

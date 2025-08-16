@@ -1,14 +1,10 @@
-// src/pages/Chat/ChatListPage.tsx
 import { useNavigate } from 'react-router-dom';
 import { Box, Flex, Text, VStack, Badge, Image, Spinner, Center } from '@chakra-ui/react';
-// import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getRequest, postRequest } from '@/api/requests';
 import { useAuth } from '@/stores/authStore';
 import profile_manito from '@/assets/ttomas/profile_manito.png';
 import profile_manitee from '@/assets/ttomas/profile_manitee.png';
-
-// API 응답 데이터 타입 정의
 interface ChatRoomData {
   chattingRoomId: number;
   manitoAssignmentId: number;
@@ -34,7 +30,6 @@ interface ChatApiResponse {
 }
 
 const ChatListPage = () => {
-  // 새로운 스토어에서 게임 정보 가져오기
   const { gameInfo, isReady } = useAuth();
   const isInGame = gameInfo.status === 'IN_GAME';
   const roomId = gameInfo.roomId;
@@ -43,7 +38,6 @@ const ChatListPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 파트너 정보 가져오기 함수
   const getChatPartnerInfo = (index: number) => {
     if (index == 0) {
       return { role: '마니띠', profileImage: profile_manito };
@@ -57,8 +51,8 @@ const ChatListPage = () => {
   const enterChat = async (id: number, partner: { role: string; profileImage: string }) => {
     try {
       await postRequest(`/chat/${id}/enter`, {});
-    } catch (e) {
-      console.warn('채팅방 입장 API 실패:', e);
+    } catch {
+      // 실패 시 별도 처리 X
     }
     navigate(`/chat/${id}`, { state: { partner } });
   };
@@ -77,14 +71,11 @@ const ChatListPage = () => {
           return;
         }
 
-        // 실제 API 호출
         const responseData = await getRequest<ChatApiResponse>('/chat/roomlist');
 
-        // API 응답에서 'manito'와 'manitee' 두 개의 채팅방 정보를 배열로 변환
         const chatDataArray = [responseData.manito, responseData.manitee];
         setChatList(chatDataArray);
-      } catch (err) {
-        console.error('채팅방 목록을 불러오는 데 실패했습니다.', err);
+      } catch {
         setError('채팅방 목록을 불러오지 못했습니다. 다시 시도해주세요.');
         setChatList([]);
       } finally {
@@ -151,7 +142,6 @@ const ChatListPage = () => {
           const partner = getChatPartnerInfo(index);
 
           return (
-            // <Link key={chat.chatRoom.chattingRoomId} to={`/chat/${chat.chatRoom.chattingRoomId}`}>
               <Flex
                 align="center"
                 _hover={{ bg: 'gray.100' , cursor: 'pointer'}}

@@ -127,63 +127,53 @@ export const useAuth = create<AuthState>()(
       },
 
       // ---------- server sync ----------
-syncUserGameStatus: async () => {
-  try {
-    const { isAuthenticated } = get()
-    if (!isAuthenticated) {
-      set({ gameInfo: { ...INITIAL_GAME_INFO } })
-      return 'IN_NONE'
-    }
+      syncUserGameStatus: async () => {
+        try {
+          const { isAuthenticated } = get()
+          if (!isAuthenticated) {
+            set({ gameInfo: { ...INITIAL_GAME_INFO } })
+            return 'IN_NONE'
+          }
 
-    const status = await getRequest<GameStatus>('/room/check')
+          const status = await getRequest<GameStatus>('/room/check')
+          let roomId: number | null = null
+          let isCreator = false
 
-    let roomId: number | null = null
-    let isCreator = false
+          if (status !== 'IN_NONE') {
+            try {
+              const [roomIdResponse, creatorResponse] = await Promise.allSettled([
+                getRequest<number>('/room/roomId'),
+                getRequest('/room/creator')
+              ])
 
-    if (status !== 'IN_NONE') {
-      try {
-        // 🔥 병렬로 roomId와 creator 정보 조회
-        const [roomIdResponse, creatorResponse] = await Promise.allSettled([
-          getRequest<number>('/room/roomId'),
-          getRequest('/room/creator')
-        ])
+              if (roomIdResponse.status === 'fulfilled') {
+                roomId = roomIdResponse.value
+              }
+              if (creatorResponse.status === 'fulfilled') {
+                isCreator = creatorResponse.value === true || creatorResponse.value === 'true'
+              }
+            } catch {
+              // 방 정보 조회 실패 시 무시
+            }
+          }
 
-        if (roomIdResponse.status === 'fulfilled') {
-          roomId = roomIdResponse.value
+          set({
+            gameInfo: {
+              status,
+              roomId,
+              isCreator,
+            },
+          })
+          return status
+        } catch {
+          set({ gameInfo: { ...INITIAL_GAME_INFO } })
+          return 'IN_NONE'
         }
-
-        if (creatorResponse.status === 'fulfilled') {
-          isCreator = creatorResponse.value === true || creatorResponse.value === 'true'
-        }
-
-      } catch (e) {
-        console.warn('[AUTH] 방 정보 조회 실패:', e)
-      }
-    }
-
-    set({
-      gameInfo: {
-        status,
-        roomId,
-        isCreator,
       },
-    })
-    
-    console.log(`[AUTH] 게임 상태 동기화: status=${status}, roomId=${roomId}, isCreator=${isCreator}`)
-    return status
-    
-  } catch (e) {
-    console.error('[AUTH] 게임 상태 확인 실패:', e)
-    set({ gameInfo: { ...INITIAL_GAME_INFO } })
-    return 'IN_NONE'
-  }
-},
+
       syncAllFromServer: async () => {
         const { authSyncPaused } = get()
-        if (authSyncPaused) {
-          console.log('[AUTH] /auth/me 호출 스킵 (logout mode)')
-          return
-        }
+        if (authSyncPaused) return
         try {
           const wasNotAuthenticated = !get().isAuthenticated
           const { data } = await api.get('/auth/me')
@@ -194,9 +184,7 @@ syncUserGameStatus: async () => {
           get().resumeAuthSync()
           await get().syncUserGameStatus()
           if (wasNotAuthenticated) get().handleLoginSuccess()
-          console.log('[AUTH] 전체 상태 동기화 완료')
         } catch {
-          console.log('[AUTH] 미로그인 상태 확인됨')
           set({ user: null, isAuthenticated: false, gameInfo: INITIAL_GAME_INFO })
         } finally {
           get().markReady()
@@ -205,10 +193,7 @@ syncUserGameStatus: async () => {
 
       bootstrapFromServer: async () => {
         const { authSyncPaused } = get()
-        if (authSyncPaused) {
-          console.log('[AUTH] /auth/me 호출 스킵 (logout mode)')
-          return
-        }
+        if (authSyncPaused) return
         try {
           const wasNotAuthenticated = !get().isAuthenticated
           const { data } = await api.get('/auth/me')
@@ -218,19 +203,15 @@ syncUserGameStatus: async () => {
           })
           get().resumeAuthSync()
           if (wasNotAuthenticated) get().handleLoginSuccess()
-          console.log('[AUTH] 서버 인증 상태 동기화 완료')
         } catch {
-          console.log('[AUTH] 미로그인 상태 확인됨')
           set({ user: null, isAuthenticated: false, gameInfo: INITIAL_GAME_INFO })
         } finally {
           get().markReady()
         }
       },
 
-      // ---------- game helpers ----------
-      // 🔥 checkCreatorStatus는 제거하거나 단순화
+
       checkCreatorStatus: async () => {
-        // syncUserGameStatus 호출하고 결과만 반환
         await get().syncUserGameStatus()
         return get().gameInfo.isCreator
       },
@@ -238,17 +219,10 @@ syncUserGameStatus: async () => {
       syncGameState: async () => {
         try {
           const { isAuthenticated, gameInfo } = get()
-          if (!isAuthenticated || gameInfo.status === 'IN_NONE') {
-            console.log('[AUTH] 게임 상태 동기화 스킵 (조건 미충족)')
-            return
-          }
+          if (!isAuthenticated || gameInfo.status === 'IN_NONE') return
           await get().syncUserGameStatus()
-          const isCreator = await get().checkCreatorStatus()
-          console.log(
-            `[AUTH] 게임 상태 동기화 완료 - roomId: ${get().gameInfo.roomId}, isCreator: ${isCreator}`,
-          )
-        } catch (e) {
-          console.error('[AUTH] 게임 상태 동기화 중 오류:', e)
+          await get().checkCreatorStatus()
+        } catch {
           set({ gameInfo: INITIAL_GAME_INFO })
         }
       },
@@ -259,82 +233,57 @@ syncUserGameStatus: async () => {
           if (!isAuthenticated) throw new Error('로그인이 필요합니다.')
           set({ gameInfo: { status: 'IN_GAME', roomId, isCreator } })
           if (isCreator) await postRequest(`/room/${roomId}/start`)
-          console.log(
-            `[AUTH] 게임 참여 완료 - roomId: ${roomId}, isCreator: ${isCreator}`,
-          )
         } catch (e) {
-          console.error('[AUTH] 게임 참여 중 오류:', e)
           set({ gameInfo: INITIAL_GAME_INFO })
           throw e
         }
       },
 
       startGame: async (roomId) => {
-        try {
-          const { isAuthenticated } = get()
-          if (!isAuthenticated) throw new Error('로그인이 필요합니다.')
-          await postRequest(`/room/${roomId}/start`)
-          console.log(`[AUTH] 게임 시작 완료 - roomId: ${roomId}`)
-        } catch (e) {
-          console.error('[AUTH] 게임 시작 중 오류:', e)
-          throw e
-        }
+        const { isAuthenticated } = get()
+        if (!isAuthenticated) throw new Error('로그인이 필요합니다.')
+        await postRequest(`/room/${roomId}/start`)
       },
 
       leaveGame: async () => {
         try {
           const { gameInfo, isAuthenticated } = get()
           if (isAuthenticated && gameInfo.roomId) {
-            await postRequest(`/room/${gameInfo.roomId}/leave`).catch((err) =>
-              console.warn('[AUTH] 게임 나가기 API 실패:', err),
-            )
+            await postRequest(`/room/${gameInfo.roomId}/leave`).catch(() => {})
           }
-        } catch (e) {
-          console.error('[AUTH] 게임 나가기 중 오류:', e)
         } finally {
           set({ gameInfo: INITIAL_GAME_INFO })
-          console.log('[AUTH] 게임 나가기 완료')
         }
       },
 
       finishGame: () => {
         set({ gameInfo: INITIAL_GAME_INFO })
-        console.log('[AUTH] 게임 종료')
       },
 
       // ---------- logout ----------
-      /** 서비스만 로그아웃 (XHR, 204) */
       logoutAppOnly: async () => {
         try {
           get().pauseAuthSync()
           await postRequest('/auth/logout')
           await deleteRequest('/push/token')
-          console.log('[AUTH] 서버 로그아웃 완료, FCM 토큰 비활성화 완료')
-        } catch (error) {
-          console.error('[AUTH] 서버 로그아웃 실패:', error)
         } finally {
           set({ user: null, gameInfo: INITIAL_GAME_INFO, isAuthenticated: false })
           localStorage.removeItem('auth')
-          console.log('[AUTH] 클라이언트 로그아웃 완료')
           window.location.replace('/login')
         }
       },
 
-      /** 카카오 로그아웃 안내 페이지로 이동 (두 버튼 화면) */
       logoutViaKakaoPage: async () => {
         try {
           get().pauseAuthSync()
           set({ user: null, gameInfo: INITIAL_GAME_INFO, isAuthenticated: false })
           localStorage.removeItem('auth')
         } finally {
-          const url =
-            (backendBase ? `${backendBase}` : '') + '/auth/kakao/logout-page'
-          // 전체 페이지 네비게이션 → 카카오 페이지 → (백엔드 콜백) → /login
+          const url = (backendBase ? `${backendBase}` : '') + '/auth/kakao/logout-page'
           window.location.href = url
         }
       },
 
-      /** 기본 로그아웃 동작: 카카오 페이지 띄우기 */
       logout: async () => {
         await get().logoutViaKakaoPage()
       },
@@ -342,7 +291,6 @@ syncUserGameStatus: async () => {
     {
       name: 'auth',
       storage: createJSONStorage(() => localStorage),
-      // 굳이 pause 상태는 저장하지 않음
       partialize: (s) => ({
         user: s.user,
         gameInfo: s.gameInfo,

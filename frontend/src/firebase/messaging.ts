@@ -1,4 +1,3 @@
-// src/firebase/messaging.ts
 import { 
   getMessaging, 
   getToken, 
@@ -25,16 +24,13 @@ interface FCMMessagePayload extends MessagePayload {
 // 서비스 워커 등록
 export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
   if (!('serviceWorker' in navigator)) {
-    console.warn('⚠️ 브라우저가 서비스 워커를 지원하지 않습니다');
     return null;
   }
 
   try {
     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-    console.log('✅ 서비스 워커 등록 성공:', registration.scope);
     return registration;
-  } catch (error) {
-    console.error('❌ 서비스 워커 등록 실패:', error);
+  } catch {
     return null;
   }
 };
@@ -44,7 +40,6 @@ export const requestForToken = async (): Promise<string | null> => {
   const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
   
   if (!vapidKey) {
-    console.error('❌ VAPID 키가 설정되지 않았습니다');
     return null;
   }
 
@@ -57,7 +52,6 @@ export const requestForToken = async (): Promise<string | null> => {
     // 현재 권한 상태 확인
     let permission = Notification.permission;
     
-    // 권한이 기본값이면 요청
     if (permission === 'default') {
       permission = await Notification.requestPermission();
     }
@@ -66,8 +60,6 @@ export const requestForToken = async (): Promise<string | null> => {
       throw new Error(`알림 권한이 거부되었습니다 (현재: ${permission})`);
     }
 
-    console.log('✅ 알림 권한 허용됨');
-
     // 서비스 워커 등록
     await registerServiceWorker();
 
@@ -75,18 +67,12 @@ export const requestForToken = async (): Promise<string | null> => {
     const currentToken = await getToken(messaging, { vapidKey });
 
     if (currentToken) {
-      console.log('✅ FCM 토큰 발급 성공');
-      console.log('토큰:', currentToken.substring(0, 50) + '...');
-      
-      // 토큰을 localStorage에 저장
       localStorage.setItem('fcm_token', currentToken);
-      
       return currentToken;
     } else {
       throw new Error('토큰을 가져올 수 없습니다. VAPID 키를 확인해주세요.');
     }
-  } catch (error) {
-    console.error('❌ FCM 토큰 발급 실패:', error);
+  } catch {
     return null;
   }
 };
@@ -95,8 +81,6 @@ export const requestForToken = async (): Promise<string | null> => {
 export const onMessageListener = (): Promise<FCMMessagePayload> =>
   new Promise((resolve) => {
     onMessage(messaging, (payload: MessagePayload) => {
-      console.log('📨 Foreground 메시지 수신:', payload);
-      
       const fcmPayload = payload as FCMMessagePayload;
       
       // 브라우저 알림 표시
@@ -132,7 +116,6 @@ export const checkTokenRefresh = async (): Promise<string | null> => {
   const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
   
   if (!vapidKey) {
-    console.error('❌ VAPID 키가 설정되지 않았습니다');
     return null;
   }
 
@@ -141,14 +124,12 @@ export const checkTokenRefresh = async (): Promise<string | null> => {
     const savedToken = localStorage.getItem('fcm_token');
     
     if (newToken && newToken !== savedToken) {
-      console.log('🔄 FCM 토큰이 갱신되었습니다');
       localStorage.setItem('fcm_token', newToken);
       return newToken;
     }
     
     return savedToken;
-  } catch (error) {
-    console.error('❌ 토큰 갱신 확인 실패:', error);
+  } catch {
     return null;
   }
 };
@@ -159,7 +140,6 @@ export const sendTokenToServer = async (token: string, userId: string): Promise<
     const baseUrl = import.meta.env.VITE_BASE_URL;
     
     if (!baseUrl) {
-      console.error('❌ VITE_BASE_URL이 설정되지 않았습니다');
       return false;
     }
 
@@ -174,15 +154,8 @@ export const sendTokenToServer = async (token: string, userId: string): Promise<
       }),
     });
 
-    if (response.ok) {
-      console.log('✅ FCM 토큰 서버 전송 성공');
-      return true;
-    } else {
-      console.warn('⚠️ FCM 토큰 서버 전송 실패:', response.statusText);
-      return false;
-    }
-  } catch (error) {
-    console.error('❌ FCM 토큰 서버 전송 에러:', error);
+    return response.ok;
+  } catch {
     return false;
   }
 };

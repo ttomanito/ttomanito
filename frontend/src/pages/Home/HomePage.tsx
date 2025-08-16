@@ -66,8 +66,8 @@ const PastMissionsList = () => {
       try {
         const missionList = await getRequest<PastMission[]>('/manito/mission/missionlist');
         setMissions(missionList);
-      } catch (err) {
-        console.error('이전 미션 목록 가져오기 실패:', err);
+      } catch {
+        // 실패 시 별도 처리 X
       } finally {
         setIsLoading(false);
       }
@@ -98,7 +98,6 @@ const PastMissionsList = () => {
 
 // 메인 컴포넌트
 const GameHomePage = () => {
-  // 🔥 변경: auth store 새 구조 사용
   const { gameInfo, isReady } = useAuth();
   const isInGame = gameInfo.status === 'IN_GAME';
   const roomId = gameInfo.roomId;
@@ -131,8 +130,8 @@ const GameHomePage = () => {
           ]);
           setRoom(roomData);
           setParticipants(participantsData);
-        } catch (err) {
-          console.error('게임 데이터 가져오기 실패:', err);
+        } catch {
+          // 실패 시 별도 처리 X
         } finally {
           setIsPageLoading(false);
         }
@@ -165,16 +164,14 @@ const GameHomePage = () => {
     );
   }, [room, todayDay, today]);
 
-  // ✅ 서버 데이터 기준 완료 여부
   const isMissionCompletedToday = useMemo(() => !!todayMission?.completed, [todayMission]);
 
   useEffect(() => {
     const revealed = localStorage.getItem(`mission_revealed_${todayKey}`);
     setIsMissionRevealed(revealed === 'true');
 
-    // 미션이 미리 공개된 상태라면 fetch
     if (revealed === 'true' && !todayMission && isMissionAvailable) {
-      fetchTodayMission().then(setTodayMission).catch(console.error);
+      fetchTodayMission().then(setTodayMission).catch(() => {});
     }
   }, [todayKey, isMissionAvailable, todayMission]);
 
@@ -185,8 +182,8 @@ const GameHomePage = () => {
       setTodayMission(mission);
       localStorage.setItem(`mission_revealed_${todayKey}`, 'true');
       setIsMissionRevealed(true);
-    } catch (err) {
-      console.error('미션 가져오기 실패:', err);
+    } catch {
+      // 실패 시 별도 처리 X
     }
   };
 
@@ -195,10 +192,10 @@ const GameHomePage = () => {
     try {
       await patchRequest(`/manito/mission/${todayMission.missionStatusId}/success`, {});
       alert('미션을 완료하였습니다!');
-      setTodayMission({ ...todayMission, completed: true }); // 서버 응답 직접 반영
+      setTodayMission({ ...todayMission, completed: true });
       closeModal();
-    } catch (err) {
-      console.error('미션 완료 처리 실패:', err);
+    } catch {
+      // 실패 시 별도 처리 X
     }
   };
 
@@ -210,11 +207,9 @@ const GameHomePage = () => {
       const foundManito = participants.find(p => p.userId === manitoId);
       if (foundManito) {
         setManitoProfile(foundManito);
-      } else {
-        console.error(`참여자 목록에 마니띠 ID(${manitoId})가 존재하지 않습니다.`);
       }
-    } catch (err) {
-      console.error('마니띠 정보를 불러오는 중 에러 발생:', err);
+    } catch {
+      // 실패 시 별도 처리 X
     } finally {
       setIsFetchingManito(false);
     }
@@ -224,7 +219,7 @@ const GameHomePage = () => {
     if (manitoProfile) {
       openModal(manitoModalData);
     }
-  }, [manitoProfile]); // 마니또 프로필 세팅 한 후 모달 열기
+  }, [manitoProfile]);
 
   const handleShowPastMissions = () => {
     openModal({
@@ -268,7 +263,7 @@ const GameHomePage = () => {
   const missionCompleteModalData = {
     title: '오늘의 미션을 완료하셨나요?',
     caption: '미션 수행 결과는 수정이 불가능합니다.\n신중히 선택해주세요.',
-    body: (''),
+    body: (''), 
     footer: (<DoubleButton leftLabel="취소" rightLabel="확인" onLeftClick={closeModal} onRightClick={handleCompleteMission} />),
   };
 

@@ -1,5 +1,3 @@
-// src/components/chat/ChatMessageRenderer.tsx - 통화 기능 지원
-
 import type { Message } from '@/types/chat/chat';
 import ChatBubble from './ChatBubble';
 import SystemMessage from './SystemMessage';
