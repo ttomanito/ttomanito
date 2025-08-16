@@ -90,8 +90,7 @@ public class NoticeService {
         List<Long> userIds = users.stream().map(u -> u.getUser().getUserId()).toList();
         List<String> tokens = pushTokenService.findTokensByUserIds(userIds);
         fcmService.sendMulticastMessage(tokens, new FcmChatPayload(
-                "게임 종료", "결과를 확인해 보세요!", redirectUrl + "/room/" + roomId + "/result"
-        ));
+                "게임 종료", "결과를 확인해 보세요!", redirectUrl + "/report/reportdetail/" + roomId));
     }
 
     public void createExitNotices(Long userId) {
