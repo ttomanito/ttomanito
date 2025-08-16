@@ -17,7 +17,7 @@ public class JwtTestRunner implements CommandLineRunner {
 
         String fakeUsername = "1"; // 실제로 username은 안 쓰지만 JWT 생성 요구사항 충족용
 
-   //    JwtToken tokens100 = jwtProvider.generateTokens(2L, fakeUsername);
+ //      JwtToken tokens100 = jwtProvider.generateTokens(2L, fakeUsername);
 //        JwtToken tokens101 = jwtProvider.generateTokens(101L, fakeUsername);
 //        JwtToken tokens102 = jwtProvider.generateTokens(102L, fakeUsername);
 //        JwtToken tokens103 = jwtProvider.generateTokens(103L, fakeUsername);
@@ -39,7 +39,7 @@ public class JwtTestRunner implements CommandLineRunner {
 //        JwtToken tokens119 = jwtProvider.generateTokens(119L, fakeUsername);
 //
 //
-   // System.out.println("✅ AccessToken100: " + tokens100.getAccessToken());
+ //   System.out.println("✅ AccessToken100: " + tokens100.getAccessToken());
 //        System.out.println("✅ AccessToken101: " + tokens101.getAccessToken());
 //        System.out.println("✅ AccessToken102: " + tokens102.getAccessToken());
 //        System.out.println("✅ AccessToken103: " + tokens103.getAccessToken());

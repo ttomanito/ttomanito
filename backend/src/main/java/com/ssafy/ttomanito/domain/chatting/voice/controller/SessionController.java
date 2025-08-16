@@ -20,6 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -54,7 +56,7 @@ public class SessionController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<Map<String, String>> generateToken(@Valid @RequestBody TokenRequest req)
-            throws OpenViduJavaClientException, OpenViduHttpException {
+            throws OpenViduJavaClientException, OpenViduHttpException, URISyntaxException {
 
         log.info("[/openvidu/token] IN sessionId={}, nickname={}", req.sessionId(), req.nickname());
 
@@ -63,12 +65,16 @@ public class SessionController {
 
         // 2) 토큰 발급 (여기서 주소+토큰 형태 반환됨)
         String rawToken = openViduService.generateConnectionToken(session, req.nickname());
-// rawToken에서 tok_만 뽑든, 처음부터 tok_만 만들든 상관없음
-        String tokOnly = rawToken.contains("token=") ? rawToken.substring(rawToken.indexOf("token=")+6) : rawToken;
+// rawToken 예: wss://openvidu-server-kms:4443/openvidu?sessionId=...&token=...&version=2.22.0&...
+
+        URI u = new URI(rawToken);
+        String qs = u.getRawQuery(); // 전체 쿼리스트링 보존(중요)
+        String publicBase = "wss://i13b206.p.ssafy.io/openvidu";
+        String publicToken = publicBase + "?" + qs;
 
         return ResponseEntity.ok(Map.of(
-                "token", tokOnly,                 // tok_.... 만
-                "sessionId", session.getSessionId() // 실제 세션ID (custom 사용시 동일)
+                "token", publicToken,            // 전체 URL(공개 호스트 + 원본 쿼리 그대로)
+                "sessionId", session.getSessionId()
         ));
     }
 }
