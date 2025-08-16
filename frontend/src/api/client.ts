@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { useAuth } from '@/stores/authStore';
 
-
 export const api = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL || '/api',
   timeout: 10000,
@@ -28,18 +27,12 @@ const processQueue = (error: any) => {
 
 // 요청 인터셉터
 api.interceptors.request.use(config => {
-  if (import.meta.env.DEV) {
-    console.log('[API REQUEST]', config.method?.toUpperCase(), config.url, config.data || '');
-  }
   return config;
 });
 
 // 응답 인터셉터
 api.interceptors.response.use(
   res => {
-    if (import.meta.env.DEV) {
-      console.log('[API RESPONSE]', res.config.url, res.data);
-    }
     return res;
   },
   async error => {
@@ -47,44 +40,37 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (response?.status === 401 && !originalRequest._retry) {
-        if (originalRequest.url?.includes('/auth/refresh')) {
-          return Promise.reject(error);
-        }
-      // 🔥 이미 갱신 중이면 대기열에 추가
+      if (originalRequest.url?.includes('/auth/refresh')) {
+        return Promise.reject(error);
+      }
+
+      // 이미 갱신 중이면 대기열에 추가
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        }).then(() => {
-          return api(originalRequest);
-        }).catch(err => {
-          return Promise.reject(err);
-        });
+        })
+          .then(() => api(originalRequest))
+          .catch(err => Promise.reject(err));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        // 🔥 별도 인스턴스로 토큰 갱신 (인터셉터 작동 안함)
-        
-        console.log('[API] Token refresh successful');
-        
+        // 별도 인스턴스로 토큰 갱신 (인터셉터 작동 안함)
         processQueue(null);
-        
+
         // 원래 요청 재시도
         return api(originalRequest);
-
       } catch (err) {
-        console.log('[API] Token refresh failed - logging out');
-        
         processQueue(err);
-        
+
         try {
           await useAuth.getState().logout();
-        } catch (logoutError) {
-          console.error('[API] Logout error:', logoutError);
+        } catch {
+          // logout 에러는 무시
         }
-        
+
         window.location.href = '/login';
         return Promise.reject(err);
       } finally {
@@ -92,9 +78,6 @@ api.interceptors.response.use(
       }
     }
 
-    if (import.meta.env.DEV) {
-      console.error('[API ERROR]', response?.config?.url, response?.data || error.message);
-    }
     return Promise.reject(error);
   },
 );

@@ -1,5 +1,3 @@
-// src/pages/User/EditProfilePage.tsx
-
 import { Box, Text, Field, HStack, Button } from '@chakra-ui/react';
 import { useAuth } from '@/stores/authStore'
 import { useNavigate } from 'react-router-dom';
@@ -45,7 +43,7 @@ const EditProfilePage = () => {
           body: <Text>이름이 수정되었습니다</Text>,
           footer: <LongButton onClick={closeModal}>확인</LongButton>,
         });
-      } catch (e) {
+      } catch {
         openModal({
           title: '회원 정보 수정 실패',
           body: <Text>서버 오류가 발생했어요. 다시 시도해주세요.</Text>,
@@ -75,9 +73,7 @@ const EditProfilePage = () => {
     const handleDeleteConfirm = async () => {
     try {
         await deleteUser();
-        closeModal(); // 첫 번째 모달 닫기
-
-        // ✅ 탈퇴 완료 안내 모달 띄우기
+        closeModal(); 
         openModal({
         title: '탈퇴 완료',
         body: <Text>정상적으로 탈퇴 처리되었습니다.</Text>,
@@ -94,7 +90,7 @@ const EditProfilePage = () => {
             </LongButton>
         ),
         });
-    } catch (e) {
+    } catch {
         openModal({
         title: '회원 탈퇴 실패',
         body: <Text>서버 오류가 발생했어요. 다시 시도해주세요.</Text>,

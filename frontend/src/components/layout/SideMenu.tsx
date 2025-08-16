@@ -1,4 +1,4 @@
-import { postRequest } from '@/api/requests'; // ✅ API 유틸 불러오기
+import { postRequest } from '@/api/requests'; 
 import { useAuth } from '@/stores/authStore';
 import { useNavigate } from 'react-router-dom';
 import { useModalStore } from '@/stores/modalStore';
@@ -32,16 +32,13 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
   const logout = useAuth((s) => s.logout);
 
   const close = () => setIsOpen(false);
-  console.log({ status, isCreator })
-  // ✅ API 호출을 postRequest로 변경
   const finishRoom = async () => {
     try {
-      await postRequest('/manito/finish'); // 데이터 바디 필요 없으므로 두 번째 인자 생략
+      await postRequest('/manito/finish');
       await syncUserGameStatus()
       close();
-      navigate('/main'); // 게임 종료 후 홈으로 이동
-    } catch (error) {
-      console.error('방 종료 실패:', error);
+      navigate('/main');
+    } catch {
       close();
     }
   };
@@ -50,8 +47,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
     try {
       await logout();
       close();
-    } catch (error) {
-      console.error('로그아웃 실패:', error);
+    } catch {
       close();
     }
   };
@@ -76,7 +72,6 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
         </IconButton>
       </Box>
 
-      {/* 사이드 메뉴 & 백드롭 */}
       <AnimatePresence>
         {isOpen && containerRef.current && (
           <Portal container={containerRef}>
@@ -121,7 +116,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                       cursor="pointer"
                       aria-label="메인으로 이동"
                     >
-                      <Image src={logoSvg} alt="또마니또 로고" h="40px" />
+                      <Image src={logoSvg} alt="또마니또 로고" h="40x" />
                     </Box>
                   </HStack>
                   <CloseButton variant="ghost" size="sm" onClick={close} />
@@ -167,7 +162,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                     회원 정보 수정
                   </Button>
 
-                  {/* ✅ 방 종료 버튼 - 게임 중 + 방장일 때만 */}
+                  {/* 방 종료 버튼 */}
                   {status === 'IN_GAME' && isCreator && (
                     <Button
                       variant="ghost"

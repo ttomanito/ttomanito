@@ -1,4 +1,3 @@
-//frontend\src\pages\Rank\RankingPage.tsx
 import { useState, useEffect } from 'react';
 import {
   Box, Button, VStack, Text, HStack, Grid, GridItem, Spinner, Flex,
@@ -6,7 +5,6 @@ import {
 import { getRequest } from '@/api/requests';
 import { useAuth } from '@/stores/authStore';
 
-// ===== 타입 정의 =====
 interface Participant {
   userId: number;
   roomUserId: number;
@@ -29,7 +27,6 @@ interface RankingItemData {
   score: number | string;
 }
 
-// ===== 랭킹 아이템 컴포넌트 =====
 interface RankingItemProps extends RankingItemData {
   hideScore?: boolean;
 }
@@ -91,7 +88,6 @@ const RankingListItem: React.FC<RankingItemProps> = ({
   );
 };
 
-// ===== 메인 RankingPageWithTabs =====
 const tabs = [
   { id: 1, label: '통화', unit: '', genreCode: 1 },
   { id: 2, label: '채팅', unit: '', genreCode: 2 },
@@ -99,7 +95,6 @@ const tabs = [
 ];
 
 const RankingPage: React.FC = () => {
-  // 🔥 변경: auth store 새 구조 사용
   const { gameInfo, isReady } = useAuth();
   const isInGame = gameInfo.status === 'IN_GAME';
   const roomId = gameInfo.roomId;
@@ -112,7 +107,6 @@ const RankingPage: React.FC = () => {
   const activeTab = tabs[activeTabIdx];
   const hideScore = activeTab.genreCode !== 3;
 
-  // 1. 참여자 목록(roomId 필요)
   useEffect(() => {
     if (!isReady || !isInGame || !roomId) {
       setParticipants([]);
@@ -122,15 +116,13 @@ const RankingPage: React.FC = () => {
       try {
         const data = await getRequest<Participant[]>(`/room/${roomId}/participants`);
         setParticipants(data);
-      } catch (err) {
-        console.error('게임 참여자 불러오기 실패', err);
+      } catch {
         setParticipants([]);
       }
     };
     fetchParticipants();
   }, [isReady, isInGame, roomId]);
 
-  // 2. 랭킹 데이터(tabs 변경/참여자 정보 가져온 직후 roomId 필요)
   useEffect(() => {
     if (!isReady || !isInGame || !roomId || participants.length === 0) {
       setRankingData([]);
@@ -140,7 +132,6 @@ const RankingPage: React.FC = () => {
       setLoading(true);
       try {
         const rankList = await getRequest<RankingApiResponse[]>(`/rank/${activeTab.genreCode}`);
-        // userId → 참가자 정보 매칭
         const merged = rankList.map((rankItem) => {
           const participant = participants.find((p) => p.userId === rankItem.userId);
           return {
@@ -151,8 +142,7 @@ const RankingPage: React.FC = () => {
           };
         });
         setRankingData(merged);
-      } catch (err) {
-        console.error('데이터 불러오기 실패:', err);
+      } catch {
         setRankingData([]);
       } finally {
         setLoading(false);
@@ -162,7 +152,6 @@ const RankingPage: React.FC = () => {
     // 탭, 참가자 목록, 게임/방 상태가 바뀔 때마다
   }, [activeTab, participants, isReady, isInGame, roomId]);
 
-  // ===== 렌더링 =====
   if (!isReady || loading) {
     return (
       <Flex justify="center" align="center" h="100vh">
