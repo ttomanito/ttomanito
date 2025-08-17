@@ -53,5 +53,15 @@ public interface MissionStatusRepository extends JpaRepository<MissionStatus, Lo
             @Param("meRuId") Long meRoomUserId
     );
 
+    @Query("""
+      select count(ms)
+      from MissionStatus ms
+      where ms.roomUser.room.roomId = :roomId
+        and ms.roomUser.roomUserId = :meRuId
+        and ms.completed = true
+    """)
+        long countMissionsIDid(@Param("roomId") Long roomId,
+                               @Param("meRuId") Long meRoomUserId);
+
 
 }
