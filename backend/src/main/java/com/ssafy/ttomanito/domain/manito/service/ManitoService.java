@@ -45,7 +45,7 @@ public class ManitoService {
         return asg.getManitee().getUser().getUserId();
     }
 
-    public void guessManito(Long userId, Long guessedUserId) {
+    public boolean guessManito(Long userId, Long guessedUserId) {
         RoomUser current = roomUserRepository
                 .findActiveRoomsForUser(userId, List.of(RoomStatus.NOT_STARTED, RoomStatus.IN_PROGRESS))
                 .stream().findFirst()
@@ -65,6 +65,8 @@ public class ManitoService {
                 .isCorrect(correct)
                 .build();
         manitoGuessRepository.save(guess);
+
+        return correct;
     }
 
     @Transactional(readOnly = true)
