@@ -16,7 +16,7 @@ const TextInput: React.FC<TextInputProps> = ({ value, onChange, placeholder, ...
       bg="white"
       borderRadius="xl"
       borderColor="gray.300"
-      textStyle="caption_xs_light"
+      textStyle="body_md"
       _placeholder={{ color: 'gray.400' }}
       _focus={{
         borderColor: 'blue.300',
