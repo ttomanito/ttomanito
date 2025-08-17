@@ -64,19 +64,19 @@ const frameRules: Array<{ frame: PageFrame; patterns: string[] }> = [
 { // 헤더 O + 하단바 X
   frame: 'header-only',
   patterns: [
-    '/','/main', '/manito/:roomId/matching', '/report/reportlist'
+   '/manito/:roomId/matching', '/report/reportlist'
   ]
 },
 { // 뒤로 가기만
   frame: 'back-only',
   patterns: [
-   '/user/update', '/room', '/room/:roomId', '/chat/:chatRoomId', '/report/reportdetail/:reportId'
+   '/user/update', '/room', '/room/:roomId', '/chat/:chatRoomId', '/report/reportdetail/:reportId', '/alarm'
   ]
 },
 { // 헤더 X + 하단바 X
   frame: 'bare',
   patterns: [
-    '/login', '/chat/:chatRoomId/call'
+    '/login', '/','/main', '/chat/:chatRoomId/call'
   ]
 },
 ];
