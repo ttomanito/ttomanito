@@ -172,7 +172,6 @@ const ReportDetailPage = () => {
             src={profile_manito}
           />
           <VStack gap={0} align="stretch" textStyle="body_sm">
-            <StatsDisplay title="내 정답 순위" value={`${report.receivingHelp.stats.myCorrectGuessCount > 0 ? '1위' : '-'}`} borderBottomWidth="1px" borderColor="gray.200" />
             <StatsDisplay title="내가 맞춘 횟수" value={`${report.receivingHelp.stats.myCorrectGuessCount}회`} borderBottomWidth="1px" borderColor="gray.200" />
             <StatsDisplay title="나를 찌르기한 횟수" value={`${report.receivingHelp.stats.pokeCountReceived}회`} borderBottomWidth="1px" borderColor="gray.200" />
             <StatsDisplay title="내가 찌르기한 횟수" value={`${report.receivingHelp.stats.pokeCountSent}회`} borderBottomWidth="1px" borderColor="gray.200" />
@@ -203,7 +202,6 @@ const ReportDetailPage = () => {
             src={profile_manitee}
           />
           <VStack gap={0} align="stretch" textStyle="body_sm">
-            <StatsDisplay title="내 정답 순위" value={`${report.givingHelp.stats.myCorrectGuessCount > 0 ? '1위' : '-'}`} borderBottomWidth="1px" borderColor="gray.200" />
             <StatsDisplay title="나를 맞춘 횟수" value={`${report.givingHelp.stats.myCorrectGuessCount}회`} borderBottomWidth="1px" borderColor="gray.200" />
             <StatsDisplay title="나를 찌르기한 횟수" value={`${report.givingHelp.stats.pokeCountReceived}회`} borderBottomWidth="1px" borderColor="gray.200" />
             <StatsDisplay title="내가 찌르기한 횟수" value={`${report.givingHelp.stats.pokeCountSent}회`} borderBottomWidth="1px" borderColor="gray.200" />
