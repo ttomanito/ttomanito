@@ -15,7 +15,8 @@ public record MissionListItemDto(
         List<MissionChannel> channels,
         MissionType type,
         LocalDate missionDate,
-        boolean completed
+        boolean completed,
+        Long roomId
 ) {
     public static MissionListItemDto from(
             Long missionId,
@@ -26,8 +27,9 @@ public record MissionListItemDto(
             List<MissionChannel> channels,
             MissionType type,
             LocalDate missionDate,
-            boolean completed
+            boolean completed,
+            Long roomId
     ) {
-        return new MissionListItemDto(missionId, missionStatusId, title, description, difficulty, channels, type, missionDate, completed);
+        return new MissionListItemDto(missionId, missionStatusId, title, description, difficulty, channels, type, missionDate, completed, roomId);
     }
 }
