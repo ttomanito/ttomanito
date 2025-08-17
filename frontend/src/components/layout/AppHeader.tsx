@@ -1,20 +1,37 @@
-// components/layout/AppHeader.tsx
-import { Flex } from '@chakra-ui/react';
-import SideMenu from './SideMenu'; // ✅ 추가
+import { Flex, HStack, IconButton } from '@chakra-ui/react';
+import { HiBell } from 'react-icons/hi'; 
+import { useNavigate } from 'react-router-dom';
+import SideMenu from './SideMenu'; 
 
 const AppHeader = ({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) => {
+  const navigate = useNavigate();
+  const handleNotificationClick = () => {
+    navigate('/alarm');
+  };
+
   return (
     <Flex
       as="header"
       align="center"
-      justify="space-between"
-      w="100%"           // 너비를 명시적으로 설정
-      px={2}             // 좌우 패딩 추가 (다른 콘텐츠와 맞춤)
-      py={2}             // 상하 패딩 추가
-      boxSizing="border-box"  // 패딩이 너비에 포함되도록
+      justify="flex-end"
+      w="100%"      
+      px={2}          
+      py={2}             
+      boxSizing="border-box"  
     >
-      {/* 왼쪽: 사이드 메뉴 트리거 */}
-      <SideMenu containerRef={containerRef} />
+      <HStack gap={1}>
+        <IconButton
+          aria-label="알림"
+          variant="ghost"
+          boxSize="35px"
+          onClick={handleNotificationClick}
+        >
+          <HiBell style={{ width: '30px', height: '30px' }} />
+        </IconButton>
+
+        {/* 사이드 메뉴 트리거 */}
+        <SideMenu containerRef={containerRef} />
+      </HStack>
 
     </Flex>
   );
