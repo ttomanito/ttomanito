@@ -15,7 +15,9 @@ import CommonCard from '@/components/cards/CommonCard';
 import { TbShieldX } from 'react-icons/tb';
 import profile_manito from '@/assets/ttomas/profile_manito.png';
 import profile_manitee from '@/assets/ttomas/profile_manitee.png';
-
+import ChatAnalysisModal from '@/components/chat/ChatAnalysisModal';
+import ChatAnalysisButton from '@/components/chat/ChatAnalysisButton';
+import { useChatAnalysis } from '@/hooks/useChatAnalysis';
 
 interface RoomUserResponse { roomUserId: number; }
 
@@ -113,6 +115,9 @@ const ChatRoomPage = () => {
 
   const [firstItemIndex, setFirstItemIndex] = useState(0);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
+
+  const myUserIdStr = myUserId ? String(myUserId) : null;
+  const analysis = useChatAnalysis(chatRoomId ?? null, myUserIdStr);
 
   useEffect(() => {
     const checkAccessAndGetRoomUserId = async () => {
@@ -301,7 +306,12 @@ const ChatRoomPage = () => {
               {headerLabel}
             </Text>
           </Flex>
-          <Icon as={FiPhone} boxSize={5} />
+
+          {/* 오른쪽 액션들 */}
+          <Flex align="center" gap={2}>
+            <ChatAnalysisButton onOpen={analysis.open} alreadyUsed={analysis.alreadyUsed} />
+            <Icon as={FiPhone} boxSize={5} />
+          </Flex>
         </Flex>
       </Box>
 
@@ -374,6 +384,14 @@ const ChatRoomPage = () => {
           </LongButton>
         </Flex>
       </Box>
+      <ChatAnalysisModal
+        isOpen={analysis.isOpen}
+        onClose={analysis.close}
+        data={analysis.data}
+        isLoading={analysis.isLoading}
+        error={analysis.error}
+        alreadyUsed={analysis.alreadyUsed}
+      />
     </Box>
   );
 };
