@@ -9,6 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import CommonCard from '@/components/cards/CommonCard';
 import LongButton from '@/components/buttons/LongButton';
 import ProfileCard from '@/components/profile/ProfileCard';
@@ -33,7 +34,10 @@ import ttoma_notes from '@/assets/mission_icons/ttoma_notes.svg';
 import ttoma_observation from '@/assets/mission_icons/ttoma_observation.svg';
 import ttoma_performance from '@/assets/mission_icons/ttoma_performance.svg';
 import { useAuth } from '@/stores/authStore';
-import profile_manitee from '@/assets/ttomas/profile_manitee.png'
+import profile_manitee from '@/assets/ttomas/profile_manitee.png';
+
+// Day.js 플러그인 활성화
+dayjs.extend(isSameOrAfter);
 
 // 타입 정의
 interface Participant {
@@ -54,26 +58,49 @@ interface PastMission {
   completed: boolean;
   channels: string[];
   type: string;
+  roomId: number;
 }
 
-// 이전 미션 목록
-const PastMissionsList = () => {
+// Props 타입 정의
+interface PastMissionsListProps {
+  roomId: number;
+  roomStartDate: string;
+}
+
+// 이전 미션 목록 컴포넌트
+const PastMissionsList = ({ roomId, roomStartDate }: PastMissionsListProps) => {
   const [missions, setMissions] = useState<PastMission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchMissions = async () => {
       try {
-        const missionList = await getRequest<PastMission[]>('/manito/mission/missionlist');
-        setMissions(missionList);
-      } catch {
-        // 실패 시 별도 처리 X
+        const allMissions = await getRequest<PastMission[]>('/manito/mission/missionlist');
+        
+        const filteredMissions = allMissions.filter((mission) => {
+          // 1. roomId가 현재 방과 같고,
+          const isSameRoom = mission.roomId === roomId;
+          // 2. 미션 날짜가 방 시작일과 같거나 그 이후인 경우만 필터링
+          const isAfterCreation = dayjs(mission.missionDate).isSameOrAfter(dayjs(roomStartDate), 'day');
+          return isSameRoom && isAfterCreation;
+        });
+
+        setMissions(filteredMissions);
+
+      } catch (error) {
+        console.error("Failed to fetch missions:", error);
+        setMissions([]);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchMissions();
-  }, []);
+
+    if (roomId && roomStartDate) {
+      fetchMissions();
+    } else {
+      setIsLoading(false);
+    }
+  }, [roomId, roomStartDate]);
 
   if (isLoading) {
     return <Flex justify="center" align="center" h="200px"><Spinner size="lg" /></Flex>;
@@ -222,10 +249,15 @@ const GameHomePage = () => {
   }, [manitoProfile]);
 
   const handleShowPastMissions = () => {
+    if (!roomId || !room) {
+      console.error("Room data is not ready yet.");
+      return;
+    }
+
     openModal({
       title: '이전 미션 확인하기',
       caption: '내가 수행한 미션 목록입니다',
-      body: <PastMissionsList />,
+      body: <PastMissionsList roomId={roomId} roomStartDate={room.startDate} />,
     });
   };
 
@@ -270,7 +302,7 @@ const GameHomePage = () => {
   const manitoModalData = { title: '내 마니띠 확인', body: <ManitoProfileModalBody /> };
   const tutorialModalData = { title: '', body: <TutorialBody />, footer: <LongButton onClick={closeModal}>닫기</LongButton> };
 
-  if (isPageLoading) {
+  if (isPageLoading || !isReady) {
     return (<Flex justify="center" align="center" h="100vh"><Spinner size="xl" /></Flex>);
   }
 

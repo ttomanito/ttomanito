@@ -45,6 +45,7 @@ export default function AppRoutes() {
 
           {/* ─────────── 로그인 필요 + 상태별 가드 ─────────── */}
           <Route element={<RequireAuthGuard />}>
+            <Route path="/alarm" element={<AlarmPage />} />
             {/* 대기방 접근 - 방 상태 검증 필요 */}
             <Route element={<RoomGuard />}>
               <Route path="/room/:roomId" element={<WaitingRoomPage />} />
@@ -69,7 +70,6 @@ export default function AppRoutes() {
 
             <Route path="/user/update" element={<EditProfile />} />
             <Route path="/report/reportlist" element={<ReportListPage />} />
-            <Route path="/alarm" element={<AlarmPage />} /> {/* 2. 추가된 부분 */}
           </Route>
         </Route>
       </Routes>

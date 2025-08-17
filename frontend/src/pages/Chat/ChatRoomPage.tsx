@@ -1,5 +1,4 @@
 import { Box, Flex, Icon, Text, Image, Spinner, Center } from '@chakra-ui/react';
-import { FiPhone } from 'react-icons/fi';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import TextInput from '@/components/inputs/TextInput';
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -9,7 +8,7 @@ import ChatMessageRenderer from '@/components/chat/ChatMessageRenderer';
 import poke_icon from '@/assets/poke_icon.svg';
 import { useChatSocket } from '@/utils/useChatSocket';
 import { useAuth } from '@/stores/authStore';
-import { getRequest } from '@/api/requests';
+import { getRequest, postRequest } from '@/api/requests';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import CommonCard from '@/components/cards/CommonCard';
 import { TbShieldX } from 'react-icons/tb';
@@ -47,7 +46,6 @@ const toKoreanRole = (raw?: string): Partner['role'] => {
 const defaultImageByRole = (role: Partner['role']) =>
   role === '마니또' ? profile_manito : role === '마니띠' ? profile_manitee : undefined;
 
-
 const AccessCardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Center minH="100vh" bg="gray.50" px={4}>
     <CommonCard maxW="520px" w="full" textAlign="center" py={16}>
@@ -58,8 +56,12 @@ const AccessCardLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
 const AccessCheckingCard = ({ text }: { text: string }) => (
   <AccessCardLayout>
-    <Box mb={6}><Spinner size="lg" /></Box>
-    <Text fontSize="xl" fontWeight="bold" mb={2}>{text}</Text>
+    <Box mb={6}>
+      <Spinner size="lg" />
+    </Box>
+    <Text fontSize="xl" fontWeight="bold" mb={2}>
+      {text}
+    </Text>
     <Text color="gray.500">잠시만 기다려 주세요…</Text>
   </AccessCardLayout>
 );
@@ -67,12 +69,24 @@ const AccessCheckingCard = ({ text }: { text: string }) => (
 const AccessDeniedCard = ({ onGoMain }: { onGoMain: () => void }) => (
   <AccessCardLayout>
     <Center mb={6}>
-      <Box w="64px" h="64px" borderRadius="full" bg="red.50" display="flex" alignItems="center" justifyContent="center">
+      <Box
+        w="64px"
+        h="64px"
+        borderRadius="full"
+        bg="red.50"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
         <Icon as={TbShieldX} color="red.500" boxSize={7} />
       </Box>
     </Center>
-    <Text fontSize="2xl" fontWeight="extrabold" mb={2}>접근이 제한되었습니다</Text>
-    <Text color="gray.500" mb={8}>이 채팅방에 접근할 권한이 없습니다.</Text>
+    <Text fontSize="2xl" fontWeight="extrabold" mb={2}>
+      접근이 제한되었습니다
+    </Text>
+    <Text color="gray.500" mb={8}>
+      이 채팅방에 접근할 권한이 없습니다.
+    </Text>
     <LongButton onClick={onGoMain}>메인으로 이동</LongButton>
   </AccessCardLayout>
 );
@@ -80,12 +94,24 @@ const AccessDeniedCard = ({ onGoMain }: { onGoMain: () => void }) => (
 const AccessErrorCard = ({ onRetry, onGoMain }: { onRetry: () => void; onGoMain: () => void }) => (
   <AccessCardLayout>
     <Center mb={6}>
-      <Box w="64px" h="64px" borderRadius="full" bg="orange.50" display="flex" alignItems="center" justifyContent="center">
+      <Box
+        w="64px"
+        h="64px"
+        borderRadius="full"
+        bg="orange.50"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
         <Icon as={TbShieldX} color="orange.500" boxSize={7} />
       </Box>
     </Center>
-    <Text fontSize="xl" fontWeight="bold" mb={2}>접근 권한 확인 중 오류가 발생했어요</Text>
-    <Text color="gray.500" mb={8}>네트워크 연결을 확인한 뒤 다시 시도해 주세요.</Text>
+    <Text fontSize="xl" fontWeight="bold" mb={2}>
+      접근 권한 확인 중 오류가 발생했어요
+    </Text>
+    <Text color="gray.500" mb={8}>
+      네트워크 연결을 확인한 뒤 다시 시도해 주세요.
+    </Text>
     <Flex gap={2} justify="center">
       <LongButton onClick={onRetry}>다시 시도</LongButton>
       <LongButton onClick={onGoMain}>메인으로</LongButton>
@@ -104,7 +130,7 @@ const ChatRoomPage = () => {
   const [accessState, setAccessState] = useState<AccessState>('checking');
   const [roomUserId, setRoomUserId] = useState<string | null>(null);
   const [partner, setPartner] = useState<Partner | null>(
-    ((location.state as any)?.partner as Partner | undefined) ?? null
+    ((location.state as any)?.partner as Partner | undefined) ?? null,
   );
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -150,7 +176,9 @@ const ChatRoomPage = () => {
     if (accessState !== 'granted' || !chatRoomId || !roomUserId || partner) return;
     const fetchPartner = async () => {
       try {
-        const res = await getRequest<{ participants: Participant[] }>(`/chat/${chatRoomId}/participants`);
+        const res = await getRequest<{ participants: Participant[] }>(
+          `/chat/${chatRoomId}/participants`,
+        );
         const list = res?.participants ?? [];
         const other =
           list.find(p => String(p.roomUserId ?? '') !== String(roomUserId)) ??
@@ -167,7 +195,7 @@ const ChatRoomPage = () => {
   }, [accessState, chatRoomId, roomUserId, myUserId, partner]);
 
   const convertToClientMessage = useCallback((m: ReceivedMessage): ChatMessage => {
-    const sentAt = new Date(m.sentAt);
+    const sentAt = new Date(m.sentAt+'Z');
     return {
       id: `${m.senderRoomUserId}-${m.sentAt}`,
       sender: String(m.senderRoomUserId),
@@ -177,37 +205,37 @@ const ChatRoomPage = () => {
         m.type === 'TEXT'
           ? 'text'
           : m.type === 'POKE'
-          ? 'poke'
-          : m.type === 'CALL_START'
-          ? 'call_start'
-          : m.type === 'CALL_ACCEPT'
-          ? 'call_accept'
-          : 'call_reject',
+            ? 'poke'
+            : m.type === 'CALL_START'
+              ? 'call_start'
+              : m.type === 'CALL_ACCEPT'
+                ? 'call_accept'
+                : 'call_reject',
       originalSentAt: m.sentAt,
       originalType: m.type,
     };
   }, []);
 
   const handleNewMessage = useCallback(
-  (rm: ReceivedMessage) => {
-    if (!roomUserId) return;
-    const nm = convertToClientMessage(rm);
+    (rm: ReceivedMessage) => {
+      if (!roomUserId) return;
+      const nm = convertToClientMessage(rm);
 
-    setMessages(prevMessages => {
-      const newMessages = [...prevMessages, nm];
-      setTimeout(() => {
-        virtuosoRef.current?.scrollToIndex({
-          index: newMessages.length - 1, 
-          align: 'end',
-          behavior: 'smooth', 
-        });
-      }, 50);
+      setMessages(prevMessages => {
+        const newMessages = [...prevMessages, nm];
+        setTimeout(() => {
+          virtuosoRef.current?.scrollToIndex({
+            index: newMessages.length - 1,
+            align: 'end',
+            behavior: 'smooth',
+          });
+        }, 50);
 
-      return newMessages;
-    });
-  },
-  [roomUserId, convertToClientMessage] 
-);
+        return newMessages;
+      });
+    },
+    [roomUserId, convertToClientMessage],
+  );
 
   // 히스토리 로드
   const handleHistoryLoaded = useCallback(
@@ -224,7 +252,7 @@ const ChatRoomPage = () => {
       setHasMoreHistory(hasMore);
       setIsLoadingHistory(false);
     },
-    [convertToClientMessage, firstItemIndex]
+    [convertToClientMessage, firstItemIndex],
   );
 
   const handleConnectionStateChange = useCallback((state: any) => {
@@ -262,13 +290,20 @@ const ChatRoomPage = () => {
     e.preventDefault();
     if (!message.trim() || !isConnected) return;
     const ok = await socketSendMessage(message);
-    if (ok) { setMessage(''); setLastError(null); }
-    else setLastError('메시지 전송에 실패했습니다');
+    if (ok) {
+      setMessage('');
+      setLastError(null);
+    } else setLastError('메시지 전송에 실패했습니다');
   };
   const handlePoke = async () => {
-    if (!isConnected) return;
-    const ok = await sendPoke();
-    if (!ok) setLastError('찌르기 전송에 실패했습니다');
+    try {
+      if (!isConnected) return;
+      const ok = await sendPoke();
+      await postRequest<void>('/notice/poke'); // 콕 찌르기 전송
+      if (!ok) setLastError('찌르기 전송에 실패했습니다');
+    } catch (e: any) {
+      setLastError('전송에 실패했습니다.');
+    }
   };
 
   useEffect(() => {
@@ -283,49 +318,77 @@ const ChatRoomPage = () => {
 
   if (!isReady || !myUserId) return <AccessCheckingCard text="사용자 정보를 불러오는 중" />;
   if (accessState === 'checking') return <AccessCheckingCard text="채팅방 접근 권한을 확인 중" />;
-  if (accessState === 'denied') return <AccessDeniedCard onGoMain={() => navigate('/main', { replace: true })} />;
+  if (accessState === 'denied')
+    return <AccessDeniedCard onGoMain={() => navigate('/main', { replace: true })} />;
   if (accessState === 'error')
-    return <AccessErrorCard onRetry={() => window.location.reload()} onGoMain={() => navigate('/main', { replace: true })} />;
+    return (
+      <AccessErrorCard
+        onRetry={() => window.location.reload()}
+        onGoMain={() => navigate('/main', { replace: true })}
+      />
+    );
   if (!roomUserId) return <AccessCheckingCard text="채팅방 정보를 불러오는 중" />;
 
-  const headerLabel =
-    partner?.role === '마니띠'
-      ? `마니띠`
-      : partner?.role ?? '대화상대';
+  const headerLabel = partner?.role === '마니띠' ? `마니띠` : (partner?.role ?? '대화상대');
 
   return (
     <Box position="relative" h="100vh" display="flex" flexDirection="column">
       {/* 헤더 */}
-      <Box as="header" position="sticky" top="0" zIndex="10" bg="white" borderBottom="1px solid #ccc" p={4}>
+      <Box
+        as="header"
+        position="sticky"
+        top="0"
+        zIndex="10"
+        bg="white"
+        borderBottom="1px solid #ccc"
+        p={4}
+      >
         <Flex align="center" justify="space-between">
           <Flex align="center" gap={3} flex="1" justify="center">
             {partner?.profileImage && (
-              <Image src={partner.profileImage} alt={partner.role} boxSize="30px" borderRadius="full" mr={2} />
+              <Image
+                src={partner.profileImage}
+                alt={partner.role}
+                boxSize="30px"
+                borderRadius="full"
+                mr={2}
+              />
             )}
-            <Text textStyle="title_ml">
-              {headerLabel}
-            </Text>
+            <Text textStyle="title_ml">{headerLabel}</Text>
           </Flex>
 
           {/* 오른쪽 액션들 */}
           <Flex align="center" gap={2}>
             <ChatAnalysisButton onOpen={analysis.open} alreadyUsed={analysis.alreadyUsed} />
-            <Icon as={FiPhone} boxSize={5} />
-          </Flex>
+            </Flex>
         </Flex>
       </Box>
 
       {/* 연결/에러 바 */}
       {(connectionState !== 'connected' || lastError) && (
-        <Box bg={lastError || connectionState === 'failed' ? 'red.100' : 'yellow.100'} p={2} textAlign="center">
-          <Text color={lastError || connectionState === 'failed' ? 'red.600' : 'orange.600'} fontSize="sm">
+        <Box
+          bg={lastError || connectionState === 'failed' ? 'red.100' : 'yellow.100'}
+          p={2}
+          textAlign="center"
+        >
+          <Text
+            color={lastError || connectionState === 'failed' ? 'red.600' : 'orange.600'}
+            fontSize="sm"
+          >
             {lastError ||
               (connectionState === 'failed'
                 ? '채팅 서버 연결이 끊어졌습니다. 잠시 후 다시 시도해주세요.'
                 : '채팅 서버에 연결 중입니다...')}
           </Text>
           {lastError && (
-            <Text color="red.500" fontSize="xs" mt={1} cursor="pointer" onClick={() => setLastError(null)} textDecoration="underline">
+            <Text
+              color="red.500"
+              fontSize="xs"
+              mt={1}
+              cursor="pointer"
+              onClick={() => setLastError(null)}
+              textDecoration="underline"
+            >
               닫기
             </Text>
           )}
@@ -357,7 +420,9 @@ const ChatRoomPage = () => {
                 {isLoadingHistory && hasMoreHistory && (
                   <>
                     <Spinner size="sm" mr={2} />
-                    <Text fontSize="sm" color="gray.600">이전 메시지 불러오는 중...</Text>
+                    <Text fontSize="sm" color="gray.600">
+                      이전 메시지 불러오는 중...
+                    </Text>
                   </>
                 )}
               </Center>
@@ -367,15 +432,30 @@ const ChatRoomPage = () => {
       </Box>
 
       {/* 입력창 */}
-      <Box as="footer" position="sticky" bottom="0" bg="white" borderTop="1px solid #ccc" zIndex="10">
+      <Box
+        as="footer"
+        position="sticky"
+        bottom="0"
+        bg="white"
+        borderTop="1px solid #ccc"
+        zIndex="10"
+      >
         <Flex as="form" onSubmit={handleSendMessage} p={2} gap={1}>
-          <LongButton w="10" h="10" p="0" bg="white" type="button" onClick={handlePoke} disabled={!isConnected}>
+          <LongButton
+            w="10"
+            h="10"
+            p="0"
+            bg="white"
+            type="button"
+            onClick={handlePoke}
+            disabled={!isConnected}
+          >
             <Image src={poke_icon} w={10} />
           </LongButton>
           <TextInput
             h="40px"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={e => setMessage(e.target.value)}
             placeholder={isConnected ? '메시지를 입력하세요' : '연결 중...'}
             disabled={!isConnected}
           />

@@ -89,7 +89,6 @@ const RankingListItem: React.FC<RankingItemProps> = ({
 };
 
 const tabs = [
-  { id: 1, label: '통화', unit: '', genreCode: 1 },
   { id: 2, label: '채팅', unit: '', genreCode: 2 },
   { id: 3, label: '미션 수행 횟수', unit: '회', genreCode: 3 },
 ];
@@ -175,7 +174,7 @@ const RankingPage: React.FC = () => {
             나는 몇 등일까? 내 마니또 순위를 확인해보세요
           </Text>
           <Text textStyle="caption_sm" color="gray.500">
-            순위는 매일 자정에 업데이트됩니다
+            채팅 순위는 매일 자정에, 미션 순위는 실시간으로 업데이트됩니다.
           </Text>
         </VStack>
         <HStack w="100%" gap={3} justify="center" mb={1}>

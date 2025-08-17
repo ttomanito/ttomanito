@@ -5,6 +5,8 @@ import { getRequest, postRequest } from '@/api/requests';
 import { useAuth } from '@/stores/authStore';
 import profile_manito from '@/assets/ttomas/profile_manito.png';
 import profile_manitee from '@/assets/ttomas/profile_manitee.png';
+import dayjs from 'dayjs';
+
 interface ChatRoomData {
   chattingRoomId: number;
   manitoAssignmentId: number;
@@ -172,10 +174,7 @@ const ChatListPage = () => {
                 <Box textAlign="right">
                   <Text fontSize="xs" color="gray.400">
                     {chat.chatRoom.lastMessageTime &&
-                      new Date(chat.chatRoom.lastMessageTime).toLocaleTimeString('ko-KR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      dayjs(chat.chatRoom.lastMessageTime).format('A hh:mm')}
                   </Text>
                   {chat.chatUserInfo.unreadCount > 0 && (
                     <Badge mt={1} colorScheme="purple" borderRadius="full" fontSize="0.7rem" px={2}>

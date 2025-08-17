@@ -13,6 +13,7 @@ import MessageInputBody from '@/components/modal/MessageInputBody';
 import { FaCrown } from "react-icons/fa";
 import DoubleButton from '@/components/buttons/DoubleButton'
 
+
 const WaitingRoomPage = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
@@ -112,6 +113,10 @@ const WaitingRoomPage = () => {
         break;
       }
       case 'EXIT': {
+        const isMe = String(lastMessage.userId) === String(myUserId);
+        if (!isMe) {
+          refreshParticipants();
+        }
         break;
       }
       case 'KICK': {
@@ -120,6 +125,7 @@ const WaitingRoomPage = () => {
         if (isMe) {
           alert('방장에 의해 대기방에서 내보내졌습니다.');
           disconnect();
+          syncUserGameStatus();
           navigate('/');
         }
         break;
@@ -127,6 +133,7 @@ const WaitingRoomPage = () => {
       case 'CLOSE': {
         alert('방장이 대기방을 닫았습니다.');
         disconnect();
+        syncUserGameStatus();
         navigate('/');
         break;
       }
@@ -134,7 +141,7 @@ const WaitingRoomPage = () => {
         disconnect();
         openModal({
           title: '게임 시작!',
-          body: '🎯 게임이 시작됩니다! 잠시만 기다려주세요!',
+          body: '🎯 게임이 시작됩니다!',
           footer: null,
         });
         setTimeout(() => {
@@ -155,7 +162,12 @@ const WaitingRoomPage = () => {
         const newList = await getRequest<Participant[]>(`/room/${roomId}/participants`);
         setInitialParticipants(newList);
         await syncUserGameStatus();
-        connect(roomId, newList);
+        // 🔽 여기만 교체
+        if (connected) {
+          updateParticipants(newList);   // 이미 연결돼 있으면 소켓 스토어만 갱신
+        } else {
+          connect(roomId, newList);      // 미연결이면 seed와 함께 연결
+        }
       } catch {
         alert('참여 요청에 실패했습니다.');
       }
@@ -200,21 +212,33 @@ const WaitingRoomPage = () => {
     }
   };
 
-  const handleKickUser = (userId: string | number) => {
-    openModal({
-      title: "참가자 내보내기",
-      body: `User ID: ${userId}를 대기방에서 내보내시겠습니까?`,
-      footer: (
-        <DoubleButton
-          leftLabel="취소"
-          rightLabel="내보내기"
-          onLeftClick={closeModal}
-          onRightClick={() => confirmKickUser(userId)}
-          rightProps={{ colorScheme: "red" }}
-        />
-      )
-    });
-  };
+const handleKickUser = (userId: string | number) => {
+  // 지금 화면에 뿌릴 기준 리스트에서 대상 찾기
+  const target = listForRender.find(p => String(p.userId) === String(userId));
+  const displayName = (target?.name && target.name.trim()) ? target.name : `User ${userId}`;
+
+  openModal({
+    title: "참가자 내보내기",
+    body: (
+      <VStack align="start" gap={1}>
+        <Text>
+          <Text as="span" fontWeight="bold"> {displayName}</Text> 님을 대기방에서 내보내시겠습니까?
+        </Text>
+        {/* 원하면 아래 보조문구는 지워도 됩니다 */}
+        <Text color="gray.500" fontSize="sm">(ID: {userId})</Text>
+      </VStack>
+    ),
+    footer: (
+      <DoubleButton
+        leftLabel="취소"
+        rightLabel="내보내기"
+        onLeftClick={closeModal}
+        onRightClick={() => confirmKickUser(userId)}
+        rightProps={{ colorScheme: "red" }}
+      />
+    ),
+  });
+};
 
   const handleInvite = () => {
     clipboard.copy();
@@ -245,11 +269,13 @@ const WaitingRoomPage = () => {
     try {
       await postRequest(`/room/exit`);
       closeModal();
+      syncUserGameStatus();
       navigate('/');
     } catch {
       alert('대기방 삭제에 실패했습니다.');
     }
   };
+  
 
   const handleDeleteRoom = () => {
     openModal({
@@ -266,8 +292,7 @@ const WaitingRoomPage = () => {
       )
     });
   };
-
-  const listForRender = connected ? participants : initialParticipants;
+  const listForRender = connected && participants.length > 0 ? participants : initialParticipants;
 
   const getRightButtonProps = (participantCount: number) => {
     if (isCreator) {
@@ -343,12 +368,14 @@ const WaitingRoomPage = () => {
     <Box height="100vh" display="flex" flexDirection="column">
       <Box flex="1" overflowY="auto" p={4}>
         <RoomInfoCard roomInfo={roomInfo} />
-        <VStack gap={4} align="stretch" bg="transparent">
+        <VStack gap={1} align="stretch" bg="transparent">
           <Box>
-            <Flex justify="space-between" py={3}>
               <Text fontSize="lg" fontWeight="semibold">
                 참가자 목록 ({listForRender.length}명)
               </Text>
+            <Flex justify="space-between">
+            <Text textStyle="caption_xs_light" textAlign="start">최소 4명이 필요합니다.</Text>
+              
               {isCreator && (
                 <Button
                   variant="ghost"
@@ -357,8 +384,7 @@ const WaitingRoomPage = () => {
                   fontWeight="medium"
                   onClick={handleDeleteRoom}
                   _hover={{ bg: "red.50" }}
-                  px={2}
-                  py={1}
+                  px={1}
                   h="auto"
                   minH="auto"
                 >
@@ -366,6 +392,7 @@ const WaitingRoomPage = () => {
                 </Button>
               )}
             </Flex>
+
           </Box>
 
           <Box>

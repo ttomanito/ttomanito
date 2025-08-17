@@ -33,9 +33,7 @@ interface GuessHistory {
   isCorrect: boolean;
 }
 
-interface GuessPostResponse {
-  isCorrect: boolean;
-}
+type GuessPostResponse = boolean
 
 const GuessPage = () => {
   const { user, gameInfo, isReady } = useAuth();
@@ -91,7 +89,7 @@ const GuessPage = () => {
     };
 
     fetchData();
-  }, [isInGame, roomId, user, isReady, toast]); // 🔥 변경: hydrated → isReady
+  }, [isInGame, roomId, user, isReady, toast]); 
 
   const todayString = new Date().toISOString().slice(0, 10);
   const todaysGuess = guessHistory.find(g => g.guessedDate === todayString);
@@ -116,18 +114,36 @@ const GuessPage = () => {
   const handleSubmitGuess = async () => {
     if (selectedId === null) return;
     try {
-      const response = await postRequest<GuessPostResponse>('/manito/guess', { guessedUserId: selectedId });
+      const response = await postRequest<GuessPostResponse>('/manito/guess', {
+        guessedUserId: selectedId,
+      });
       const newGuess: GuessHistory = {
         guessedUserId: selectedId,
         guessedDate: todayString,
-        isCorrect: response.isCorrect,
+        isCorrect: response === true ? true : false,
       };
+      if (response === true) {
+        await postRequest<void>('/notice/guess'); // 마니띠가 마니또 맞췄을 시 추측 알림 전송
+      }
+
       setGuessHistory(prevHistory => [...prevHistory, newGuess]);
       setConfirmOpen(false);
       setSelectedId(null);
-      toast({ title: '추측이 완료되었습니다!', status: 'success', duration: 3000, isClosable: true, position: 'top' });
+      toast({
+        title: '추측이 완료되었습니다!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+        position: 'top',
+      });
     } catch {
-      toast({ title: '추측 제출에 실패했습니다.', status: 'error', duration: 4000, isClosable: true, position: 'top' });
+      toast({
+        title: '추측 제출에 실패했습니다.',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+        position: 'top',
+      });
     }
   };
 

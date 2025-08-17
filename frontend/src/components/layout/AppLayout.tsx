@@ -43,11 +43,9 @@ const PcMent = () => (
       <Box pl={10}>
         <Image src={logo_ttomanito} alt="ttomanito logo" mb={2} />
         <Text textStyle="body_md" color="gray.500">
-          정해진 날짜에만 열리는 미션!
+          마니또 마니띠와 함께하는 특별한 순간들
           <br />
-          그 날만큼은 마니띠에게 더 따뜻한
-          <br />
-          마음을 전해보세요 💌
+          일상 속 따뜻한 마음을 주고받아요 💌
         </Text>
       </Box>
     </Box>
@@ -64,19 +62,19 @@ const frameRules: Array<{ frame: PageFrame; patterns: string[] }> = [
 { // 헤더 O + 하단바 X
   frame: 'header-only',
   patterns: [
-    '/','/main', '/manito/:roomId/matching', '/report/reportlist'
+   '/manito/:roomId/matching', '/report/reportlist'
   ]
 },
 { // 뒤로 가기만
   frame: 'back-only',
   patterns: [
-   '/user/update', '/room', '/room/:roomId', '/chat/:chatRoomId', '/report/reportdetail/:reportId'
+   '/user/update', '/room', '/room/:roomId', '/chat/:chatRoomId', '/report/reportdetail/:reportId', '/alarm'
   ]
 },
 { // 헤더 X + 하단바 X
   frame: 'bare',
   patterns: [
-    '/login', '/chat/:chatRoomId/call'
+    '/login', '/','/main', '/chat/:chatRoomId/call'
   ]
 },
 ];
