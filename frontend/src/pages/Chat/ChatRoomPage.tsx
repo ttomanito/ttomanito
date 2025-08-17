@@ -1,4 +1,5 @@
 import { Box, Flex, Icon, Text, Image, Spinner, Center } from '@chakra-ui/react';
+import { FiPhone } from 'react-icons/fi';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import TextInput from '@/components/inputs/TextInput';
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -352,6 +353,7 @@ const ChatRoomPage = () => {
             )}
             <Text textStyle="title_ml">{headerLabel}</Text>
           </Flex>
+          <Icon as={FiPhone} boxSize={5} />
         </Flex>
       </Box>
 
