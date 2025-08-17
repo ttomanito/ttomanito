@@ -80,9 +80,11 @@ const LoginPage: React.FC = () => {
         </LongButton>
 
         {/* 💻 개발용 로그인 버튼 */}
-          <LongButton w="full" onClick={showDevLoginModal} bg="gray.200">
-            <Text>💻 개발자 로그인</Text>
-          </LongButton>
+{import.meta.env.DEV && (
+  <LongButton w="full" onClick={showDevLoginModal} bg="gray.200">
+    <Text>💻 개발자 로그인</Text>
+  </LongButton>
+)}
       </VStack>
     </Box>
   )
