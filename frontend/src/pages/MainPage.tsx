@@ -66,7 +66,7 @@ const MainPage: React.FC = () => {
         variant="ghost"
         position="absolute"
         top={3}
-        right={3}
+        left={3}
         zIndex="docked"
         color="accent.500"
         _hover={{
