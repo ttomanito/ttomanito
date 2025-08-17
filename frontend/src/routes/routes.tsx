@@ -2,9 +2,9 @@ import type { LazyExoticComponent, ComponentType } from 'react';
 import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import AppLayout from '@/components/layout/AppLayout';
-import RequireAuthGuard, { PreventAuthGuard } from '@/routes/AuthGuard'; 
+import RequireAuthGuard, { PreventAuthGuard } from '@/routes/AuthGuard';
 import { GameOnlyGuard, NonGameGuard } from '@/routes/GameStatusGuard';
-import RoomGuard from '@/routes/RoomGuard'; 
+import RoomGuard from '@/routes/RoomGuard';
 import Loading from '@/routes/Loading';
 
 function lazyImport<P = unknown>(
@@ -12,7 +12,6 @@ function lazyImport<P = unknown>(
 ): LazyExoticComponent<ComponentType<P>> {
   return React.lazy(factory);
 }
-
 
 const MainPage = lazyImport(() => import('@/pages/MainPage'));
 const LoginPage = lazyImport(() => import('@/pages/User/LoginPage'));
@@ -25,6 +24,7 @@ const CallPage = lazyImport(() => import('@/pages/Chat/CallPage'));
 const GuessPage = lazyImport(() => import('@/pages/Guess/GuessPage'));
 const RankingPage = lazyImport(() => import('@/pages/Rank/RankingPage'));
 const EditProfile = lazyImport(() => import('@/pages/User/EditProfilePage'));
+const AlarmPage = lazyImport(() => import('@/pages/User/AlarmPage'))
 const ReportListPage = lazyImport(() => import('@/pages/Report/ReportListPage'));
 const ReportDetailPage = lazyImport(() => import('@/pages/Report/ReportDetailPage'));
 const TestPage = lazyImport(() => import('@/pages/TestPage'));
@@ -39,11 +39,11 @@ export default function AppRoutes() {
             <Route path="/login" element={<LoginPage />} />
           </Route>
 
-          {/*  ─────────── 비로그인 허용 (기타 공개 페이지) ─────────── */}
+          {/* ─────────── 비로그인 허용 (기타 공개 페이지) ─────────── */}
           <Route path="/report/reportdetail/:reportId" element={<ReportDetailPage />} />
           <Route path="/test" element={<TestPage />} />
 
-          {/*  ─────────── 로그인 필요 + 상태별 가드 ─────────── */}
+          {/* ─────────── 로그인 필요 + 상태별 가드 ─────────── */}
           <Route element={<RequireAuthGuard />}>
             {/* 대기방 접근 - 방 상태 검증 필요 */}
             <Route element={<RoomGuard />}>
@@ -69,6 +69,7 @@ export default function AppRoutes() {
 
             <Route path="/user/update" element={<EditProfile />} />
             <Route path="/report/reportlist" element={<ReportListPage />} />
+            <Route path="/alarm" element={<AlarmPage />} /> {/* 2. 추가된 부분 */}
           </Route>
         </Route>
       </Routes>

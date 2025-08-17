@@ -3,12 +3,15 @@ package com.ssafy.ttomanito.config;
 import com.ssafy.ttomanito.global.security.filter.JwtAuthenticationFilter;
 import com.ssafy.ttomanito.global.security.oauth.OAuth2AuthenticationSuccessHandler;
 import com.ssafy.ttomanito.global.security.oauth.SocialUserService;
+import com.ssafy.ttomanito.global.security.utils.CookieUtils;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -23,6 +26,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Slf4j
 @Configuration
@@ -57,13 +61,11 @@ public class SecurityConfig {
                                 "/api/swagger-ui/index.html**"
                         ).permitAll()
                         .requestMatchers(
-                                "/",
+                                "/auth/**",
+                                "/login",
                                 "/oauth2/authorization/**",
-                                "/login/oauth2/code/**",
-                                "/auth/**"
+                                "/login/oauth2/code/**"
                         ).permitAll()
-
-                        //   .requestMatchers("/notice/**").authenticated()
                         .requestMatchers("/ws/**", "/ws/signal/**", "/topic/**", "/app/**").permitAll()
                         .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
@@ -74,16 +76,17 @@ public class SecurityConfig {
                         .successHandler(successHandler)
                         .failureHandler((req, res, ex) -> {
                             log.error("OAuth2 fail", ex);
-                            res.sendRedirect("/login?error=" + URLEncoder.encode(ex.getMessage(), StandardCharsets.UTF_8));
+                            res.sendRedirect(frontendRedirectUrl + "/login?error=" + URLEncoder.encode(ex.getMessage(), StandardCharsets.UTF_8));
                         })
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
-                        .deleteCookies("accessToken", "refreshToken", "JSESSIONID")
-                        .logoutSuccessHandler((req, res, auth) -> {
-                            res.sendRedirect(frontendRedirectUrl + "/login");  // http://localhost:5173/login
+                        .addLogoutHandler((req, res, auth) -> {
+                            Stream.of("accessToken","refreshToken","JSESSIONID","kakaoAccessToken")
+                                    .forEach(n -> CookieUtils.deleteCookie(req, res, n));
                         })
+                        .logoutSuccessHandler((req, res, auth) -> res.setStatus(204))
                 )
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> res.sendError(401)));
 

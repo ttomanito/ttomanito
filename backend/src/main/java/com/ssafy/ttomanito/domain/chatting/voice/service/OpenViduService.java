@@ -4,8 +4,6 @@ import io.openvidu.java.client.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-
 @Service
 public class OpenViduService {
 
@@ -13,42 +11,54 @@ public class OpenViduService {
 
     public OpenViduService(
             @Value("${openvidu.url}") String url,
+            //openvidu.url=https://localhost:4443
             @Value("${openvidu.secret}") String secret
     ) {
         this.openVidu = new OpenVidu(url, secret);
     }
 
     /**
-     * customSessionId로 세션 생성 시도. 이미 존재하면 HTTP 409 에러를 받아
-     * 기존 세션을 fetch()로 가져옵니다.
+     * customSessionId로 세션 생성. 이미 존재(409)하면 기존 세션 반환.
      */
     public Session getOrCreateSession(String customSessionId)
             throws OpenViduJavaClientException, OpenViduHttpException {
+
+        SessionProperties props = new SessionProperties.Builder()
+                .customSessionId(customSessionId)
+                .build();
+
         try {
-            return openVidu.createSession(
-                    SessionProperties.fromJson(Map.of("customSessionId", customSessionId)).build()
-            );
+            return openVidu.createSession(props);
         } catch (OpenViduHttpException e) {
             if (e.getStatus() == 409) {
-                // 이미 생성된 세션이 있을 때는 기존 세션 반환
-                openVidu.fetch();  // 🔄 fetches up-to-date list :contentReference[oaicite:2]{index=2}
-                return openVidu.getActiveSession(customSessionId);
+                openVidu.fetch();
+                for (Session s : openVidu.getActiveSessions()) {
+                    if (customSessionId.equals(s.getSessionId()) ||
+                            (s.getProperties() != null &&
+                                    customSessionId.equals(s.getProperties().customSessionId()))) {
+                        return s;
+                    }
+                }
             }
             throw e;
         }
     }
 
     /**
-     * 주어진 세션에 대해 Connection(token)을 생성합니다.
-     *
-     * @param session 기존 또는 새로 생성된 OpenVidu 세션
-     * @param data    클라이언트에 전달할 메타데이터(예: nickname)
-     * @return 발급된 connection token
+     * 세션에 새로운 연결 생성 후 "토큰 문자열"만 반환
+     * 예: tok_xxxxxxxxxxxxxx
      */
     public String generateConnectionToken(Session session, String data)
             throws OpenViduJavaClientException, OpenViduHttpException {
-        return session.createConnection(
-                ConnectionProperties.fromJson(Map.of("data", data)).build()
-        ).getToken();
+
+        ConnectionProperties conn = new ConnectionProperties.Builder()
+                .data(data == null ? "" : data)
+                .build();
+
+        Connection connection = session.createConnection(conn);
+
+        System.out.println("[DEBUG] connection.getToken(): " + connection.getToken());
+        // 여기서 getToken() 하면 tok_... 만 나옴
+        return connection.getToken();
     }
 }

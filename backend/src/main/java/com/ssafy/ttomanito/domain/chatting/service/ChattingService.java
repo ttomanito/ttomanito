@@ -1,10 +1,12 @@
 package com.ssafy.ttomanito.domain.chatting.service;
 
 import com.ssafy.ttomanito.domain.chatting.message.dto.ChatMessageDto;
+import com.ssafy.ttomanito.domain.chatting.message.dto.MessageType;
 import com.ssafy.ttomanito.domain.chatting.message.entity.ChatMessage;
 import com.ssafy.ttomanito.domain.chatting.message.repository.ChatMessageRepository;
 import com.ssafy.ttomanito.domain.chatting.room.dto.ChatRoomListDto;
 import com.ssafy.ttomanito.domain.chatting.room.dto.ChattingRoomDto;
+import com.ssafy.ttomanito.domain.chatting.room.dto.Participants;
 import com.ssafy.ttomanito.domain.chatting.room.entity.ChattingRoom;
 import com.ssafy.ttomanito.domain.chatting.room.repository.ChattingRoomRepository;
 import com.ssafy.ttomanito.domain.chatting.user.dto.ChatRoomWithUserDto;
@@ -17,9 +19,9 @@ import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import com.ssafy.ttomanito.global.exception.NotFoundException;
+import com.ssafy.ttomanito.global.exception.UnauthenticatedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +31,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +41,13 @@ public class ChattingService {
     private final ChattingRoomRepository chatRoomRepo;
     private final ChattingUserRepository chatUserRepo;
     private final ChatMessageRepository chatMsgRepo;
+
+    @Transactional(readOnly = true)
+    public boolean isUserInChatRoom(Long chatRoomId, Long userId) {
+        // userId → RoomUser
+        return chatUserRepo.findAllByChattingRoomChattingRoomId(chatRoomId).stream()
+                .anyMatch(cu -> cu.getRoomUser().getUser().getUserId().equals(userId));
+    }
 
     @Transactional(readOnly = true)
     public ChatRoomListDto getRoomList(Long userId) {
@@ -62,28 +70,6 @@ public class ChattingService {
                 .orElse(null);
 
         return new ChatRoomListDto(manitoDto, maniteeDto);
-    }
-
-    private ChatRoomWithUserDto toDto(Long manitoAssignmentId, Long roomUserId) {
-        ChattingRoom room = chatRoomRepo.findByManitoAssignmentManitoAssignmentId(manitoAssignmentId)
-                .orElseThrow(() -> new NotFoundException("채팅방을 찾을 수 없습니다: manitoAssignmentId=" + manitoAssignmentId));
-
-        ChattingUser cu = chatUserRepo.findByChattingRoomChattingRoomIdAndRoomUserRoomUserId(
-                        room.getChattingRoomId(),
-                        roomUserId)
-                .orElseThrow(() -> new NotFoundException("채팅유저를 찾을 수 없습니다: roomId="
-                        + room.getChattingRoomId() + ", roomUserId=" + roomUserId));
-
-        return new ChatRoomWithUserDto(
-                new ChattingRoomDto(room.getChattingRoomId(),
-                        manitoAssignmentId,
-                        room.getLastMessage(),
-                        room.getLastMessageTime()),
-                new ChattingUserDto(cu.getChattingRoom().getChattingRoomId(),
-                        cu.getRoomUser().getRoomUserId(),
-                        cu.getUnreadCount(),
-                        cu.getLastReadTime())
-        );
     }
 
     @Transactional(readOnly = true)
@@ -124,70 +110,57 @@ public class ChattingService {
                 room.getLastMessageTime());
     }
 
-    public ChatMessageDto saveMessage(ChatMessageDto dto) {
-        return sendMessage(dto.chattingRoomId(), dto.senderRoomUserId(), dto.content());
-    }
 
-    public ChatMessageDto pokeMessage(Long chattingRoomId, Long roomUserId) {
-        List<String> pokes = List.of("뭐해", "콕콕", "어이");
-        String message = pokes.get(ThreadLocalRandom.current().nextInt(pokes.size())) + " 🫵";
-        return sendMessage(chattingRoomId, roomUserId, message);
-    }
-
-    public ChatMessageDto sendMessage(Long chattingRoomId, Long roomUserId, String content) {
-        ChatMessage saved = chatMsgRepo.save(ChatMessage.create(chattingRoomId, roomUserId, content));
-        LocalDateTime sentAt = saved.getSentAt();
-
-        chatUserRepo.findAllByChattingRoomChattingRoomId(chattingRoomId).stream()
-                .filter(cu -> !cu.getRoomUser().getRoomUserId().equals(roomUserId))
-                .filter(cu -> {
-                    LocalDateTime lastRead = cu.getLastReadTime();
-                    return lastRead == null || sentAt.isAfter(lastRead);
-                })
-                .forEach(cu -> chatUserRepo.save(cu.toBuilder()
-                        .unreadCount(cu.getUnreadCount() + 1)
-                        .build()));
-
-        chatRoomRepo.findById(chattingRoomId).ifPresent(r -> chatRoomRepo.save(r.toBuilder()
-                .lastMessage(content)
-                .lastMessageTime(LocalDateTime.now())
-                .build()));
-
-        return new ChatMessageDto(
-                saved.getChattingRoomId(),
-                saved.getSenderRoomUserId(),
-                saved.getContent(),
-                saved.getSentAt()
+    public ChatMessageDto sendText(Long chattingRoomId, Long roomUserId, String content) {
+        Long senderUserId = requireSenderUserId(roomUserId);
+        ChatMessage saved = chatMsgRepo.save(
+                ChatMessage.createText(chattingRoomId, roomUserId, senderUserId, content)
         );
+        return saveSideEffectsAndToDto(saved, summarizeForLastMessage(MessageType.TEXT, content));
+    }
+
+    public ChatMessageDto sendPoke(Long chattingRoomId, Long roomUserId) {
+        Long senderUserId = requireSenderUserId(roomUserId);
+        List<String> pokes = List.of("뭐해", "콕콕", "어이");
+        String content = pokes.get(ThreadLocalRandom.current().nextInt(pokes.size())) + " 🫵";
+
+        ChatMessage saved = chatMsgRepo.save(
+                ChatMessage.createEvent(chattingRoomId, roomUserId, senderUserId, MessageType.POKE)
+                        .toBuilder().content(content).build()
+        );
+        return saveSideEffectsAndToDto(saved, summarizeForLastMessage(MessageType.POKE, content));
+    }
+
+    public ChatMessageDto callStart(Long chattingRoomId, Long roomUserId) {
+        Long senderUserId = requireSenderUserId(roomUserId);
+        ChatMessage saved = chatMsgRepo.save(
+                ChatMessage.createEvent(chattingRoomId, roomUserId, senderUserId, MessageType.CALL_START)
+        );
+        return saveSideEffectsAndToDto(saved, summarizeForLastMessage(MessageType.CALL_START, null));
+    }
+
+    public ChatMessageDto callAccept(Long chattingRoomId, Long roomUserId) {
+        Long senderUserId = requireSenderUserId(roomUserId);
+        ChatMessage saved = chatMsgRepo.save(
+                ChatMessage.createEvent(chattingRoomId, roomUserId, senderUserId, MessageType.CALL_ACCEPT)
+        );
+        return saveSideEffectsAndToDto(saved, summarizeForLastMessage(MessageType.CALL_ACCEPT, null));
+    }
+
+    public ChatMessageDto callReject(Long chattingRoomId, Long roomUserId) {
+        Long senderUserId = requireSenderUserId(roomUserId);
+        ChatMessage saved = chatMsgRepo.save(
+                ChatMessage.createEvent(chattingRoomId, roomUserId, senderUserId, MessageType.CALL_REJECT)
+        );
+        return saveSideEffectsAndToDto(saved, summarizeForLastMessage(MessageType.CALL_REJECT, null));
     }
 
     public List<ChatMessageDto> getHistory(Long chatRoomId, LocalDateTime before) {
-        List<ChatMessage> msgs;
-
-        Pageable pg = PageRequest.of(0, 50, Sort.by("sentAt").descending());
-        if (before == null) {
-            // 최초: 가장 최근 50개
-            msgs = chatMsgRepo.findTop50ByChattingRoomIdOrderBySentAtDesc(chatRoomId);
-        } else {
-            // 이전 50개
-            msgs = chatMsgRepo.findByChattingRoomIdAndSentAtBefore(chatRoomId, before, pg);
-        }
-
-        if (msgs.isEmpty()) {
-            return List.of();
-        }
-
-        // 화면에선 오름차순(과거→최신) 으로 보여주기 위해 뒤집기
-        Collections.reverse(msgs);
-
-        return msgs.stream()
-                .map(m -> new ChatMessageDto(
-                        m.getChattingRoomId(),
-                        m.getSenderRoomUserId(),
-                        m.getContent(),
-                        m.getSentAt()
-                ))
-                .collect(Collectors.toList());
+        List<ChatMessage> list = (before == null)
+                ? chatMsgRepo.findTop50ByChattingRoomIdOrderBySentAtDesc(chatRoomId)
+                : chatMsgRepo.findByChattingRoomIdAndSentAtBefore(chatRoomId, before, PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "sentAt")));
+        Collections.reverse(list);
+        return list.stream().map(this::toDto).toList();
     }
 
     public void markRead(Long chattingRoomId, Long userId) {
@@ -205,5 +178,127 @@ public class ChattingService {
                 .unreadCount(0)
                 .lastReadTime(LocalDateTime.now())
                 .build());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Long> findReceivers(Long chatRoomId, Long senderRoomUserId) {
+        return chatUserRepo.findAllByChattingRoomChattingRoomId(chatRoomId).stream()
+                .map(ChattingUser::getRoomUser)                         // RoomUser
+                .filter(ru -> !ru.getRoomUserId().equals(senderRoomUserId))
+                .map(ru -> ru.getUser().getUserId())
+                .distinct()
+                .toList();
+    }
+
+    private Long requireSenderUserId(Long senderRoomUserId) {
+        return ruRepo.findById(senderRoomUserId)
+                .map(ru -> ru.getUser().getUserId())
+                .orElseThrow(() -> new NotFoundException("RoomUser를 찾을 수 없습니다: roomUserId=" + senderRoomUserId));
+    }
+
+    private String summarizeForLastMessage(MessageType type, String content) {
+        return switch (type) {
+            case TEXT -> content;
+            case POKE -> "콕 찌르기 👈";
+            case CALL_START -> "통화 요청 📞";
+            case CALL_ACCEPT -> "통화 수락 ✅";
+            case CALL_REJECT -> "통화 거절 ❌";
+        };
+    }
+
+    private ChatMessageDto saveSideEffectsAndToDto(ChatMessage saved, String lastMessageForRoom) {
+        Long chatRoomId = saved.getChattingRoomId();
+        Long senderRoomUserId = saved.getSenderRoomUserId();
+        LocalDateTime sentAt = saved.getSentAt();
+
+        // 1) unread
+        chatUserRepo.findAllByChattingRoomChattingRoomId(chatRoomId).stream()
+                .filter(cu -> !cu.getRoomUser().getRoomUserId().equals(senderRoomUserId))
+                .filter(cu -> {
+                    LocalDateTime lastRead = cu.getLastReadTime();
+                    return lastRead == null || sentAt.isAfter(lastRead);
+                })
+                .forEach(cu -> chatUserRepo.save(
+                        cu.toBuilder().unreadCount(cu.getUnreadCount() + 1).build()
+                ));
+
+        // 2) lastMessage/lastMessageTime
+        chatRoomRepo.findById(chatRoomId).ifPresent(r ->
+                chatRoomRepo.save(r.toBuilder()
+                        .lastMessage(lastMessageForRoom)
+                        .lastMessageTime(sentAt)
+                        .build())
+        );
+
+        // 3) DTO
+        return new ChatMessageDto(
+                saved.getChattingRoomId(),
+                saved.getSenderRoomUserId(),
+                saved.getSenderUserId(),
+                saved.getContent(),
+                saved.getType(),
+                saved.getSentAt()
+        );
+    }
+
+    private ChatMessageDto toDto(ChatMessage e) {
+        return new ChatMessageDto(
+                e.getChattingRoomId(),
+                e.getSenderRoomUserId(),
+                e.getSenderUserId(),
+                e.getContent(),
+                e.getType(),
+                e.getSentAt()
+        );
+    }
+
+    private ChatRoomWithUserDto toDto(Long manitoAssignmentId, Long roomUserId) {
+        ChattingRoom room = chatRoomRepo.findByManitoAssignmentManitoAssignmentId(manitoAssignmentId)
+                .orElseThrow(() -> new NotFoundException("채팅방을 찾을 수 없습니다: manitoAssignmentId=" + manitoAssignmentId));
+
+        ChattingUser cu = chatUserRepo.findByChattingRoomChattingRoomIdAndRoomUserRoomUserId(
+                        room.getChattingRoomId(),
+                        roomUserId)
+                .orElseThrow(() -> new NotFoundException("채팅유저를 찾을 수 없습니다: roomId="
+                        + room.getChattingRoomId() + ", roomUserId=" + roomUserId));
+
+        return new ChatRoomWithUserDto(
+                new ChattingRoomDto(room.getChattingRoomId(),
+                        manitoAssignmentId,
+                        room.getLastMessage(),
+                        room.getLastMessageTime()),
+                new ChattingUserDto(cu.getChattingRoom().getChattingRoomId(),
+                        cu.getRoomUser().getRoomUserId(),
+                        cu.getUnreadCount(),
+                        cu.getLastReadTime())
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public void assertOwner(Long roomUserId, Long userId) {
+        RoomUser ru = ruRepo.findById(roomUserId)
+                .orElseThrow(() -> new NotFoundException("RoomUser를 찾을 수 없습니다: roomUserId=" + roomUserId));
+        if (!ru.getUser().getUserId().equals(userId)) {
+            throw new UnauthenticatedException("senderRoomUserId가 인증 사용자와 일치하지 않습니다.");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Participants participants(Long chatRoomId) {
+        ChattingRoom room = chatRoomRepo.findById(chatRoomId)
+                .orElseThrow(() -> new NotFoundException("채팅방을 찾을 수 없습니다: roomId=" + chatRoomId));
+
+        // ChattingRoom → ManitoAssignment
+        ManitoAssignment ma = room.getManitoAssignment();
+
+        Long manitoUserId = ruRepo.findById(ma.getManito().getRoomUserId())
+                .map(ru -> ru.getUser().getUserId())
+                .orElseThrow(() -> new NotFoundException("마니또 RoomUser를 찾을 수 없습니다"));
+
+        Long maniteeUserId = ruRepo.findById(ma.getManitee().getRoomUserId())
+                .map(ru -> ru.getUser().getUserId())
+                .orElseThrow(() -> new NotFoundException("마니띠 RoomUser를 찾을 수 없습니다"));
+
+        return new Participants(manitoUserId, maniteeUserId);
     }
 }

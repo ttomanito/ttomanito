@@ -17,8 +17,8 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     Optional<Room> findByCreator_UserIdAndStatus(Long creatorId, RoomStatus status);
 
     Optional<Room> findByRoomIdAndCreator_UserId(Long roomId, Long creatorId);
-
-    List<Room> findAllByEndDateBeforeAndStatusNot(LocalDate date, RoomStatus status);
+    List<Room> findAllByEndDateLessThanEqualAndStatusNot(LocalDate date, RoomStatus status);
+    List<Room> findAllByEndDateAndStatusNot(LocalDate date, RoomStatus status);
 
     @Query("""
             SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END

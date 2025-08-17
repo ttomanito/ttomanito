@@ -6,12 +6,16 @@ import com.ssafy.ttomanito.domain.notice.dto.NoticeResponse;
 import com.ssafy.ttomanito.domain.notice.entity.Notice;
 import com.ssafy.ttomanito.domain.notice.entity.NoticeType;
 import com.ssafy.ttomanito.domain.notice.repository.NoticeRepository;
+import com.ssafy.ttomanito.domain.push.dto.FcmChatPayload;
+import com.ssafy.ttomanito.domain.push.service.FcmService;
+import com.ssafy.ttomanito.domain.push.service.PushTokenService;
 import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
 import com.ssafy.ttomanito.domain.room.repository.RoomUserRepository;
 import com.ssafy.ttomanito.domain.user.entity.User;
 import com.ssafy.ttomanito.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,10 +25,14 @@ import java.util.List;
 @Transactional
 @RequiredArgsConstructor
 public class NoticeService {
-
     private final NoticeRepository noticeRepository;
     private final ManitoAssignmentRepository manitoAssignmentRepository;
     private final RoomUserRepository roomUserRepository;
+    private final PushTokenService pushTokenService;
+    private final FcmService fcmService;
+
+    @Value("${url.redirect.base}")
+    private String redirectUrl;
 
     public List<NoticeResponse> getNotices(Long userId) {
         return noticeRepository.findByUser_UserIdAndCheckFalseOrderByNoticeIdDesc(userId)
@@ -48,11 +56,13 @@ public class NoticeService {
     public void createPokeNotice(Long userId) {
         User manito = findMyManito(userId);
         noticeRepository.save(Notice.of(manito, NoticeType.POKE));
+        pushNotice(manito.getUserId(), "콕 찌르기 알림", "마니또가 당신을 콕 찔렀어요!", "/notice");
     }
 
     public void createGuessNotice(Long userId) {
         User manito = findMyManito(userId);
         noticeRepository.save(Notice.of(manito, NoticeType.GUESS));
+        pushNotice(manito.getUserId(), "추측 알림", "마니띠가 마니또로 추측했어요! 들키지 않게 조심하세요!", "/notice");
     }
 
     private User findMyManito(Long userId) {
@@ -76,6 +86,11 @@ public class NoticeService {
             Notice notice = Notice.of(ru.getUser(), NoticeType.FINISHED);
             noticeRepository.save(notice);
         });
+
+        List<Long> userIds = users.stream().map(u -> u.getUser().getUserId()).toList();
+        List<String> tokens = pushTokenService.findTokensByUserIds(userIds);
+        fcmService.sendMulticastMessage(tokens, new FcmChatPayload(
+                "게임 종료", "결과를 확인해 보세요!", redirectUrl + "/report/reportdetail/" + roomId));
     }
 
     public void createExitNotices(Long userId) {
@@ -97,5 +112,10 @@ public class NoticeService {
                 .ifPresent(assign -> noticeRepository.save(
                         Notice.of(assign.getManitee().getUser(), NoticeType.SYSTEM)
                 ));
+    }
+
+    private void pushNotice(Long userId, String title, String body, String link) {
+        List<String> tokens = pushTokenService.findTokensByUserIds(List.of(userId));
+        fcmService.sendMulticastMessage(tokens, new FcmChatPayload(title, body, redirectUrl + link));
     }
 }

@@ -23,9 +23,8 @@ export const PreventAuthGuard = ({
   return <Outlet />;
 };
 
-// 기존 RequireAuth 컴포넌트 → RequireAuthGuard로 변경
 export default function RequireAuthGuard() {
-  const isReady = useAuth((s) => s.isReady) // 🔥 변경: hydrated → isReady
+  const isReady = useAuth((s) => s.isReady)  
   const isAuthed = useAuth((s) => s.isAuthenticated)
   const loc = useLocation()
 

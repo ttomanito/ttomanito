@@ -5,6 +5,7 @@ import com.ssafy.ttomanito.domain.manito.entity.ManitoAssignment;
 import com.ssafy.ttomanito.domain.manito.entity.ManitoGuess;
 import com.ssafy.ttomanito.domain.manito.repository.ManitoAssignmentRepository;
 import com.ssafy.ttomanito.domain.manito.repository.ManitoGuessRepository;
+import com.ssafy.ttomanito.domain.notice.service.NoticeService;
 import com.ssafy.ttomanito.domain.room.entity.Room;
 import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
 import com.ssafy.ttomanito.domain.room.entity.RoomUser;
@@ -27,6 +28,8 @@ public class ManitoService {
     private final ManitoAssignmentRepository manitoAssignmentRepository;
     private final ManitoGuessRepository manitoGuessRepository;
     private final RoomRepository roomRepository;
+    private final ActivityAggregationService activityAggregationService;
+    private final NoticeService noticeService;
 
     @Transactional(readOnly = true)
     public Long getManiteeId(Long userId) {
@@ -84,6 +87,15 @@ public class ManitoService {
         if (room.getStatus() == RoomStatus.FINISHED) {
             throw new BadRequestException("이미 종료된 방입니다");
         }
-        room.finish(LocalDate.now());
+
+        // 1) 종료 처리 (오늘 날짜로 종료)
+        LocalDate todayKst = LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+        room.finish(todayKst);
+
+        // 2) 오늘자 활동을 '해당 방'에 한해 즉시 집계
+        activityAggregationService.aggregateForDateAndRoom(todayKst, room.getRoomId());
+
+        // 3) 종료 알림/푸시 발송 (방 유저 전원)
+        noticeService.createFinishNoticeForRoom(room.getRoomId());
     }
 }
