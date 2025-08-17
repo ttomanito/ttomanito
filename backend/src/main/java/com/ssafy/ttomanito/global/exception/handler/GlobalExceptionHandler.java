@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Slf4j
 @RestControllerAdvice
@@ -24,7 +25,7 @@ public class GlobalExceptionHandler {
         ExceptionResponse body = new ExceptionResponse(
                 String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()),
                 "서버 내부 오류가 발생했습니다. errorId=" + errorId,
-                java.time.LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Seoul"))
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
@@ -35,7 +36,7 @@ public class GlobalExceptionHandler {
         ExceptionResponse body = new ExceptionResponse(
                 String.valueOf(status.value()),
                 ex.getMessage(),
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Seoul"))
         );
         return ResponseEntity.status(status).body(body);
     }
@@ -46,7 +47,7 @@ public class GlobalExceptionHandler {
         ExceptionResponse body = new ExceptionResponse(
                 String.valueOf(status.value()),
                 ex.getMessage(),
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Seoul"))
         );
         return ResponseEntity.status(status).body(body);
     }
@@ -57,7 +58,7 @@ public class GlobalExceptionHandler {
         ExceptionResponse body = new ExceptionResponse(
                 String.valueOf(status.value()),
                 "권한이 없습니다",
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Seoul"))
         );
         return ResponseEntity.status(status).body(body);
     }
@@ -68,7 +69,7 @@ public class GlobalExceptionHandler {
         ExceptionResponse body = new ExceptionResponse(
                 String.valueOf(status.value()),
                 ex.getMessage(),
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Seoul"))
         );
         return ResponseEntity.status(status).body(body);
     }
@@ -79,7 +80,7 @@ public class GlobalExceptionHandler {
         ExceptionResponse body = new ExceptionResponse(
                 String.valueOf(status.value()),
                 ex.getErrorCode().getMessage(),
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Seoul"))
         );
         return ResponseEntity.status(status).body(body);
     }

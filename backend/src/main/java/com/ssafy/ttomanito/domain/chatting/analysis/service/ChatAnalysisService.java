@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -52,7 +53,7 @@ public class ChatAnalysisService {
         // 2) 최근 N개 메시지 로드 (오름차순 정렬)
         var pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "sentAt"));
         List<ChatMessage> recentDesc =
-                chatRepo.findByChattingRoomIdAndSentAtBefore(chatRoomId, LocalDateTime.now(), pageable);
+                chatRepo.findByChattingRoomIdAndSentAtBefore(chatRoomId, LocalDateTime.now(ZoneId.of("Asia/Seoul")), pageable);
         List<ChatMessage> recent = recentDesc.stream()
                 .sorted(Comparator.comparing(ChatMessage::getSentAt))
                 .toList();
@@ -82,7 +83,7 @@ public class ChatAnalysisService {
                     .requestedBy(currentUserId)
                     .partnerUserId(partnerUserId)
                     .result(brief)
-                    .analyzedAt(LocalDateTime.now())
+                    .analyzedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                     .build();
             analysisRepo.save(doc);
 

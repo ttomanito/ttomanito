@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -137,7 +138,7 @@ public class ReportService {
      */
     private int pairChatCountByAssignment(Long assignId, Long myRuId, Long otherRuId) {
         LocalDateTime start = LocalDateTime.of(1970, 1, 1, 0, 0);
-        LocalDateTime end   = LocalDateTime.now();
+        LocalDateTime end   = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         var rows = chatRepo.countBySentAtBetweenGroupByRoomAndSender(start, end);
 
