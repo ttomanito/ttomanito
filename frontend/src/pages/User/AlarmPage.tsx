@@ -38,26 +38,7 @@ const NoticePage: React.FC = () => {
     let alive = true;
     (async () => {
       try {
-        let data = await getRequest<Notice[]>('/notice');
-        if (data.length == 0) {
-          data = [
-            {
-              noticeId: 0,
-              type: 'POKE',
-              check: true,
-            },
-            {
-              noticeId: 0,
-              type: 'POKE',
-              check: true,
-            },
-            {
-              noticeId: 0,
-              type: 'MISSION',
-              check: true,
-            },
-          ];
-        }
+        const data = await getRequest<Notice[]>('/notice');
         if (!alive) return;
         setList(data);
       } catch (e: any) {
