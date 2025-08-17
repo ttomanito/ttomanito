@@ -120,6 +120,7 @@ const WaitingRoomPage = () => {
         if (isMe) {
           alert('방장에 의해 대기방에서 내보내졌습니다.');
           disconnect();
+          syncUserGameStatus();
           navigate('/');
         }
         break;
@@ -134,7 +135,7 @@ const WaitingRoomPage = () => {
         disconnect();
         openModal({
           title: '게임 시작!',
-          body: '🎯 게임이 시작됩니다! 잠시만 기다려주세요!',
+          body: '🎯 게임이 시작됩니다!',
           footer: null,
         });
         setTimeout(() => {
@@ -155,7 +156,12 @@ const WaitingRoomPage = () => {
         const newList = await getRequest<Participant[]>(`/room/${roomId}/participants`);
         setInitialParticipants(newList);
         await syncUserGameStatus();
-        connect(roomId, newList);
+        // 🔽 여기만 교체
+        if (connected) {
+          updateParticipants(newList);   // 이미 연결돼 있으면 소켓 스토어만 갱신
+        } else {
+          connect(roomId, newList);      // 미연결이면 seed와 함께 연결
+        }
       } catch {
         alert('참여 요청에 실패했습니다.');
       }
@@ -250,6 +256,7 @@ const WaitingRoomPage = () => {
       alert('대기방 삭제에 실패했습니다.');
     }
   };
+  
 
   const handleDeleteRoom = () => {
     openModal({
@@ -266,8 +273,7 @@ const WaitingRoomPage = () => {
       )
     });
   };
-
-  const listForRender = connected ? participants : initialParticipants;
+  const listForRender = connected && participants.length > 0 ? participants : initialParticipants;
 
   const getRightButtonProps = (participantCount: number) => {
     if (isCreator) {
