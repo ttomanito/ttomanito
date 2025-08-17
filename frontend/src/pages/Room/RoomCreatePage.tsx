@@ -9,7 +9,6 @@ import { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/App.css';
-import { addDays } from 'date-fns';
 import CommonCard from '@/components/cards/CommonCard';
 import TextInput from '@/components/inputs/TextInput';
 import LongButton from '@/components/buttons/LongButton';
@@ -20,7 +19,15 @@ import { ko } from 'date-fns/locale';
 import { format } from 'date-fns';
 import DateInput from '@/components/inputs/DateInput';
 import { useNavigate } from 'react-router-dom';
-import { postRequest } from '@/api/requests'; 
+import { postRequest } from '@/api/requests';
+
+// ✅ Day.js 타임존 설정 (KST 고정)
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.tz.setDefault('Asia/Seoul');
+dayjs.locale('ko');
 
 const korToEngDay = {
   '월': 'MON',
@@ -30,7 +37,7 @@ const korToEngDay = {
   '금': 'FRI',
   '토': 'SAT',
   '일': 'SUN',
-};
+} as const;
 
 const RoomCreatePage = () => {
   const navigate = useNavigate();
@@ -39,12 +46,12 @@ const RoomCreatePage = () => {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  dayjs.locale('ko');
-  const today = dayjs().format('YYYY년 MM월 DD일 dddd');
+  // ✅ 표시도 KST 기준
+  const todayLabel = dayjs.tz().format('YYYY년 MM월 DD일 dddd');
 
   const toggleDay = (day: string) => {
-    setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    setSelectedDays(prev =>
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
     );
   };
 
@@ -57,23 +64,21 @@ const RoomCreatePage = () => {
     }
     setLoading(true);
 
-    const missionDays = selectedDays.map(
-      (kor) => korToEngDay[kor as keyof typeof korToEngDay]
-    );
-    const startDate = dayjs().format('YYYY-MM-DD');
-    const selectedEnd = dayjs(endDate).format('YYYY-MM-DD');
+    // ✅ 서버 전송도 KST 기준
+    const missionDays = selectedDays.map(k => korToEngDay[k as keyof typeof korToEngDay]);
+    const startDate = dayjs.tz().format('YYYY-MM-DD');
+    const selectedEnd = dayjs.tz(endDate!).format('YYYY-MM-DD');
 
     try {
       const res = await postRequest('/room', {
         name: groupName,
-        startDate: startDate,
+        startDate,
         endDate: selectedEnd,
         missionDays,
       });
 
       const { roomId } = res;
       navigate(`/room/${roomId}`);
-      
     } catch {
       alert('방 생성 중 오류가 발생했습니다.');
     } finally {
@@ -107,24 +112,23 @@ const RoomCreatePage = () => {
       <CommonCard w="full" mt={4}>
         <VStack align="start" w="full">
           <Text textStyle="title_md">기간 설정</Text>
+
+          {/* 시작일 (KST 고정 표시) */}
           <Box w="full">
             <Text textStyle="body_sm" textAlign="start">시작일</Text>
             <Box bg="gray.100" w="full" borderRadius="xl" px={4} py={2} mt={2}>
-              <Text textStyle="body_md" textAlign="start">{today}</Text>
+              <Text textStyle="body_md" textAlign="start">{todayLabel}</Text>
               <Text textStyle="caption_xs_light" textAlign="start">방 생성일 당일로 자동 설정됩니다</Text>
             </Box>
           </Box>
 
+          {/* 종료일 (선택/표시/제한 모두 KST 기준) */}
           <Box width="100%">
             <Text textStyle="body_sm" textAlign="start" mb={2}>종료일</Text>
             <DatePicker
               selected={endDate}
               onChange={(date: Date | null) => setEndDate(date)}
-              renderCustomHeader={({
-                date,
-                decreaseMonth,
-                increaseMonth,
-              }) => (
+              renderCustomHeader={({ date, decreaseMonth, increaseMonth }) => (
                 <div className="custom-datepicker-header">
                   <button onClick={decreaseMonth}>{'<ㅤㅤㅤ'}</button>
                   <span>{format(date, 'yyyy년 M월', { locale: ko })}</span>
@@ -132,14 +136,14 @@ const RoomCreatePage = () => {
                 </div>
               )}
               wrapperClassName="datepicker-full-width"
-              minDate={new Date()}
-              maxDate={addDays(new Date(), 30)}
+              minDate={dayjs.tz().startOf('day').toDate()}
+              maxDate={dayjs.tz().add(30, 'day').endOf('day').toDate()}
               dateFormat="yyyy-MM-dd"
               placeholderText="종료일을 선택해주세요"
               locale={ko}
               customInput={
                 <DateInput
-                  value={endDate ? dayjs(endDate).format('YYYY-MM-DD') : ''}
+                  value={endDate ? dayjs.tz(endDate).format('YYYY-MM-DD') : ''}
                   placeholder="종료일을 선택해주세요"
                 />
               }

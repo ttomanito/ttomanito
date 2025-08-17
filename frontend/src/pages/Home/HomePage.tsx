@@ -35,9 +35,17 @@ import ttoma_observation from '@/assets/mission_icons/ttoma_observation.svg';
 import ttoma_performance from '@/assets/mission_icons/ttoma_performance.svg';
 import { useAuth } from '@/stores/authStore';
 import profile_manitee from '@/assets/ttomas/profile_manitee.png';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 
-// Day.js 플러그인 활성화
 dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);   // ✅ 추가
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// 전역 기본 타임존을 KST로 고정
+dayjs.tz.setDefault('Asia/Seoul');
 
 // 타입 정의
 interface Participant {
@@ -66,6 +74,24 @@ interface PastMissionsListProps {
   roomId: number;
   roomStartDate: string;
 }
+// invalid Dayjs 생성기
+const invalidDay = () => dayjs(Number.NaN);
+
+// 서버에서 오는 날짜/시간 문자열을 안전하게 KST 기준으로 파싱
+const parseServerDateKST = (s?: string) => {
+  if (!s) return invalidDay();
+
+  // YYYY-MM-DD → KST 자정
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    return dayjs.tz(`${s}T00:00:00`, 'Asia/Seoul');
+  }
+
+  // TZ 없으면 Z 붙여 UTC로 간주
+  const hasTZ = /(Z|[+-]\d{2}:\d{2})$/.test(s);
+  const str = hasTZ ? s : s + 'Z';
+  const d = dayjs.tz(str, 'Asia/Seoul');
+  return d.isValid() ? d : invalidDay();
+};
 
 // 이전 미션 목록 컴포넌트
 const PastMissionsList = ({ roomId, roomStartDate }: PastMissionsListProps) => {
@@ -78,10 +104,12 @@ const PastMissionsList = ({ roomId, roomStartDate }: PastMissionsListProps) => {
         const allMissions = await getRequest<PastMission[]>('/manito/mission/missionlist');
         
         const filteredMissions = allMissions.filter((mission) => {
-          // 1. roomId가 현재 방과 같고,
           const isSameRoom = mission.roomId === roomId;
-          // 2. 미션 날짜가 방 시작일과 같거나 그 이후인 경우만 필터링
-          const isAfterCreation = dayjs(mission.missionDate).isSameOrAfter(dayjs(roomStartDate), 'day');
+
+          const mDate = parseServerDateKST(mission.missionDate);
+          const start  = parseServerDateKST(roomStartDate);
+
+          const isAfterCreation = mDate.isSameOrAfter(start, 'day');
           return isSameRoom && isAfterCreation;
         });
 
@@ -114,7 +142,7 @@ const PastMissionsList = ({ roomId, roomStartDate }: PastMissionsListProps) => {
       {missions.map((mission) => (
         <MissionListItem
           key={mission.missionId}
-          date={dayjs(mission.missionDate).format('MM/DD')}
+          date={parseServerDateKST(mission.missionDate).format('MM/DD')}
           content={mission.title}
           completed={mission.completed}
         />
@@ -141,9 +169,9 @@ const GameHomePage = () => {
   const [manitoProfile, setManitoProfile] = useState<Participant | null>(null);
   const [isFetchingManito, setIsFetchingManito] = useState(false);
 
-  const today = dayjs();
+  const today = dayjs.tz();
   const todayKey = today.format('YYYY-MM-DD');
-  const todayDay = today.format('ddd').toUpperCase();
+  const todayDay = today.locale('en').format('ddd').toUpperCase(); // 'MON' 등
 
   useEffect(() => {
     if (!isReady) return;
@@ -171,8 +199,9 @@ const GameHomePage = () => {
 
   const { currentDay, totalDays } = useMemo(() => {
     if (!room) return { currentDay: 0, totalDays: 0 };
-    const start = dayjs(room.startDate);
-    const end = dayjs(room.endDate);
+    const start = parseServerDateKST(room.startDate);
+    const end   = parseServerDateKST(room.endDate);
+
     const total = end.diff(start, 'day') + 1;
     let current = today.diff(start, 'day') + 1;
     if (current < 1) current = 1;
@@ -180,16 +209,18 @@ const GameHomePage = () => {
     return { currentDay: current, totalDays: total };
   }, [room, today]);
 
-  const isMissionAvailable = useMemo(() => {
-    if (!room) return false;
-    const start = dayjs(room.startDate);
-    const end = dayjs(room.endDate);
-    return (
-      today.isAfter(start.subtract(1, 'day')) &&
-      today.isBefore(end.add(1, 'day')) &&
-      room.missionDays.includes(todayDay)
-    );
-  }, [room, todayDay, today]);
+// 미션 가능한 날인지 (기간 + 요일)
+const isMissionAvailable = useMemo(() => {
+  if (!room) return false;
+  const start = parseServerDateKST(room.startDate);
+  const end   = parseServerDateKST(room.endDate);
+
+  return (
+    today.isSameOrAfter(start, 'day') &&
+    today.isSameOrBefore(end,   'day') &&
+    room.missionDays.includes(todayDay)
+  );
+}, [room, todayDay, today]);
 
   const isMissionCompletedToday = useMemo(() => !!todayMission?.completed, [todayMission]);
 
