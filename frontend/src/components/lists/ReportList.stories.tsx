@@ -1,4 +1,3 @@
-// components/ReportList.stories.tsx
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import ReportList from './ReportList';
 

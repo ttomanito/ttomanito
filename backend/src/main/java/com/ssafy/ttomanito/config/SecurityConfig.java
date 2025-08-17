@@ -3,6 +3,7 @@ package com.ssafy.ttomanito.config;
 import com.ssafy.ttomanito.global.security.filter.JwtAuthenticationFilter;
 import com.ssafy.ttomanito.global.security.oauth.OAuth2AuthenticationSuccessHandler;
 import com.ssafy.ttomanito.global.security.oauth.SocialUserService;
+import com.ssafy.ttomanito.global.security.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Slf4j
 @Configuration
@@ -80,18 +82,11 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
-                        .deleteCookies("accessToken", "refreshToken", "JSESSIONID", "kakaoAccessToken")
-                        .logoutSuccessHandler((req, res, auth) -> {
-                            java.util.stream.Stream.of("accessToken","refreshToken","JSESSIONID","kakaoAccessToken")
-                                    .forEach(name -> {
-                                        var c = ResponseCookie.from(name, "")
-                                                .path("/")
-                                                .maxAge(0)
-                                                .build();
-                                        res.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, c.toString());
-                                    });
-                            res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                        .addLogoutHandler((req, res, auth) -> {
+                            Stream.of("accessToken","refreshToken","JSESSIONID","kakaoAccessToken")
+                                    .forEach(n -> CookieUtils.deleteCookie(req, res, n));
                         })
+                        .logoutSuccessHandler((req, res, auth) -> res.setStatus(204))
                 )
                 .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> res.sendError(401)));
 

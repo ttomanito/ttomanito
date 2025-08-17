@@ -1,4 +1,3 @@
-// components/MissionListItem.stories.tsx
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import MissionListItem from './MissionListItem';
 

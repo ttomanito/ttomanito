@@ -14,10 +14,10 @@ const ProfileListItem: React.FC<ProfileListItemProps> = ({
   name,
   statusMessage,
   rightSideChild,
-  borderWidth = "1px", // 기본값
-  borderColor = "gray.200", // 기본값
+  borderWidth = "1px", 
+  borderColor = "gray.200", 
 }) => {
-  // 이니셜 추출 (예: 안수진 → 안)
+  // 이니셜 추출 
   const initial = name[0];
 
   return (

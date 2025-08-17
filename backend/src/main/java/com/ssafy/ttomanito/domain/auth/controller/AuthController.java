@@ -4,8 +4,8 @@ import com.ssafy.ttomanito.domain.auth.dto.AccessTokenResponse;
 import com.ssafy.ttomanito.domain.auth.service.AuthService;
 import com.ssafy.ttomanito.domain.user.dto.UserDto;
 import com.ssafy.ttomanito.domain.user.service.UserService;
-import com.ssafy.ttomanito.global.security.oauth.KakaoApiClient;
 import com.ssafy.ttomanito.global.security.userdetails.JwtUserDetails;
+import com.ssafy.ttomanito.global.security.utils.CookieUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,11 +17,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,7 +38,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserService userService;
-    private final KakaoApiClient kakaoApiClient;
+
     @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
     private String kakaoClientId;
 
@@ -108,12 +105,8 @@ public class AuthController {
     @ApiResponse(responseCode = "302", description = "프론트 /login 으로 리다이렉트")
     @GetMapping("/kakao/logout/callback")
     public void kakaoLogoutCallback(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        // kakaoAccessToken 포함 우리 쿠키들 제거
-        java.util.stream.Stream.of("kakaoAccessToken","accessToken","refreshToken","JSESSIONID").forEach(name -> {
-            var del = ResponseCookie.from(name, "").path("/").maxAge(0).build();
-            res.addHeader(HttpHeaders.SET_COOKIE, del.toString());
-        });
-        // 프론트로 이동
-        res.sendRedirect(frontendRedirectBase + "/login");
+        java.util.stream.Stream.of("kakaoAccessToken","accessToken","refreshToken","JSESSIONID")
+                .forEach(name -> CookieUtils.deleteCookie(req, res, name));
+        res.sendRedirect(frontendRedirectBase);
     }
 }

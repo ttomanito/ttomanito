@@ -1,9 +1,7 @@
-// components/ui/CustomButton.tsx
 import { forwardRef } from 'react';
 import { Button } from '@chakra-ui/react';
 import type { ButtonProps } from '@chakra-ui/react';
 
-// accent props를 새로 정의
 type CustomButtonProps = Omit<ButtonProps, 'variant' | 'colorScheme'> & {
   accent?: string;
 };

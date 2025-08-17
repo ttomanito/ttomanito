@@ -1,5 +1,3 @@
-// components/modal/TutorialBody.tsx
-
 import {
   Text,
   VStack,
@@ -41,7 +39,6 @@ const tutorialData = [
   },
 ];
 
-// ✨ 1. 애니메이션 상태를 정의하는 variants 객체 생성
 const variants = {
   enter: (direction: number) => ({
     x: direction > 0 ? 200 : -200,
@@ -106,7 +103,6 @@ const TutorialBody = () => {
 
         <Box w="full" overflow="hidden">
           <AnimatePresence initial={false} custom={direction} mode="wait">
-            {/* ✨ 2. motion.div에 variants를 적용하도록 수정 */}
             <motion.div
               key={index}
               custom={direction}

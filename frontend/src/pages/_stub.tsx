@@ -1,4 +1,3 @@
-// src/pages/_stub.tsx
 import { Center, Heading, Text, VStack } from '@chakra-ui/react';
 
 /** 페이지 이름만 크게 보여주는 더미 컴포넌트를 만들어 줍니다. */
