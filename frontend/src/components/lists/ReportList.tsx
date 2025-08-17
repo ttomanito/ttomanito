@@ -1,4 +1,3 @@
-// components/ReportList.tsx
 import { VStack } from '@chakra-ui/react';
 import ReportListItem from './ReportListItem';
 import type { ReportListItemProps } from './ReportListItem';

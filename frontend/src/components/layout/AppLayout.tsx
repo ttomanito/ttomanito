@@ -18,6 +18,8 @@ import logo_ttomanito from '@/assets/ttomas/logo_ttomanito.svg';
 import { useModalStore } from '@/stores/modalStore';
 import BaseModal from '@/components/modal/BaseModal';
 import InstallBanner from '@/components/ui/InstallBanner';
+import type { PageFrame } from './pageFrame'
+import BackBar from './BackBar';
 
 // 왼쪽 텍스트 영역
 const PcMent = () => (
@@ -52,60 +54,69 @@ const PcMent = () => (
   </Flex>
 );
 
+const frameRules: Array<{ frame: PageFrame; patterns: string[] }> = [
+  { // 헤더 + 하단바
+  frame: 'full',
+  patterns: [
+    '/home', '/guess', '/chat', '/rank' 
+  ]
+},
+{ // 헤더 O + 하단바 X
+  frame: 'header-only',
+  patterns: [
+    '/','/main', '/manito/:roomId/matching', '/report/reportlist'
+  ]
+},
+{ // 뒤로 가기만
+  frame: 'back-only',
+  patterns: [
+   '/user/update', '/room', '/room/:roomId', '/chat/:chatRoomId', '/report/reportdetail/:reportId'
+  ]
+},
+{ // 헤더 X + 하단바 X
+  frame: 'bare',
+  patterns: [
+    '/login', '/chat/:chatRoomId/call'
+  ]
+},
+];
 
+const getFrame = (pathname: string): PageFrame => {
+  for (const { frame, patterns } of frameRules) {
+    if (patterns.some((p) => matchPath({ path: p, end: true }, pathname))) {
+      return frame;
+    }
+  }
+  return 'full';
+};
 
 export default function AppLayout() {
   const containerRef = useRef<HTMLDivElement>(null);
-
   const { pathname } = useLocation();
   const { isModalOpen, closeModal, modalTitle, modalBody, modalCaption, modalFooter } =
     useModalStore();
 
-  const noHeaderPatterns = [
-    '/chat/:chatRoomId/call',
-    '/room',
-    '/login',
-  ];
-  const noBottomPatterns = [
-    '/chat/:chatRoomId/call',
-    '/',
-    '/main',
-    '/room',
-    '/login',
-    '/register',
-    '/room/:roomId',
-    '/manito/:roomId/matching',
-    '/user/update'];
+  const frame = getFrame(pathname);
 
-  const hideHeader = noHeaderPatterns.some((pattern) =>
-    matchPath({ path: pattern, end: true }, pathname)
-  );
-  const hideBottom = noBottomPatterns.some((pattern) =>
-    matchPath({ path: pattern, end: true }, pathname)
-  );
+  // ② 프레임별 레이아웃 행 구성(상/중/하)
+  // - full, header-only: "auto 1fr auto"
+  // - back-only: "auto 1fr"
+  // - bare: "1fr"
+  const rows =
+    frame === 'full' || frame === 'header-only'
+      ? 'auto 1fr auto'
+      : frame === 'back-only'
+      ? 'auto 1fr'
+      : '1fr'; // bare
 
   return (
-    <Box
-      bgImage={`url(${bgImage})`}
-      bgRepeat="repeat"
-      bgSize="auto"
-      minH="100dvh"
-    >
-      <Grid
-        templateColumns={{ base: '1fr', lg: '1fr 1fr' }}
-        w="100%"
-        h="100dvh"
-      >
+    <Box bgImage={`url(${bgImage})`} bgRepeat="repeat" bgSize="auto" minH="100dvh">
+      <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} w="100%" h="100dvh">
         <GridItem display={{ base: 'none', lg: 'flex' }} alignItems="center" justifyContent="flex-start">
           <PcMent />
         </GridItem>
-        
-        <GridItem
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          position="relative"
-        >
+
+        <GridItem display="flex" justifyContent="center" alignItems="center" position="relative">
           <Portal container={containerRef}>
             <BaseModal
               open={isModalOpen}
@@ -116,32 +127,39 @@ export default function AppLayout() {
               footer={modalFooter}
             />
           </Portal>
-          
+
           <Box
             ref={containerRef}
             position="relative"
-            // ✨ 3단계 반응형 너비 설정
-            w={{ base: '375px', xs: '100%', mobile: '520px' }}
+            w={{ base: '375px', xs: '100%', mobile: '520px' } as any}
             h="100dvh"
             overflow="hidden"
           >
-            
             <Container
               maxW="560px"
               w="full"
               px={0}
+              py={1}
               display="grid"
-              gridTemplateRows="auto 1fr auto"
+              gridTemplateRows={rows}
               h="100dvh"
               overflow="hidden"
               bg="white"
-              boxSizing="border-box" // 추가
+              boxSizing="border-box"
             >
-              {!hideHeader && <AppHeader containerRef={containerRef} />}
+              {/* 상단 영역 */}
+              {frame === 'full' && <AppHeader containerRef={containerRef} />}
+              {frame === 'header-only' && <AppHeader containerRef={containerRef} />}
+              {frame === 'back-only' && <BackBar />}
+
+              {/* 메인 컨텐츠 */}
               <Box as="main" overflowY="auto">
                 <Outlet />
               </Box>
-              {!hideBottom && <BottomNav />}
+
+              {/* 하단 네비게이션 */}
+              {frame === 'full' ? <BottomNav /> : null}
+
               <InstallBanner />
             </Container>
           </Box>

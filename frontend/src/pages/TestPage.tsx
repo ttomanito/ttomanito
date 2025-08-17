@@ -37,7 +37,6 @@ const INITIAL_MESSAGE_COUNT = 30;
 const TestPage = () => {
   const myUserId = 'my-user-id';
 
-  // ❗ 1. firstItemIndex 상태 추가: 현재 데이터의 시작 인덱스를 관리합니다.
   const [firstItemIndex, setFirstItemIndex] = useState(
     allServerMessages.length - INITIAL_MESSAGE_COUNT
   );
@@ -55,18 +54,14 @@ const TestPage = () => {
     
     setTimeout(() => {
       const itemsToPrepend = 20;
-      // 다음으로 가져올 메시지의 시작 인덱스를 계산합니다.
       const nextFirstItemIndex = Math.max(0, firstItemIndex - itemsToPrepend);
-      
-      // 서버 메시지 배열에서 필요한 부분을 잘라냅니다.
       const newMessages = allServerMessages.slice(nextFirstItemIndex, firstItemIndex);
       
       setMessages(prev => [...newMessages, ...prev]);
-      // ❗ 2. firstItemIndex 상태를 업데이트합니다.
       setFirstItemIndex(nextFirstItemIndex);
       
       setIsLoading(false);
-    }, 1000); // 1초 지연 시뮬레이션
+    }, 1000);
   }, [isLoading, firstItemIndex]);
 
   const handleStartReached = useCallback(() => {
@@ -77,7 +72,6 @@ const TestPage = () => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('메시지 전송 시도:', message);
   };
 
   return (
@@ -95,14 +89,10 @@ const TestPage = () => {
         <Virtuoso
           style={{ height: '100%' }}
           data={messages}
-          // ❗ 3. 상태로 관리되는 firstItemIndex를 prop으로 전달합니다.
           firstItemIndex={firstItemIndex}
-          // ❗ 4. 초기 스크롤 위치는 전체 데이터의 마지막으로 고정합니다.
           initialTopMostItemIndex={allServerMessages.length - 1}
           startReached={handleStartReached}
           itemContent={(_index, msg) => {
-            // Virtuoso 내부 index는 0부터 시작하므로, 실제 데이터 인덱스는 firstItemIndex를 더해줘야 합니다.
-            // 여기서는 msg.id가 고유하므로 index를 직접 사용할 필요는 없습니다.
             return (
               <Box key={msg.id} px={4} py={2}>
                 <ChatMessageRenderer message={msg} myUserId={myUserId} />

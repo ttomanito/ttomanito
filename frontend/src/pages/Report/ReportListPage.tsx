@@ -32,27 +32,22 @@ const ReportListPage = () => {
         setReports(data);
 
       } catch (err: any) {
-        // axios 에러 객체에서 메시지를 추출하거나 기본 메시지를 사용합니다.
         const errorMessage = err.response?.data?.message || err.message || '데이터를 불러오는데 실패했습니다.';
         setError(errorMessage);
-        console.error("API 호출 에러:", err);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchReportHistory();
-  }, []); // 빈 배열을 전달하여 컴포넌트가 처음 렌더링될 때 한 번만 실행되도록 합니다.
+  }, []); 
 
-  // 보고서 클릭 시 상세 페이지로 이동하는 함수입니다.
+
   const handleReportClick = (reportId: number) => {
-    console.log(`리포트 상세 페이지로 이동합니다. ID: ${reportId}`);
-    // API 명세에 따라 /report/reportdetail/{roomId} 경로로 이동합니다.
-    // 실제 라우트 설정에 따라 경로는 '/report/:roomId' 등이 될 수 있습니다.
     navigate(`/report/reportdetail/${reportId}`);
   };
 
-  // 로딩 중일 때 표시할 UI
+  // 로딩 중일 때
   if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
@@ -61,7 +56,7 @@ const ReportListPage = () => {
     );
   }
 
-  // 에러 발생 시 표시할 UI
+  // 에러 발생 시 
   if (error) {
     return (
       <Box p={4} m={4}>
@@ -73,7 +68,7 @@ const ReportListPage = () => {
   }
   
   return (
-    <Box maxW="md" mx="auto">
+    <Box p={3} m={3}>
           <VStack align="stretch">
 
     <Box>

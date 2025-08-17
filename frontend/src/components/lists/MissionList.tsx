@@ -1,4 +1,3 @@
-// components/MissionList.tsx
 import { VStack, Text } from '@chakra-ui/react';
 import MissionListItem from './MissionListItem';
 

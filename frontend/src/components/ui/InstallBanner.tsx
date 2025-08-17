@@ -33,7 +33,6 @@ const InstallBanner = () => {
     };
 
     const handleAppInstalled = () => {
-      console.log('✅ 앱 설치됨');
       setIsVisible(false);
       setDeferredPrompt(null);
     };
@@ -50,8 +49,7 @@ const InstallBanner = () => {
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     await deferredPrompt.prompt();
-    const choiceResult = await deferredPrompt.userChoice;
-    console.log('User response to install prompt:', choiceResult.outcome);
+    await deferredPrompt.userChoice;
     setIsVisible(false);
     setDeferredPrompt(null);
   };
@@ -88,7 +86,7 @@ const InstallBanner = () => {
 
       {/* 가운데 텍스트 */}
       <VStack align="start" gap={0} flex="1" ml={4} mr={4}>
-        <Text fontWeight="bold" fontSize="md" >
+        <Text fontWeight="bold" fontSize="md">
           또마니또
         </Text>
         <Text fontSize="sm">

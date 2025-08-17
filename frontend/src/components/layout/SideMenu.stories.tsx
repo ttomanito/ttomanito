@@ -1,5 +1,3 @@
-// src/components/layout/SideMenu.stories.tsx
-
 import type { Meta, StoryObj } from '@storybook/react';
 import { Flex, Text } from '@chakra-ui/react';
 import SideMenu from './SideMenu';

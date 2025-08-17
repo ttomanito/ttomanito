@@ -1,4 +1,3 @@
-// components/ui/FramedCard.tsx
 import { Card, Text } from '@chakra-ui/react';
 import type { ReactNode, ComponentProps } from 'react';
 

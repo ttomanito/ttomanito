@@ -1,4 +1,3 @@
-// BasicLayout.tsx
 import { Box, Container } from '@chakra-ui/react';
 import { Outlet } from 'react-router-dom';
 

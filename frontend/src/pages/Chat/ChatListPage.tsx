@@ -1,13 +1,10 @@
-// src/pages/Chat/ChatListPage.tsx
+import { useNavigate } from 'react-router-dom';
 import { Box, Flex, Text, VStack, Badge, Image, Spinner, Center } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getRequest } from '@/api/requests';
+import { getRequest, postRequest } from '@/api/requests';
 import { useAuth } from '@/stores/authStore';
 import profile_manito from '@/assets/ttomas/profile_manito.png';
 import profile_manitee from '@/assets/ttomas/profile_manitee.png';
-
-// API 응답 데이터 타입 정의
 interface ChatRoomData {
   chattingRoomId: number;
   manitoAssignmentId: number;
@@ -33,7 +30,6 @@ interface ChatApiResponse {
 }
 
 const ChatListPage = () => {
-  // 새로운 스토어에서 게임 정보 가져오기
   const { gameInfo, isReady } = useAuth();
   const isInGame = gameInfo.status === 'IN_GAME';
   const roomId = gameInfo.roomId;
@@ -42,13 +38,23 @@ const ChatListPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 파트너 정보 가져오기 함수
-  const getChatPartnerInfo = (assignmentId: number) => {
-    if (assignmentId % 2 === 0) {
-      return { name: '마니또', profileImage: profile_manito };
+  const getChatPartnerInfo = (index: number) => {
+    if (index == 0) {
+      return { role: '마니띠', profileImage: profile_manito };
     } else {
-      return { name: '마니띠', profileImage: profile_manitee };
+      return { role: '마니또', profileImage: profile_manitee };
     }
+  };
+
+  const navigate = useNavigate();
+
+  const enterChat = async (id: number, partner: { role: string; profileImage: string }) => {
+    try {
+      await postRequest(`/chat/${id}/enter`, {});
+    } catch {
+      // 실패 시 별도 처리 X
+    }
+    navigate(`/chat/${id}`, { state: { partner } });
   };
 
   useEffect(() => {
@@ -65,15 +71,11 @@ const ChatListPage = () => {
           return;
         }
 
-        // 실제 API 호출
         const responseData = await getRequest<ChatApiResponse>('/chat/roomlist');
-        
-        // API 응답에서 'manito'와 'manitee' 두 개의 채팅방 정보를 배열로 변환
+
         const chatDataArray = [responseData.manito, responseData.manitee];
         setChatList(chatDataArray);
-
-      } catch (err) {
-        console.error('채팅방 목록을 불러오는 데 실패했습니다.', err);
+      } catch {
         setError('채팅방 목록을 불러오지 못했습니다. 다시 시도해주세요.');
         setChatList([]);
       } finally {
@@ -128,18 +130,23 @@ const ChatListPage = () => {
   }
 
   return (
-    <Box>
+    <Box p={3} m={3}>
+      <Text textStyle="title_mlg" mb={2}>✪ 채팅룸</Text>
+      <Text textStyle="caption_sm" color="gray.600" mb={4}>익명으로 자유롭게 마음을 표현하며 따뜻한 대화를 나눠보세요!</Text>
       <VStack align="stretch" gap="0">
         {chatList.map((chat, index) => {
           // 파트너 정보 가져오기
-          const { name, profileImage } = getChatPartnerInfo(chat.chatRoom.manitoAssignmentId);
+          // chatList[0]: 마니또
+          // chatList[1]: 마니띠
+          const { profileImage } = getChatPartnerInfo(index);
+          const partner = getChatPartnerInfo(index);
 
           return (
-            <Link key={chat.chatRoom.chattingRoomId} to={`/chat/${chat.chatRoom.chattingRoomId}`}>
               <Flex
                 align="center"
-                _hover={{ bg: 'gray.100' }}
-                px="2"
+                _hover={{ bg: 'gray.100' , cursor: 'pointer'}}
+                onClick={() => enterChat(chat.chatRoom.chattingRoomId, partner)}
+                px="4"
                 py="4"
                 borderBottomWidth={index === chatList.length - 1 ? '0' : '1px'}
                 borderBottomStyle="solid"
@@ -154,41 +161,30 @@ const ChatListPage = () => {
                   borderColor="border.disabled"
                   color="fg.disabled"
                 >
-                  <Image 
-                    src={profileImage} 
-                    alt={`${name} 프로필`}
-                    mr={3}
-                  />
+                  <Image src={profileImage} alt={`${partner.role} 프로필`} mr={3} />
                 </Box>
                 <Box flex="1">
-                  <Text fontWeight="bold">{name}</Text>
+                  <Text fontWeight="bold">{partner.role}</Text>
                   <Text fontSize="sm" color="gray.500">
                     {chat.chatRoom.lastMessage || '아직 메시지가 없습니다.'}
                   </Text>
                 </Box>
                 <Box textAlign="right">
                   <Text fontSize="xs" color="gray.400">
-                    {chat.chatRoom.lastMessageTime && 
+                    {chat.chatRoom.lastMessageTime &&
                       new Date(chat.chatRoom.lastMessageTime).toLocaleTimeString('ko-KR', {
                         hour: '2-digit',
                         minute: '2-digit',
-                      })
-                    }
+                      })}
                   </Text>
                   {chat.chatUserInfo.unreadCount > 0 && (
-                    <Badge 
-                      mt={1} 
-                      colorScheme="purple" 
-                      borderRadius="full" 
-                      fontSize="0.7rem" 
-                      px={2}
-                    >
+                    <Badge mt={1} colorScheme="purple" borderRadius="full" fontSize="0.7rem" px={2}>
                       {chat.chatUserInfo.unreadCount}
                     </Badge>
                   )}
                 </Box>
               </Flex>
-            </Link>
+            // </Link>
           );
         })}
       </VStack>

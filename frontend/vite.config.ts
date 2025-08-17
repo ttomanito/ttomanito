@@ -1,4 +1,3 @@
-// vite.config.ts
 /// <reference types="vitest/config" />
 
 import { defineConfig } from 'vite';
@@ -137,6 +136,37 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      '/ws': {
+        target: 'https://i13b206.p.ssafy.io',
+        changeOrigin: true,
+        secure: true,
+      },
     },
   },
+  // server: {
+  //   proxy: {
+  //     '/api': {
+  //       target: 'http://localhost:8080',
+  //       changeOrigin: true,
+  //       secure: false,
+  //       rewrite: p => p.replace(/^\/api/, ''),
+  //     },
+  //     '/oauth2': {
+  //       target: 'http://localhost:8080',
+  //       changeOrigin: true,
+  //       secure: false,
+  //     },
+  //     '/login/oauth2': {
+  //       target: 'http://localhost:8080',
+  //       changeOrigin: true,
+  //       secure: false,
+  //     },
+  //     '/ws': {
+  //       target: 'http://localhost:8080',
+  //       changeOrigin: true,
+  //       secure: false,
+  //       ws: true,
+  //     },
+  //   },
+  // },
 });

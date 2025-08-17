@@ -1,4 +1,3 @@
-// BottomNav.tsx
 import { Flex, HStack, VStack, Icon, type FlexProps } from '@chakra-ui/react';
 import { Link, useLocation } from 'react-router-dom';
 import { LuHouse, LuMessageCircle, LuCircleCheckBig, LuTrophy } from 'react-icons/lu';

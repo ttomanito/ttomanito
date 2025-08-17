@@ -33,7 +33,7 @@ import ttoma_notes from '@/assets/mission_icons/ttoma_notes.svg';
 import ttoma_observation from '@/assets/mission_icons/ttoma_observation.svg';
 import ttoma_performance from '@/assets/mission_icons/ttoma_performance.svg';
 import { useAuth } from '@/stores/authStore';
-import ttoma_profile from '@/assets/ttomas/ttoma_profile.png';
+import profile_manitee from '@/assets/ttomas/profile_manitee.png'
 
 // 타입 정의
 interface Participant {
@@ -66,8 +66,8 @@ const PastMissionsList = () => {
       try {
         const missionList = await getRequest<PastMission[]>('/manito/mission/missionlist');
         setMissions(missionList);
-      } catch (err) {
-        console.error('이전 미션 목록 가져오기 실패:', err);
+      } catch {
+        // 실패 시 별도 처리 X
       } finally {
         setIsLoading(false);
       }
@@ -98,7 +98,6 @@ const PastMissionsList = () => {
 
 // 메인 컴포넌트
 const GameHomePage = () => {
-  // 🔥 변경: auth store 새 구조 사용
   const { gameInfo, isReady } = useAuth();
   const isInGame = gameInfo.status === 'IN_GAME';
   const roomId = gameInfo.roomId;
@@ -131,8 +130,8 @@ const GameHomePage = () => {
           ]);
           setRoom(roomData);
           setParticipants(participantsData);
-        } catch (err) {
-          console.error('게임 데이터 가져오기 실패:', err);
+        } catch {
+          // 실패 시 별도 처리 X
         } finally {
           setIsPageLoading(false);
         }
@@ -165,16 +164,14 @@ const GameHomePage = () => {
     );
   }, [room, todayDay, today]);
 
-  // ✅ 서버 데이터 기준 완료 여부
   const isMissionCompletedToday = useMemo(() => !!todayMission?.completed, [todayMission]);
 
   useEffect(() => {
     const revealed = localStorage.getItem(`mission_revealed_${todayKey}`);
     setIsMissionRevealed(revealed === 'true');
 
-    // 미션이 미리 공개된 상태라면 fetch
     if (revealed === 'true' && !todayMission && isMissionAvailable) {
-      fetchTodayMission().then(setTodayMission).catch(console.error);
+      fetchTodayMission().then(setTodayMission).catch(() => {});
     }
   }, [todayKey, isMissionAvailable, todayMission]);
 
@@ -185,8 +182,8 @@ const GameHomePage = () => {
       setTodayMission(mission);
       localStorage.setItem(`mission_revealed_${todayKey}`, 'true');
       setIsMissionRevealed(true);
-    } catch (err) {
-      console.error('미션 가져오기 실패:', err);
+    } catch {
+      // 실패 시 별도 처리 X
     }
   };
 
@@ -195,10 +192,10 @@ const GameHomePage = () => {
     try {
       await patchRequest(`/manito/mission/${todayMission.missionStatusId}/success`, {});
       alert('미션을 완료하였습니다!');
-      setTodayMission({ ...todayMission, completed: true }); // 서버 응답 직접 반영
+      setTodayMission({ ...todayMission, completed: true });
       closeModal();
-    } catch (err) {
-      console.error('미션 완료 처리 실패:', err);
+    } catch {
+      // 실패 시 별도 처리 X
     }
   };
 
@@ -210,11 +207,9 @@ const GameHomePage = () => {
       const foundManito = participants.find(p => p.userId === manitoId);
       if (foundManito) {
         setManitoProfile(foundManito);
-      } else {
-        console.error(`참여자 목록에 마니띠 ID(${manitoId})가 존재하지 않습니다.`);
       }
-    } catch (err) {
-      console.error('마니띠 정보를 불러오는 중 에러 발생:', err);
+    } catch {
+      // 실패 시 별도 처리 X
     } finally {
       setIsFetchingManito(false);
     }
@@ -224,7 +219,7 @@ const GameHomePage = () => {
     if (manitoProfile) {
       openModal(manitoModalData);
     }
-  }, [manitoProfile]); // 마니또 프로필 세팅 한 후 모달 열기
+  }, [manitoProfile]);
 
   const handleShowPastMissions = () => {
     openModal({
@@ -246,7 +241,7 @@ const GameHomePage = () => {
 
   const getTypeImage = (type: Mission['type']) => {
     switch (type) {
-      case 'GIFT': return ttoma_gift;
+      case 'GIFTS': return ttoma_gift;
       case 'NOTES': return ttoma_notes;
       case 'COMMUNICATION': return ttoma_communication;
       case 'OBSERVATION': return ttoma_observation;
@@ -260,7 +255,7 @@ const GameHomePage = () => {
       return <Flex justify="center" align="center" h="150px"><Spinner size="lg" /></Flex>;
     }
     if (manitoProfile) {
-      return <ProfileCard title="내 마니띠" name={manitoProfile.name} subtitle={manitoProfile.statusMessage} src={manitoProfile.profileImageUrl || ttoma_profile} />;
+      return <ProfileCard title="내 마니띠" name={manitoProfile.name} subtitle={manitoProfile.statusMessage} src={profile_manitee} />;
     }
     return <Flex justify="center" align="center" h="100px"><Text textStyle="body_md">마니띠 정보를 찾을 수 없습니다.</Text></Flex>;
   };
@@ -268,7 +263,7 @@ const GameHomePage = () => {
   const missionCompleteModalData = {
     title: '오늘의 미션을 완료하셨나요?',
     caption: '미션 수행 결과는 수정이 불가능합니다.\n신중히 선택해주세요.',
-    body: (''),
+    body: (''), 
     footer: (<DoubleButton leftLabel="취소" rightLabel="확인" onLeftClick={closeModal} onRightClick={handleCompleteMission} />),
   };
 
@@ -315,7 +310,7 @@ const GameHomePage = () => {
                   <Image src={getDifficultyImage(todayMission.difficulty)} alt={todayMission.difficulty} mx="auto" maxW="120px" mb={4} />
                   <Text textStyle="title_ml" textAlign="center" mb={1}>{todayMission.title}</Text>
                   <Text textStyle="caption_xs_light" textAlign="center">{todayMission.description ?? ""}</Text>
-                  <Image src={getTypeImage(todayMission.type)} alt={todayMission.type} mx="auto" maxW="120px" mb={4} />
+                  <Image src={getTypeImage(todayMission.type)} alt={todayMission.type} mx="auto" maxW="160px" mb={4} />
                   <LongButton onClick={(e) => { e.stopPropagation(); openModal(missionCompleteModalData); }} disabled={isMissionCompletedToday}>
                     {isMissionCompletedToday ? '오늘의 미션 완료됨' : '미션 완료!'}
                   </LongButton>

@@ -1,4 +1,3 @@
-// components/MissionListItem.tsx
 import { Flex, Text, Box } from '@chakra-ui/react';
 import { RiCheckboxCircleLine } from 'react-icons/ri';
 import { RiCheckboxBlankCircleLine } from 'react-icons/ri';
