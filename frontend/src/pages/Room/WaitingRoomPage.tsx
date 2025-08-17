@@ -206,21 +206,33 @@ const WaitingRoomPage = () => {
     }
   };
 
-  const handleKickUser = (userId: string | number) => {
-    openModal({
-      title: "참가자 내보내기",
-      body: `User ID: ${userId}를 대기방에서 내보내시겠습니까?`,
-      footer: (
-        <DoubleButton
-          leftLabel="취소"
-          rightLabel="내보내기"
-          onLeftClick={closeModal}
-          onRightClick={() => confirmKickUser(userId)}
-          rightProps={{ colorScheme: "red" }}
-        />
-      )
-    });
-  };
+const handleKickUser = (userId: string | number) => {
+  // 지금 화면에 뿌릴 기준 리스트에서 대상 찾기
+  const target = listForRender.find(p => String(p.userId) === String(userId));
+  const displayName = (target?.name && target.name.trim()) ? target.name : `User ${userId}`;
+
+  openModal({
+    title: "참가자 내보내기",
+    body: (
+      <VStack align="start" gap={1}>
+        <Text>
+          <Text as="span" fontWeight="bold"> {displayName}</Text> 님을 대기방에서 내보내시겠습니까?
+        </Text>
+        {/* 원하면 아래 보조문구는 지워도 됩니다 */}
+        <Text color="gray.500" fontSize="sm">(ID: {userId})</Text>
+      </VStack>
+    ),
+    footer: (
+      <DoubleButton
+        leftLabel="취소"
+        rightLabel="내보내기"
+        onLeftClick={closeModal}
+        onRightClick={() => confirmKickUser(userId)}
+        rightProps={{ colorScheme: "red" }}
+      />
+    ),
+  });
+};
 
   const handleInvite = () => {
     clipboard.copy();
