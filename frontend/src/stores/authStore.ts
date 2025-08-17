@@ -100,29 +100,47 @@ export const useAuth = create<AuthState>()(
       resumeAuthSync: () => set({ authSyncPaused: false }),
 
       // ---------- after login redirect ----------
-      handleLoginSuccess: () => {
-        const redirectDataStr = localStorage.getItem('redirectAfterLogin')
-        if (redirectDataStr) {
-          try {
-            const redirectData = JSON.parse(redirectDataStr)
-            localStorage.removeItem('redirectAfterLogin')
-            const isValid =
-              Date.now() - redirectData.timestamp < 24 * 60 * 60 * 1000
-            if (isValid && redirectData.url) {
-              setTimeout(() => {
-                window.location.href = redirectData.url
-              }, 500)
-              return true
-            }
-          } catch {
-            localStorage.removeItem('redirectAfterLogin')
-          }
+handleLoginSuccess: () => {
+  const sameOrigin = (u: string) => {
+    try {
+      const url = new URL(u, window.location.origin);
+      return url.origin === window.location.origin ? url : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const current = window.location.pathname + window.location.search + window.location.hash;
+
+  // 1) redirectAfterLogin 우선
+  const raw = localStorage.getItem('redirectAfterLogin');
+  if (raw) {
+    try {
+      const data = JSON.parse(raw);
+      localStorage.removeItem('redirectAfterLogin');
+
+      const isValid = Date.now() - data.timestamp < 24 * 60 * 60 * 1000;
+      if (isValid && data.url) {
+        const targetUrl = sameOrigin(data.url) ?? new URL('/main', window.location.origin);
+        const target = targetUrl.pathname + targetUrl.search + targetUrl.hash;
+
+        if (current !== target) {
+          window.location.replace(target);
         }
-        setTimeout(() => {
-          window.location.href = '/main'
-        }, 500)
-        return true
-      },
+        return true;
+      }
+    } catch {
+      localStorage.removeItem('redirectAfterLogin');
+    }
+  }
+
+  // 2) 기본 이동: /main
+  const fallback = '/main';
+  if (current !== fallback) {
+    window.location.replace(fallback);
+  }
+  return true;
+},
 
       // ---------- server sync ----------
       syncUserGameStatus: async () => {
