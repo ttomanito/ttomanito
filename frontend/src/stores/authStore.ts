@@ -1,8 +1,3 @@
-/**
- * src/stores/auth.ts
- * 인증 + 게임 상태(Zustand)
- */
-
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { deleteRequest, getRequest, postRequest } from '@/api/requests'
