@@ -14,10 +14,11 @@ import CommonCard from '@/components/cards/CommonCard';
 import { TbShieldX } from 'react-icons/tb';
 import profile_manito from '@/assets/ttomas/profile_manito.png';
 import profile_manitee from '@/assets/ttomas/profile_manitee.png';
+import ChatAnalysisModal from '@/components/chat/ChatAnalysisModal';
+import ChatAnalysisButton from '@/components/chat/ChatAnalysisButton';
+import { useChatAnalysis } from '@/hooks/useChatAnalysis';
 
-interface RoomUserResponse {
-  roomUserId: number;
-}
+interface RoomUserResponse { roomUserId: number; }
 
 type Partner = {
   role: '마니또' | '마니띠' | '대화상대';
@@ -141,6 +142,9 @@ const ChatRoomPage = () => {
   const [firstItemIndex, setFirstItemIndex] = useState(0);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
+  const myUserIdStr = myUserId ? String(myUserId) : null;
+  const analysis = useChatAnalysis(chatRoomId ?? null, myUserIdStr);
+
   useEffect(() => {
     const checkAccessAndGetRoomUserId = async () => {
       if (!isReady || !myUserId || !chatRoomId) return;
@@ -191,7 +195,7 @@ const ChatRoomPage = () => {
   }, [accessState, chatRoomId, roomUserId, myUserId, partner]);
 
   const convertToClientMessage = useCallback((m: ReceivedMessage): ChatMessage => {
-    const sentAt = new Date(m.sentAt+'Z');
+    const sentAt = new Date(m.sentAt+`Z`);
     return {
       id: `${m.senderRoomUserId}-${m.sentAt}`,
       sender: String(m.senderRoomUserId),
@@ -352,6 +356,11 @@ const ChatRoomPage = () => {
             )}
             <Text textStyle="title_ml">{headerLabel}</Text>
           </Flex>
+
+          {/* 오른쪽 액션들 */}
+          <Flex align="center" gap={2}>
+            <ChatAnalysisButton onOpen={analysis.open} alreadyUsed={analysis.alreadyUsed} />
+            </Flex>
         </Flex>
       </Box>
 
@@ -455,6 +464,14 @@ const ChatRoomPage = () => {
           </LongButton>
         </Flex>
       </Box>
+      <ChatAnalysisModal
+        isOpen={analysis.isOpen}
+        onClose={analysis.close}
+        data={analysis.data}
+        isLoading={analysis.isLoading}
+        error={analysis.error}
+        alreadyUsed={analysis.alreadyUsed}
+      />
     </Box>
   );
 };

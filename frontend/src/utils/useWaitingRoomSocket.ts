@@ -53,6 +53,7 @@ export const useWaitingRoomSocket = () => {
 
     const client = new Client({
       webSocketFactory: () => new SockJS('https://i13b206.p.ssafy.io/ws/waiting'),
+      // webSocketFactory: () => new SockJS('http://localhost:8080/ws/waiting'),
       reconnectDelay: 5000,
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
