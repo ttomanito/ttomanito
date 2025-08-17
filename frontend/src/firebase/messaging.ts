@@ -105,8 +105,8 @@ export const onMessageListener = (): Promise<FCMMessagePayload> =>
           fcmPayload.notification.title || '새 알림', 
           {
             body: fcmPayload.notification.body,
-            icon: fcmPayload.notification.icon || '/icon-192x192.png',
-            badge: '/badge-72x72.png',
+            icon: fcmPayload.notification.icon || '/icons/android-chrome-192x192.png',
+            badge: '/icons/android-chrome-72x72.png',
             tag: 'fcm-notification',
             requireInteraction: false,
             silent: false
