@@ -39,17 +39,6 @@ interface Mission {
   completedAt: string | null;
 }
 
-// 통화 시간을 "X시간 Y분" 형식으로 변환하는 함수
-const formatDuration = (seconds: number) => {
-  if (seconds === 0) return "0분";
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  let result = '';
-  if (hours > 0) result += `${hours}시간 `;
-  if (minutes > 0) result += `${minutes}분`;
-  return result.trim();
-};
-
 interface StatsDisplayProps extends StackProps {
   title: string;
   value: string | number;
@@ -187,7 +176,6 @@ const ReportDetailPage = () => {
             <StatsDisplay title="나를 찌르기한 횟수" value={`${report.receivingHelp.stats.pokeCountReceived}회`} borderBottomWidth="1px" borderColor="gray.200" />
             <StatsDisplay title="내가 찌르기한 횟수" value={`${report.receivingHelp.stats.pokeCountSent}회`} borderBottomWidth="1px" borderColor="gray.200" />
             <StatsDisplay title="채팅 횟수" value={`${report.receivingHelp.stats.pairChatCount}회`} />
-            <StatsDisplay title="통화 시간" value={formatDuration(report.receivingHelp.stats.pairCallDurationSec)} borderBottomWidth="1px" borderColor="gray.200" />
             {/* 미션 목록 섹션 */}
             <Box>
               <Text textStyle="body_sm" py={3}>받은 미션</Text>
@@ -219,7 +207,6 @@ const ReportDetailPage = () => {
             <StatsDisplay title="나를 찌르기한 횟수" value={`${report.givingHelp.stats.pokeCountReceived}회`} borderBottomWidth="1px" borderColor="gray.200" />
             <StatsDisplay title="내가 찌르기한 횟수" value={`${report.givingHelp.stats.pokeCountSent}회`} borderBottomWidth="1px" borderColor="gray.200" />
             <StatsDisplay title="채팅 횟수" value={`${report.givingHelp.stats.pairChatCount}회`} />
-            <StatsDisplay title="통화 시간" value={formatDuration(report.givingHelp.stats.pairCallDurationSec)} borderBottomWidth="1px" borderColor="gray.200" />
             {/* 미션 목록 섹션 */}
             <Box>
               <Text textStyle="body_sm" py={3}>수행한 미션</Text>
