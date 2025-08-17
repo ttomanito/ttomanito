@@ -33,9 +33,7 @@ interface GuessHistory {
   isCorrect: boolean;
 }
 
-interface GuessPostResponse {
-  isCorrect: boolean;
-}
+type GuessPostResponse = boolean
 
 const GuessPage = () => {
   const { user, gameInfo, isReady } = useAuth();
@@ -116,7 +114,7 @@ const GuessPage = () => {
   const handleSubmitGuess = async () => {
     if (selectedId === null) return;
     try {
-      const response = await postRequest<boolean>('/manito/guess', {
+      const response = await postRequest<GuessPostResponse>('/manito/guess', {
         guessedUserId: selectedId,
       });
       const newGuess: GuessHistory = {
