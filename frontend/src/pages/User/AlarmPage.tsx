@@ -38,12 +38,6 @@ const NoticePage: React.FC = () => {
     let alive = true;
     (async () => {
       try {
-        // 진입 시 전체 읽음 처리
-        await patchRequest<void>('/notice/check');
-      } catch (e) {
-        console.warn('[notice] read-all failed:', e);
-      }
-      try {
         let data = await getRequest<Notice[]>('/notice');
         if (data.length == 0) {
           data = [
@@ -71,6 +65,13 @@ const NoticePage: React.FC = () => {
         setErr(e?.message ?? '알림을 불러오지 못했어요');
       } finally {
         if (alive) setLoading(false);
+      }
+
+      try {
+        // 진입 시 전체 읽음 처리
+        await patchRequest<void>('/notice/check');
+      } catch (e) {
+        console.warn('[notice] read-all failed:', e);
       }
     })();
     return () => {
