@@ -296,7 +296,7 @@ const ChatRoomPage = () => {
     try {
       if (!isConnected) return;
       const ok = await sendPoke();
-      await postRequest<void>('/notice/poke'); // 콕 찌르기 전송
+      // await postRequest<void>('/notice/poke'); // 콕 찌르기 전송
       if (!ok) setLastError('찌르기 전송에 실패했습니다');
     } catch (e: any) {
       setLastError('전송에 실패했습니다.');
