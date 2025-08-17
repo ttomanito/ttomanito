@@ -29,7 +29,7 @@ const tutorialData = [
   },
   {
     title: "익명 소통의 즐거움",
-    description: "익명으로 말을 걸어보세요.\n1:1 익명 채팅이 가능해요.",
+    description: "익명으로 말을 걸어보세요.\n마니또/마니띠와의 1:1 채팅으로\n 특별한 대화를 시작해보세요!",
     image: iconChat,
   },
   {
