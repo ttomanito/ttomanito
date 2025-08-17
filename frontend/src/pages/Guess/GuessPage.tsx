@@ -91,7 +91,7 @@ const GuessPage = () => {
     };
 
     fetchData();
-  }, [isInGame, roomId, user, isReady, toast]); // 🔥 변경: hydrated → isReady
+  }, [isInGame, roomId, user, isReady, toast]); 
 
   const todayString = new Date().toISOString().slice(0, 10);
   const todaysGuess = guessHistory.find(g => g.guessedDate === todayString);
