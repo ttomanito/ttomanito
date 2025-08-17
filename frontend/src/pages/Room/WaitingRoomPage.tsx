@@ -13,6 +13,7 @@ import MessageInputBody from '@/components/modal/MessageInputBody';
 import { FaCrown } from "react-icons/fa";
 import DoubleButton from '@/components/buttons/DoubleButton'
 
+
 const WaitingRoomPage = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
@@ -112,6 +113,10 @@ const WaitingRoomPage = () => {
         break;
       }
       case 'EXIT': {
+        const isMe = String(lastMessage.userId) === String(myUserId);
+        if (!isMe) {
+          refreshParticipants();
+        }
         break;
       }
       case 'KICK': {
@@ -128,6 +133,7 @@ const WaitingRoomPage = () => {
       case 'CLOSE': {
         alert('방장이 대기방을 닫았습니다.');
         disconnect();
+        syncUserGameStatus();
         navigate('/');
         break;
       }
@@ -263,6 +269,7 @@ const handleKickUser = (userId: string | number) => {
     try {
       await postRequest(`/room/exit`);
       closeModal();
+      syncUserGameStatus();
       navigate('/');
     } catch {
       alert('대기방 삭제에 실패했습니다.');
@@ -361,12 +368,14 @@ const handleKickUser = (userId: string | number) => {
     <Box height="100vh" display="flex" flexDirection="column">
       <Box flex="1" overflowY="auto" p={4}>
         <RoomInfoCard roomInfo={roomInfo} />
-        <VStack gap={4} align="stretch" bg="transparent">
+        <VStack gap={1} align="stretch" bg="transparent">
           <Box>
-            <Flex justify="space-between" py={3}>
               <Text fontSize="lg" fontWeight="semibold">
                 참가자 목록 ({listForRender.length}명)
               </Text>
+            <Flex justify="space-between">
+            <Text textStyle="caption_xs_light" textAlign="start">최소 4명이 필요합니다.</Text>
+              
               {isCreator && (
                 <Button
                   variant="ghost"
@@ -375,8 +384,7 @@ const handleKickUser = (userId: string | number) => {
                   fontWeight="medium"
                   onClick={handleDeleteRoom}
                   _hover={{ bg: "red.50" }}
-                  px={2}
-                  py={1}
+                  px={1}
                   h="auto"
                   minH="auto"
                 >
@@ -384,6 +392,7 @@ const handleKickUser = (userId: string | number) => {
                 </Button>
               )}
             </Flex>
+
           </Box>
 
           <Box>
