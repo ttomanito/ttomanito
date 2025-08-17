@@ -5,7 +5,6 @@ import { getRequest, postRequest } from '@/api/requests';
 import { useAuth } from '@/stores/authStore';
 import profile_manito from '@/assets/ttomas/profile_manito.png';
 import profile_manitee from '@/assets/ttomas/profile_manitee.png';
-import dayjs from 'dayjs';
 
 interface ChatRoomData {
   chattingRoomId: number;
@@ -30,6 +29,17 @@ interface ChatApiResponse {
   manito: ChatItem;
   manitee: ChatItem;
 }
+// ChatListPage.tsx 상단 어딘가(컴포넌트 밖/안 아무데나) 추가
+const formatKoreanTime = (isoLike?: string) => {
+  if (!isoLike) return '';
+  // 이미 Z 또는 +hh:mm/-hh:mm 이 끝에 있으면 그대로 사용
+  const hasTZ = /(?:Z|[+-]\d{2}:\d{2})$/.test(isoLike);
+  const withTZ = hasTZ ? isoLike : isoLike + 'Z';
+  const d = new Date(withTZ);
+  // 파싱 실패 방지
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+};
 
 const ChatListPage = () => {
   const { gameInfo, isReady } = useAuth();
@@ -42,9 +52,9 @@ const ChatListPage = () => {
 
   const getChatPartnerInfo = (index: number) => {
     if (index == 0) {
-      return { role: '마니띠', profileImage: profile_manito };
+      return { role: '마니또', profileImage: profile_manito };
     } else {
-      return { role: '마니또', profileImage: profile_manitee };
+      return { role: '마니띠', profileImage: profile_manitee };
     }
   };
 
@@ -172,10 +182,9 @@ const ChatListPage = () => {
                   </Text>
                 </Box>
                 <Box textAlign="right">
-                  <Text fontSize="xs" color="gray.400">
-                    {chat.chatRoom.lastMessageTime &&
-                      dayjs(chat.chatRoom.lastMessageTime).format('A hh:mm')}
-                  </Text>
+              <Text fontSize="xs" color="gray.400">
+                {formatKoreanTime(chat.chatRoom.lastMessageTime)}
+              </Text>
                   {chat.chatUserInfo.unreadCount > 0 && (
                     <Badge mt={1} colorScheme="purple" borderRadius="full" fontSize="0.7rem" px={2}>
                       {chat.chatUserInfo.unreadCount}
