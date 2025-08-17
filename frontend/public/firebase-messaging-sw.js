@@ -28,8 +28,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification?.title || '새 알림';
   const notificationOptions = {
     body: payload.notification?.body || '새로운 메시지가 도착했습니다',
-    icon: payload.notification?.icon || '/icon-192x192.png',
-    badge: '/badge-72x72.png',
+    icon: payload.notification?.icon || '/icons/android-chrome-192x192.png',
+    badge: '/icons/android-chrome-72x72.png',
     tag: 'background-notification',
     requireInteraction: false,
     silent: false,
