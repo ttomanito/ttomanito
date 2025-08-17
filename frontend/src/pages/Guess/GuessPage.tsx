@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -7,7 +7,7 @@ import {
   Flex,
   Spinner,
 } from '@chakra-ui/react';
-import { useToast } from '@chakra-ui/toast'
+import { useToast } from '@chakra-ui/toast';
 import BaseModal from '@/components/modal/BaseModal';
 import { getRequest, postRequest } from '@/api/requests';
 import { useAuth } from '@/stores/authStore';
@@ -33,7 +33,26 @@ interface GuessHistory {
   isCorrect: boolean;
 }
 
-type GuessPostResponse = boolean
+type GuessPostResponse = boolean;
+
+// KST "YYYY-MM-DD"
+const toKstYMD = (d: Date) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(d);
+
+// 서버/DB 날짜 문자열을 KST 기준 "YYYY-MM-DD"로 정규화
+const normalizeGuessYMD_KST = (s?: string) => {
+  if (!s) return '';
+  // 이미 YYYY-MM-DD면 그대로
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+  // ISO-like인데 TZ 없으면 Z를 붙여 UTC로 간주
+  const hasTZ = /(Z|[+-]\d{2}:\d{2})$/.test(s);
+  const dt = new Date(hasTZ ? s : s + 'Z');
+
+  // 파싱 실패 시 안전하게 앞 10자 시도
+  if (Number.isNaN(dt.getTime())) return s.slice(0, 10);
+  return toKstYMD(dt); // KST YMD
+};
 
 const GuessPage = () => {
   const { user, gameInfo, isReady } = useAuth();
@@ -70,10 +89,9 @@ const GuessPage = () => {
 
         const filtered = participants.filter((u) => u.userId !== Number(user.id));
         const sorted = [...filtered].sort((a, b) => b.name.localeCompare(a.name, 'ko'));
-        
+
         setUsersToGuess(sorted);
         setGuessHistory(fetchedHistory);
-
       } catch {
         toast({
           title: '데이터를 불러올 수 없습니다.',
@@ -89,13 +107,27 @@ const GuessPage = () => {
     };
 
     fetchData();
-  }, [isInGame, roomId, user, isReady, toast]); 
+  }, [isInGame, roomId, user, isReady, toast]);
 
-  const todayString = new Date().toISOString().slice(0, 10);
-  const todaysGuess = guessHistory.find(g => g.guessedDate === todayString);
+  // ✅ 현재 방 기록만: "이 방 참가자에게 한 추측"만 남긴다
+  const roomHistory = useMemo(
+    () =>
+      guessHistory.filter((g) =>
+        allParticipants.some((u) => u.userId === g.guessedUserId)
+      ),
+    [guessHistory, allParticipants]
+  );
+
+  const todayString = toKstYMD(new Date());
+
+  // ✅ 오늘 추측 여부도 roomHistory 기준
+  const todaysGuess = roomHistory.find(
+    (g) => normalizeGuessYMD_KST(g.guessedDate) === todayString
+  );
   const hasGuessedToday = !!todaysGuess;
+
   const guessedUserToday = todaysGuess
-    ? allParticipants.find(u => u.userId === todaysGuess.guessedUserId)
+    ? allParticipants.find((u) => u.userId === todaysGuess.guessedUserId)
     : null;
 
   const handleSelect = (userId: number) => {
@@ -126,7 +158,7 @@ const GuessPage = () => {
         await postRequest<void>('/notice/guess'); // 마니띠가 마니또 맞췄을 시 추측 알림 전송
       }
 
-      setGuessHistory(prevHistory => [...prevHistory, newGuess]);
+      setGuessHistory((prevHistory) => [...prevHistory, newGuess]);
       setConfirmOpen(false);
       setSelectedId(null);
       toast({
@@ -147,11 +179,17 @@ const GuessPage = () => {
     }
   };
 
-  const handleShowHistory = () => { setHistoryOpen(true); };
+  const handleShowHistory = () => {
+    setHistoryOpen(true);
+  };
 
   if (!isReady || isPageLoading) {
-    return <Flex justify="center" align="center" h="100vh"><Spinner /></Flex>;
-  }
+    return (
+      <Flex justify="center" align="center" h="100vh">
+        <Spinner />
+      </Flex>
+    );
+    }
 
   if (!isInGame) {
     return (
@@ -164,7 +202,9 @@ const GuessPage = () => {
   return (
     <Box p={3} m={3}>
       <Text textStyle="title_mlg" mb={2}>✪ 추측하기</Text>
-      <Text textStyle="caption_sm" color="gray.600" mb={4}>내 마니또는 누구일까? 두근두근 맞춰보기</Text>
+      <Text textStyle="caption_sm" color="gray.600" mb={4}>
+        내 마니또는 누구일까? 두근두근 맞춰보기
+      </Text>
 
       <VStack gap={4} align="stretch">
         {hasGuessedToday && guessedUserToday && (
@@ -178,7 +218,12 @@ const GuessPage = () => {
 
         <Flex justify="space-between" align="center">
           <Text textStyle="title_md">팀원 리스트</Text>
-          <Button variant="ghost" textStyle="body_sm" color="purple.500" onClick={handleShowHistory}>
+          <Button
+            variant="ghost"
+            textStyle="body_sm"
+            color="purple.500"
+            onClick={handleShowHistory}
+          >
             이전 추측 기록
           </Button>
         </Flex>
@@ -186,11 +231,19 @@ const GuessPage = () => {
         {usersToGuess.map((participant) => (
           <Box
             key={participant.userId}
-            border={!hasGuessedToday && selectedId === participant.userId ? '3px solid #A48AFB' : '1px solid #e2e2e2'}
+            border={
+              !hasGuessedToday && selectedId === participant.userId
+                ? '3px solid #A48AFB'
+                : '1px solid #e2e2e2'
+            }
             borderRadius="lg"
             onClick={() => handleSelect(participant.userId)}
             cursor={hasGuessedToday ? 'not-allowed' : 'pointer'}
-            bg={!hasGuessedToday && selectedId === participant.userId ? 'purple.50' : 'white'}
+            bg={
+              !hasGuessedToday && selectedId === participant.userId
+                ? 'purple.50'
+                : 'white'
+            }
             transition="all 0.2s"
             _hover={!hasGuessedToday ? { borderColor: 'purple.300', bg: 'purple.50' } : {}}
           >
@@ -201,43 +254,72 @@ const GuessPage = () => {
           </Box>
         ))}
 
-        <LongButton onClick={handleConfirm} disabled={hasGuessedToday || usersToGuess.length === 0}>
+        <LongButton
+          onClick={handleConfirm}
+          disabled={hasGuessedToday || usersToGuess.length === 0}
+        >
           {hasGuessedToday ? '오늘은 이미 추측 완료' : '이 사람으로 추측하기'}
         </LongButton>
       </VStack>
 
       {/* --- 모달 섹션 --- */}
-      <BaseModal 
-        open={alertOpen} 
-        onClose={() => setAlertOpen(false)} 
-        title="팀원 중 한 명을 선택해주세요" 
-        body={<Text textStyle="caption_xs_light" textAlign="center" mt={-5}>가장 의심되는 팀원을 선택해주세요</Text>} 
-      />
-      <BaseModal 
-        open={confirmOpen} 
-        onClose={() => setConfirmOpen(false)} 
-        title="추측하시겠습니까?" 
-        body={<Text>{allParticipants.find((u) => u.userId === selectedId)?.name}님을 마니또로 추측합니다.</Text>} 
-        footer={<DoubleButton leftLabel="취소" rightLabel="확인" onLeftClick={() => setConfirmOpen(false)} onRightClick={handleSubmitGuess} />} 
-      />
-      <BaseModal 
-        open={historyOpen} 
-        onClose={() => setHistoryOpen(false)} 
-        title="이전 추측 보기" 
+      <BaseModal
+        open={alertOpen}
+        onClose={() => setAlertOpen(false)}
+        title="팀원 중 한 명을 선택해주세요"
         body={
-          guessHistory.length === 0 ? (
-            <Text textAlign="center" color="gray.500">추측 기록이 없습니다.</Text>
+          <Text textStyle="caption_xs_light" textAlign="center" mt={-5}>
+            가장 의심되는 팀원을 선택해주세요
+          </Text>
+        }
+      />
+      <BaseModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="추측하시겠습니까?"
+        body={
+          <Text>
+            {allParticipants.find((u) => u.userId === selectedId)?.name}
+            님을 마니또로 추측합니다.
+          </Text>
+        }
+        footer={
+          <DoubleButton
+            leftLabel="취소"
+            rightLabel="확인"
+            onLeftClick={() => setConfirmOpen(false)}
+            onRightClick={handleSubmitGuess}
+          />
+        }
+      />
+      <BaseModal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        title="이전 추측 보기"
+        body={
+          roomHistory.length === 0 ? (
+            <Text textAlign="center" color="gray.500">
+              추측 기록이 없습니다.
+            </Text>
           ) : (
             <VStack align="stretch" gap={2}>
-              {guessHistory.map((g) => {
-                const guessedUser = allParticipants.find((u) => u.userId === g.guessedUserId);
+              {roomHistory.map((g) => {
+                const guessedUser = allParticipants.find(
+                  (u) => u.userId === g.guessedUserId
+                );
+                const ymd = normalizeGuessYMD_KST(g.guessedDate);
+                const mmdd = ymd.slice(5).replace('-', '.'); // "MM.DD"
                 return (
-                  <BasicListItem key={g.guessedDate} date={g.guessedDate.slice(5).replace('-', '.')} content={guessedUser?.name || '알 수 없음'} />
+                  <BasicListItem
+                    key={`${ymd}_${g.guessedUserId}`}
+                    date={mmdd}
+                    content={guessedUser?.name || '알 수 없음'}
+                  />
                 );
               })}
             </VStack>
           )
-        } 
+        }
       />
     </Box>
   );
