@@ -43,11 +43,9 @@ const PcMent = () => (
       <Box pl={10}>
         <Image src={logo_ttomanito} alt="ttomanito logo" mb={2} />
         <Text textStyle="body_md" color="gray.500">
-          정해진 날짜에만 열리는 미션!
+          마니또 마니띠와 함께하는 특별한 순간들
           <br />
-          그 날만큼은 마니띠에게 더 따뜻한
-          <br />
-          마음을 전해보세요 💌
+          일상 속 따뜻한 마음을 주고받아요 💌
         </Text>
       </Box>
     </Box>
