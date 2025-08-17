@@ -110,6 +110,7 @@ public class MissionService {
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("현재 참여 중인 방이 없습니다"));
+        Long roomId = roomUser.getRoom().getRoomId();
 
         List<DailyMission> missionList = dailyMissionRepository.findAllByManito_UserId(userId);
 
@@ -131,7 +132,8 @@ public class MissionService {
                     m.getChannelList(),
                     m.getType(),
                     dm.getMissionDate(),
-                    completed
+                    completed,
+                    roomId
             );
         }).toList();
     }
@@ -154,21 +156,6 @@ public class MissionService {
         if (!status.isCompleted()) {
             status.complete();
         }
-    }
-    private boolean isMissionDay(Long roomId, LocalDate date) {
-        List<Weekday> days = missionDayRepository.findWeekdaysByRoomId(roomId); // room_id로 전부 조회
-        if (days == null || days.isEmpty()) return false; // 미설정=발급 안 함(정책에 맞게)
-        Weekday todayW = Weekday.from(date.getDayOfWeek());
-        boolean ok = days.contains(todayW);
-        // 진단 로그(원인 파악용)
-        System.out.println(
-                "[missionDay] roomId=" + roomId +
-                        ", days=" + days +
-                        ", today=" + date +
-                        ", todayW=" + todayW +
-                        ", ok=" + ok
-        );
-        return ok;
     }
 
 
