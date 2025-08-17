@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name="push_token")
@@ -33,4 +34,4 @@ public class PushToken {
     public void changeOwner(User newOwner) { this.user = newOwner; }
 
     @PrePersist @PreUpdate
-    void touch() { this.updatedAt = LocalDateTime.now(); }}
+    void touch() { this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul")); }}
