@@ -1,4 +1,4 @@
-import { postRequest } from '@/api/requests'; 
+import { postRequest } from '@/api/requests';
 import { useAuth } from '@/stores/authStore';
 import { useNavigate } from 'react-router-dom';
 import { useModalStore } from '@/stores/modalStore';
@@ -23,7 +23,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
   const navigate = useNavigate();
   const { openModal } = useModalStore();
   const tutorialModalData = { body: <TutorialBody /> };
-  const { syncUserGameStatus } = useAuth()
+  const { syncUserGameStatus } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const status = useAuth((s) => s.gameInfo.status);
@@ -35,7 +35,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
   const finishRoom = async () => {
     try {
       await postRequest('/manito/finish');
-      await syncUserGameStatus()
+      await syncUserGameStatus();
       close();
       navigate('/main');
     } catch {
@@ -92,7 +92,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
             <MotionBox
               position="absolute"
               top={0}
-              left={0}
+              right={0}
               w="280px"
               h="100dvh"
               bg="white"
@@ -101,15 +101,14 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
               display="flex"
               flexDirection="column"
               justifyContent="space-between"
-              initial={{ x: -300 }}
+              initial={{ x: 300 }}
               animate={{ x: 0 }}
-              exit={{ x: -300 }}
+              exit={{ x: 300 }}
               transition={{ duration: 0.25 }}
             >
               <VStack align="stretch" gap={4} p={4}>
                 <HStack justify="space-between">
                   <HStack gap={2}>
-                    {/* 로고 클릭 */}
                     <Box
                       as="button"
                       onClick={handleLogoClick}
@@ -127,7 +126,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                     variant="ghost"
                     justifyContent="flex-start"
                     py={6}
-                    textStyle="title_md"
+                    textStyle="body_sm"
                     onClick={() => {
                       openModal(tutorialModalData);
                       close();
@@ -140,7 +139,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                     variant="ghost"
                     justifyContent="flex-start"
                     py={6}
-                    textStyle="title_md"
+                    textStyle="body_sm"
                     onClick={() => {
                       navigate('/report/reportlist');
                       close();
@@ -153,7 +152,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                     variant="ghost"
                     justifyContent="flex-start"
                     py={6}
-                    textStyle="title_md"
+                    textStyle="body_sm"
                     onClick={() => {
                       navigate('/user/update');
                       close();
@@ -161,34 +160,33 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
                   >
                     회원 정보 수정
                   </Button>
-
-                  {/* 방 종료 버튼 */}
-                  {status === 'IN_GAME' && isCreator && (
-                    <Button
-                      variant="ghost"
-                      justifyContent="flex-start"
-                      py={6}
-                      textStyle="title_md"
-                      color="red.500"
-                      onClick={finishRoom}
-                    >
-                      방 종료하기
-                    </Button>
-                  )}
                 </VStack>
               </VStack>
 
-              <Box px={4} pb={6}>
+              {/* 하단 버튼 그룹 */}
+              <VStack align="stretch" px={4} pb={6}>
                 <Button
                   variant="ghost"
                   justifyContent="flex-start"
                   color="red.500"
-                  textStyle="title_md"
+                  textStyle="body_sm"
                   onClick={handleLogout}
                 >
                   로그아웃
                 </Button>
-              </Box>
+                {status === 'IN_GAME' && isCreator && (
+                  <Button
+                    variant="ghost"
+                    justifyContent="flex-start"
+                    py={6}
+                    textStyle="boddy_sm"
+                    color="red.500"
+                    onClick={finishRoom}
+                  >
+                    방 종료하기
+                  </Button>
+                )}
+              </VStack>
             </MotionBox>
           </Portal>
         )}
