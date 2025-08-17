@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "voice_chat")
@@ -44,14 +45,14 @@ public class VoiceChat {
         return VoiceChat.builder()
                 .chattingRoom(room)
                 .roomUser(user)
-                .startedAt(LocalDateTime.now())
+                .startedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .isActive(true) // ✅ 추가
                 .build();
     }
 
     /* ── 비즈니스 메서드 ───────────────────── */
     public void endNow() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         this.endedAt = now;
 
         // 1) 이번 세션의 지속시간 계산
@@ -73,7 +74,7 @@ public class VoiceChat {
     }
 
     public void activate() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         this.startedAt = now;
         this.isActive = true;
     }

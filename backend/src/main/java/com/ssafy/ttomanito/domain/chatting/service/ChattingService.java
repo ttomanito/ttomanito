@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -176,7 +177,7 @@ public class ChattingService {
 
         chatUserRepo.save(cu.toBuilder()
                 .unreadCount(0)
-                .lastReadTime(LocalDateTime.now())
+                .lastReadTime(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build());
     }
 

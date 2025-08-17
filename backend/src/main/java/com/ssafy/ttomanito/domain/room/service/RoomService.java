@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 @Slf4j
@@ -63,7 +64,7 @@ public class RoomService {
         // 3) Room 생성 및 저장
         Room room = Room.create(creator, req.name())
                 .toBuilder()
-                .startDate(LocalDate.now())
+                .startDate(LocalDate.now(ZoneId.of("Asia/Seoul")))
                 .endDate(req.endDate())
                 .build();
         room = roomRepository.save(room);

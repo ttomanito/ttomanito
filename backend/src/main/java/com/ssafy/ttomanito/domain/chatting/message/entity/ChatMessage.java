@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Document(collection = "chat_message")
 @Getter
@@ -34,7 +35,7 @@ public class ChatMessage {
                 .senderUserId(senderUserId)
                 .content(content)
                 .type(MessageType.TEXT)
-                .sentAt(LocalDateTime.now())
+                .sentAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
     }
 
@@ -45,7 +46,7 @@ public class ChatMessage {
                 .senderRoomUserId(senderRoomUserId)
                 .senderUserId(senderUserId)
                 .type(type)
-                .sentAt(LocalDateTime.now())
+                .sentAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
     }
 }
