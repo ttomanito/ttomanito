@@ -39,6 +39,7 @@ interface Mission {
   completedAt: string | null;
 }
 
+
 interface StatsDisplayProps extends StackProps {
   title: string;
   value: string | number;
