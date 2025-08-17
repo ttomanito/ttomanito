@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -61,7 +62,7 @@ public class ManitoService {
         ManitoGuess guess = ManitoGuess.builder()
                 .guessUserId(userId)
                 .guessedUserId(guessedUserId)
-                .guessedDate(LocalDate.now())
+                .guessedDate(LocalDate.now(ZoneId.of("Asia/Seoul")))
                 .isCorrect(correct)
                 .build();
         manitoGuessRepository.save(guess);

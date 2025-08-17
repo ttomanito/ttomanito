@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 @Transactional
@@ -26,7 +27,7 @@ public class UserService {
         }
         User user = User.builder()
                 .name(name.trim())
-                .joinedAt(LocalDateTime.now())
+                .joinedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .status(UserStatus.ACTIVE)
                 .build();
         User saved = repo.save(user);

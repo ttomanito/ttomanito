@@ -65,8 +65,7 @@
 
 | **서비스 (컨테이너명)** | **이미지** | **포트 (외부:내부)** | **주요 설정 및 역할** |
 | --- | --- | --- | --- |
-| **Nginx** (nginx) | **`project-nginx`** | 80:80
-443:443 | - **역할**: 웹 서버 및 리버스 프록시- **설정**: **`./nginx/default.conf`** 파일을 마운트하여 커스텀 설정 적용- **`/etc/letsencrypt`** 볼륨을 마운트하여 SSL 인증서 사용 |
+| **Nginx** (nginx) | **`project-nginx`** | 80:80, 443:443 | - **역할**: 웹 서버 및 리버스 프록시- **설정**: **`./nginx/default.conf`** 파일을 마운트하여 커스텀 설정 적용- **`/etc/letsencrypt`** 볼륨을 마운트하여 SSL 인증서 사용 |
 | **Backend** (backend-app) | **`project-backend`** | **`(expose: 8080)`** | - **역할**: Spring Boot 기반 API 서버- **`expose`** 옵션으로 내부 8080 포트를 개방하며, Nginx를 통해서만 외부와 통신 |
 | **MySQL** (mysql) | **`mysql:8.0`** | 3306:3306 | - **역할**: 주 데이터베이스 (RDBMS)- **`mysql-data`** 볼륨을 통해 데이터 영속성 보장 |
 | **Redis** (redis) | **`redis:latest`** | 6379:6379 | - **역할**: 인메모리 캐시 및 세션 저장소- **`appendonly`** 옵션을 활성화하여 데이터 안정성 확보 |

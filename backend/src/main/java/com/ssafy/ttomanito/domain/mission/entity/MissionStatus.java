@@ -11,6 +11,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "mission_status")
@@ -59,6 +60,6 @@ public class MissionStatus {
     // 도메인 메서드
     public void complete() {
         this.completed = true;
-        this.completedAt = LocalDateTime.now();
+        this.completedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 }
