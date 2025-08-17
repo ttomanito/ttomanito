@@ -87,6 +87,7 @@ export const useChatSocket = ({
     processedMessageIds.current.clear();
 
     const sock = new SockJS('https://i13b206.p.ssafy.io/ws/chat');
+    // const sock = new SockJS('http://localhost:8080/ws/chat');
     
     const stompClient = new Client({
       webSocketFactory: () => sock,
