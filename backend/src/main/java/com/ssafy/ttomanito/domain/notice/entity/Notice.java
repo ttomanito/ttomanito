@@ -25,7 +25,7 @@ public class Notice {
     @Column(length = 50, nullable = false)
     private NoticeType type;
 
-    @Column(name = "check", nullable = false)
+    @Column(name = "`check`", nullable = false)
     private boolean check;
 
     public static Notice of(User user, NoticeType type) {
