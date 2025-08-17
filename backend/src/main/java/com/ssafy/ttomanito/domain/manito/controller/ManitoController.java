@@ -40,12 +40,12 @@ public class ManitoController {
             @ApiResponse(responseCode = "404", description = "마니또 배정 정보 없음")
     })
     @PostMapping("/guess")
-    public ResponseEntity<Void> guessManito(
+    public ResponseEntity<Boolean> guessManito(
             @AuthenticationPrincipal JwtUserDetails user,
             @RequestBody ManitoGuessRequestDto requestDto
     ) {
-        manitoService.guessManito(user.getUserId(), requestDto.guessedUserId());
-        return ResponseEntity.ok().build();
+        boolean correct = manitoService.guessManito(user.getUserId(), requestDto.guessedUserId());
+        return ResponseEntity.ok(correct);
     }
 
     @Operation(summary = "마니또 추측 내역 조회", description = "본인의 마니또 추측 내역을 리스트로 반환합니다.")
