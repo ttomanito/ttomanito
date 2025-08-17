@@ -203,7 +203,7 @@ const GuessPage = () => {
     <Box p={3} m={3}>
       <Text textStyle="title_mlg" mb={2}>✪ 추측하기</Text>
       <Text textStyle="caption_sm" color="gray.600" mb={4}>
-        내 마니또는 누구일까? 두근두근 맞춰보기
+        내 마니또는 누구일까? 두근두근 맞혀보기
       </Text>
 
       <VStack gap={4} align="stretch">
