@@ -28,6 +28,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
 
   const status = useAuth((s) => s.gameInfo.status);
   const isCreator = useAuth((s) => s.gameInfo.isCreator);
+  const roomId = useAuth((s) => s.gameInfo.roomId);
 
   const logout = useAuth((s) => s.logout);
 
@@ -35,6 +36,7 @@ const SideMenu = ({ containerRef }: { containerRef: React.RefObject<HTMLDivEleme
   const finishRoom = async () => {
     try {
       await postRequest('/manito/finish');
+      await postRequest(`/notice/${roomId}/finish`)
       await syncUserGameStatus();
       close();
       navigate('/main');

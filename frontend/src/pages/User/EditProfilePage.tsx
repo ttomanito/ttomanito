@@ -73,6 +73,7 @@ const EditProfilePage = () => {
     const handleDeleteConfirm = async () => {
     try {
         await deleteUser();
+        await postRequest(`/notice/exit`)
         closeModal(); 
         openModal({
         title: '탈퇴 완료',
