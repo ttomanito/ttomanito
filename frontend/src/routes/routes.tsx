@@ -65,11 +65,11 @@ export default function AppRoutes() {
               <Route path="/" element={<MainPage />} />
               <Route path="/main" element={<MainPage />} />
               <Route path="/room" element={<RoomCreatePage />} />
+              <Route path="/alarm" element={<AlarmPage />} />
             </Route>
 
             <Route path="/user/update" element={<EditProfile />} />
             <Route path="/report/reportlist" element={<ReportListPage />} />
-            <Route path="/alarm" element={<AlarmPage />} /> {/* 2. 추가된 부분 */}
           </Route>
         </Route>
       </Routes>

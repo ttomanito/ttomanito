@@ -1,8 +1,17 @@
-import React from 'react'; 
-import { Box, VStack, Container, IconButton, AspectRatio } from '@chakra-ui/react';
+import React from 'react';
+import {
+  Box,
+  VStack,
+  Container,
+  IconButton,
+  AspectRatio,
+  Button,
+  Text,
+  Flex,
+} from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { FaQuestionCircle } from 'react-icons/fa';
-
+import { IoIosLogOut } from 'react-icons/io';
 import LongButton from '@/components/buttons/LongButton';
 import { useModalStore } from '@/stores/modalStore';
 import { useAuth } from '@/stores/authStore';
@@ -12,7 +21,9 @@ const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const { openModal } = useModalStore();
   const {
-    gameInfo, 
+    gameInfo,
+    isAuthenticated,
+    logout,
   } = useAuth();
 
   const tutorialModalData = {
@@ -20,9 +31,7 @@ const MainPage: React.FC = () => {
   };
 
   const getMainButtonConfig = () => {
-    switch (
-      gameInfo.status 
-    ) {
+    switch (gameInfo.status) {
       case 'IN_WAITING':
         return {
           text: '현재 대기방으로 이동',
@@ -117,6 +126,29 @@ const MainPage: React.FC = () => {
           >
             보고서 보러가기
           </LongButton>
+          
+          <Box mt={3} w="full" borderBottom="1px solid" borderColor="gray.200" />
+
+           {isAuthenticated && (
+            <Button
+              variant="ghost"
+              size="sm"
+              color="gray.600"
+              fontWeight="normal"
+              onClick={logout}
+              w="fit-content"
+              px={2}
+              py={1}
+              h="auto"
+              minW={0}
+              borderRadius="md"
+            >
+              <Flex align="center">
+                <IoIosLogOut style={{ marginRight: '6px', fontSize: '18px' }} />
+                <Text fontSize="sm">로그아웃</Text>
+              </Flex>
+            </Button>
+          )}
         </VStack>
       </Container>
     </Box>

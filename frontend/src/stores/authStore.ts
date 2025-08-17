@@ -1,8 +1,3 @@
-/**
- * src/stores/auth.ts
- * 인증 + 게임 상태(Zustand)
- */
-
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { deleteRequest, getRequest, postRequest } from '@/api/requests'
@@ -74,14 +69,17 @@ const INITIAL_STATE = {
 }
 
 // 백엔드 베이스 URL (카카오 로그아웃 페이지로 이동할 때 필요)
-const backendBase = (() => {
-  try {
-    const b = api?.defaults?.baseURL ?? ''
-    return b.endsWith('/') ? b.slice(0, -1) : b
-  } catch {
-    return ''
-  }
-})()
+// const backendBase = (() => {
+//   try {
+//     const b = api?.defaults?.baseURL ?? ''
+//     return b.endsWith('/') ? b.slice(0, -1) : b
+//   } catch {
+//     return ''
+//   }
+// })()
+const backendOrigin =
+  import.meta.env.VITE_BASE_URL ||
+  new URL(api?.defaults?.baseURL ?? '', window.location.origin).origin;
 
 export const useAuth = create<AuthState>()(
   persist(
@@ -273,14 +271,24 @@ export const useAuth = create<AuthState>()(
         }
       },
 
+      // logoutViaKakaoPage: async () => {
+      //   try {
+      //     get().pauseAuthSync()
+      //     set({ user: null, gameInfo: INITIAL_GAME_INFO, isAuthenticated: false })
+      //     localStorage.removeItem('auth')
+      //   } finally {
+      //     const url = (backendBase ? `${backendBase}` : '') + '/auth/kakao/logout-page'
+      //     window.location.href = url
+      //   } 
+      // },
+
       logoutViaKakaoPage: async () => {
         try {
           get().pauseAuthSync()
           set({ user: null, gameInfo: INITIAL_GAME_INFO, isAuthenticated: false })
           localStorage.removeItem('auth')
         } finally {
-          const url = (backendBase ? `${backendBase}` : '') + '/auth/kakao/logout-page'
-          window.location.href = url
+          window.location.assign(`${backendOrigin}/auth/kakao/logout-page`);
         }
       },
 
