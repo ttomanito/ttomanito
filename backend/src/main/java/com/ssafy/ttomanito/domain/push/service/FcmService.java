@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+//import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -45,7 +45,7 @@ public class FcmService {
 
         MulticastMessage msg = MulticastMessage.builder()
                 .putData("link", chat.link())
-                .putData("sentAt", LocalDateTime.now().toString())
+//                .putData("sentAt", LocalDateTime.now().toString())
                 .setWebpushConfig(webpushConfig)
                 .addAllTokens(tokens)
                 .build();
