@@ -35,6 +35,17 @@ interface GuessHistory {
 
 type GuessPostResponse = boolean;
 
+// /room/{roomId} 응답 (Swagger 예시 기준)
+interface RoomInfo {
+  roomId: number;
+  creatorId: number;
+  name: string;
+  status: string;
+  startDate: string; // "YYYY-MM-DD" or ISO
+  endDate: string;   // "YYYY-MM-DD" or ISO
+  missionDays: string[];
+}
+
 // KST "YYYY-MM-DD"
 const toKstYMD = (d: Date) =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(d);
@@ -54,6 +65,14 @@ const normalizeGuessYMD_KST = (s?: string) => {
   return toKstYMD(dt); // KST YMD
 };
 
+// YYYY-MM-DD 문자열 범위 비교
+const inRangeYMD = (ymd: string, startYMD?: string, endYMD?: string) => {
+  if (!ymd) return false;
+  if (startYMD && ymd < startYMD) return false;
+  if (endYMD && ymd > endYMD) return false;
+  return true;
+};
+
 const GuessPage = () => {
   const { user, gameInfo, isReady } = useAuth();
   const isInGame = gameInfo.status === 'IN_GAME';
@@ -64,6 +83,7 @@ const GuessPage = () => {
   const [usersToGuess, setUsersToGuess] = useState<User[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [guessHistory, setGuessHistory] = useState<GuessHistory[]>([]);
+  const [roomInfo, setRoomInfo] = useState<RoomInfo | null>(null); // ← room 정보
   const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
 
   // 모달 표시 여부 상태
@@ -80,12 +100,14 @@ const GuessPage = () => {
     const fetchData = async () => {
       setIsPageLoading(true);
       try {
-        const [participants, fetchedHistory] = await Promise.all([
+        const [participants, fetchedHistory, info] = await Promise.all([
           getRequest<User[]>(`/room/${roomId}/participants`),
           getRequest<GuessHistory[]>('/manito/guess/history'),
+          getRequest<RoomInfo>(`/room/${roomId}`), // ← 방 정보 호출
         ]);
 
         setAllParticipants(participants);
+        setRoomInfo(info);
 
         const filtered = participants.filter((u) => u.userId !== Number(user.id));
         const sorted = [...filtered].sort((a, b) => b.name.localeCompare(a.name, 'ko'));
@@ -109,18 +131,34 @@ const GuessPage = () => {
     fetchData();
   }, [isInGame, roomId, user, isReady, toast]);
 
-  // ✅ 현재 방 기록만: "이 방 참가자에게 한 추측"만 남긴다
+  // 게임방 시작/종료일(KST YMD) 계산: roomInfo에서 가져옴
+  const roomStartYMD = useMemo(
+    () => normalizeGuessYMD_KST(roomInfo?.startDate),
+    [roomInfo]
+  );
+  const roomEndYMD = useMemo(
+    () => normalizeGuessYMD_KST(roomInfo?.endDate),
+    [roomInfo]
+  );
+
+  // 현재 방 참가자 + (시작일 이후, 종료일 이내)만 남김
   const roomHistory = useMemo(
     () =>
-      guessHistory.filter((g) =>
-        allParticipants.some((u) => u.userId === g.guessedUserId)
-      ),
-    [guessHistory, allParticipants]
+      guessHistory.filter((g) => {
+        const isThisRoomParticipant = allParticipants.some(
+          (u) => u.userId === g.guessedUserId
+        );
+        if (!isThisRoomParticipant) return false;
+
+        const ymd = normalizeGuessYMD_KST(g.guessedDate);
+        return inRangeYMD(ymd, roomStartYMD || undefined, roomEndYMD || undefined);
+      }),
+    [guessHistory, allParticipants, roomStartYMD, roomEndYMD]
   );
 
   const todayString = toKstYMD(new Date());
 
-  // ✅ 오늘 추측 여부도 roomHistory 기준
+  // 오늘 추측 여부 (필터된 히스토리 기준)
   const todaysGuess = roomHistory.find(
     (g) => normalizeGuessYMD_KST(g.guessedDate) === todayString
   );
@@ -189,7 +227,7 @@ const GuessPage = () => {
         <Spinner />
       </Flex>
     );
-    }
+  }
 
   if (!isInGame) {
     return (
