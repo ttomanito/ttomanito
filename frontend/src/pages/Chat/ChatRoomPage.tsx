@@ -195,7 +195,7 @@ const ChatRoomPage = () => {
   }, [accessState, chatRoomId, roomUserId, myUserId, partner]);
 
   const convertToClientMessage = useCallback((m: ReceivedMessage): ChatMessage => {
-    const sentAt = new Date(m.sentAt+`Z`);
+    const sentAt = new Date(m.sentAt);
     return {
       id: `${m.senderRoomUserId}-${m.sentAt}`,
       sender: String(m.senderRoomUserId),
