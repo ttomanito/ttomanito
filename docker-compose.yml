@@ -123,6 +123,9 @@ services:
       - "4443:4443"
     env_file:
       - .env  
+    volumes:
+      - .env:/opt/openvidu/.env
+      - .env:/.env
     environment:
       - DOMAIN_OR_PUBLIC_IP=i13b206.p.ssafy.io
       - OPENVIDU_PUBLICURL=https://i13b206.p.ssafy.io/openvidu    
