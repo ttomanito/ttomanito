@@ -71,3 +71,40 @@
 | **Redis** (redis) | **`redis:latest`** | 6379:6379 | - **역할**: 인메모리 캐시 및 세션 저장소- **`appendonly`** 옵션을 활성화하여 데이터 안정성 확보 |
 | **MongoDB** (mongo) | **`mongo:latest`** | 27017:27017 | - **역할**: NoSQL Document DB- **`mongo-data`** 볼륨을 통해 데이터 영속성 보장 |
 | **Mongo-Express** (mongo-express) | **`mongo-express:latest`** | 8081:8081 | - **역할**: MongoDB 웹 기반 관리 도구- **`ssafy/ssafy`** 계정으로 로그인 |
+
+
+## **6. 프로젝트 로컬 실행**
+
+### 프론트엔드
+
+### 사전 설치
+
+1. node.js 설치
+    1. 22.17.0 버전을 설치합니다.
+
+### 실행 방법
+
+1. 프론트엔드 폴더로 이동
+    
+    cd ./frontend
+    
+2.  관련 패키지 설치
+    
+    ```jsx
+    npm i
+    ```
+    
+3. 개발 서버 실행
+    
+    ```jsx
+    npm run dev
+    ```
+    
+    http://localhost:5173/ 으로 접속 가능합니다. 
+    
+    env파일 위치: `./frontend`
+    
+4. 빌드 테스트
+
+
+### 백엔드
