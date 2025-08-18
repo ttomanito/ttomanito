@@ -52,9 +52,9 @@ const ChatListPage = () => {
 
   const getChatPartnerInfo = (index: number) => {
     if (index == 0) {
-      return { role: '마니또', profileImage: profile_manito };
-    } else {
       return { role: '마니띠', profileImage: profile_manitee };
+    } else {
+      return { role: '마니또', profileImage: profile_manito };
     }
   };
 
