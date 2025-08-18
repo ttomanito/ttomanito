@@ -124,6 +124,7 @@ services:
       - DOMAIN_OR_PUBLIC_IP=i13b206.p.ssafy.io
       - OPENVIDU_PUBLICURL=https://i13b206.p.ssafy.io/openvidu    
       - OPENVIDU_SECRET=${OPENVIDU_SECRET}
+      - OPENVIDU_URL=${OPENVIDU_URL}
       - OPENVIDU_RECORDING=false
       - OPENVIDU_USE_LEGACY_TOKEN=false                       
     networks:
