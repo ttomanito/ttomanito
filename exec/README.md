@@ -108,3 +108,159 @@
 
 
 ### 백엔드
+
+#### 사전 설치
+
+1. **JDK 17** (Temurin/Adoptium 권장)
+2. **Docker & Docker Compose**
+3. **Gradle** 또는 **Maven** – 프로젝트에 맞춰 사용
+
+---
+
+#### 1) 환경 변수(.env) 준비
+
+* 위치: `./backend` (백엔드 소스 폴더)
+* 아래 예시를 복사해 `.env` 파일을 만듭니다. 필요 값은 
+
+```bash
+# 백엔드 서버
+SPRING_PORT=8080
+SPRING_PROFILES_ACTIVE=local
+
+# DB
+MYSQL_ROOT_PASSWORD=your_root_pw
+MYSQL_DATABASE=your_db
+MYSQL_USER=your_user
+MYSQL_PASSWORD=your_pw
+
+MONGO_DATABASE=your_mongo_db
+
+# OAuth / JWT
+KAKAO_CLIENT_ID=your_kakao_client_id
+JWT_SECRET=your_jwt_secret
+
+# OpenVidu / TURN
+OPENVIDU_URL=https://localhost:4443
+OPENVIDU_SECRET=your_openvidu_secret
+TURN_REALM=localhost
+TURN_USER=turn_user
+TURN_PASS=turn_pass
+
+# 기타
+OPENAI_API_KEY=your_openai_key
+```
+
+> Firebase 서비스 계정 키 파일은 `backend/src/main/resources/firebase-service-account.json` 에 두세요.
+> (설정: `fcm.enabled=true`, `fcm.credentials.location=classpath:firebase-service-account.json`)
+
+---
+
+#### 2) 로컬 인프라(의존 서비스) 기동
+
+프로젝트 루트(도커 컴포즈 파일이 있는 곳)에서 아래 서비스를 먼저 올립니다.
+
+```bash
+docker compose up -d mysql redis mongo mongo-express openvidu-server-kms coturn
+```
+
+* MySQL: `localhost:3306`
+* Redis: `localhost:6379`
+* MongoDB: `localhost:27017`
+* Mongo Express: [http://localhost:8081](http://localhost:8081)
+* OpenVidu: [https://localhost:4443](https://localhost:4443) (자체 서명 인증서로 브라우저 경고가 뜰 수 있음)
+* coturn: `localhost:3478`
+
+상태 확인:
+
+```bash
+docker compose ps
+docker compose logs -f mysql
+```
+
+> `application.properties`는 로컬 호스트로 접속하도록 이미 설정되어 있습니다.
+>
+> * `spring.datasource.url=jdbc:mysql://localhost:3306/${MYSQL_DATABASE}...`
+> * `spring.data.mongodb.uri=mongodb://localhost:27017/${MONGO_DATABASE}`
+> * `spring.data.redis.host=localhost`
+
+> **주의:** `spring.jpa.hibernate.ddl-auto=none` 이므로 스키마/마이그레이션이 필요합니다.
+>
+> * Flyway/Liquibase 스크립트가 있다면 먼저 적용하세요.
+> * 임시로 테이블 자동 생성이 필요하면 로컬에서만 `update`로 바꿔 사용할 수 있으나, 팀 규칙을 따르세요.
+
+---
+
+#### 3) 백엔드 실행
+
+백엔드 폴더로 이동 후 의존성 받기 & 실행:
+
+**Gradle 사용 시**
+
+```bash
+cd ./backend
+./gradlew clean build        # 빌드 테스트
+./gradlew bootRun            # 애플리케이션 실행
+```
+
+**Maven 사용 시**
+
+```bash
+cd ./backend
+./mvnw -DskipTests clean package   # 빌드 테스트
+./mvnw spring-boot:run             # 애플리케이션 실행
+```
+
+실행 환경 변수는 `.env`로 주입되며, 기본 포트는 `SPRING_PORT`가 없으면 **8080**입니다.
+
+확인:
+
+* 헬스체크(있다면): `http://localhost:8080/actuator/health`
+* Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+  (OpenAPI 문서 경로: `/v3/api-docs`)
+
+---
+
+#### 4) 프론트와 연동 체크
+
+* 리다이렉트 베이스(URL): `url.redirect.base=http://localhost:5173`
+* 카카오 로그인 리다이렉트: `{baseUrl}/login/oauth2/code/{registrationId}`
+
+  * 카카오 콘솔에도 **[http://localhost:5173](http://localhost:5173)** 와 백엔드 콜백 경로가 등록되어 있어야 합니다.
+* CORS가 필요하다면 백엔드 CORS 설정 또는 프록시 설정을 적용하세요.
+
+---
+
+#### 5) 빌드 테스트(배포 아님)
+
+로컬 빌드만 검증하려면:
+
+**Gradle**
+
+```bash
+./gradlew clean build
+```
+
+**Maven**
+
+```bash
+./mvnw -DskipTests clean package
+```
+
+---
+
+#### 자주 발생하는 이슈 안내
+
+* **포트 충돌**: 3306/6379/27017/8081/4443/3478 사용 중인지 확인 후 중복 프로세스 종료.
+* **OpenVidu 인증서 경고**: 로컬 개발이므로 브라우저 보안 경고가 뜰 수 있습니다(자체 서명). 무시하고 진행하거나 신뢰 추가.
+* **DB 스키마 없음**: `ddl-auto=none` 환경에서 마이그레이션 미적용 시 런타임 에러가 납니다. 스크립트 먼저 적용하세요.
+* **환경변수 누락**: `JWT_SECRET`, `KAKAO_CLIENT_ID`, `OPENVIDU_SECRET` 등 필수 값 누락 시 인증/세션 관련 오류가 납니다.
+
+---
+
+#### 요약 실행 흐름
+
+1. `.env` 작성 (`./backend`)
+2. `docker compose up -d mysql redis mongo mongo-express openvidu-server-kms coturn`
+3. (필요 시) DB 마이그레이션 적용
+4. `./gradlew bootRun` 또는 `./mvnw spring-boot:run`
+5. `http://localhost:8080/swagger-ui/index.html` / 프론트 `http://localhost:5173` 에서 연동 확인
