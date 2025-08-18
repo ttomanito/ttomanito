@@ -121,7 +121,7 @@ services:
     ports:
       - "4443:4443"
     env_file:
-    - .env  
+      - .env  
     environment:
       - DOMAIN_OR_PUBLIC_IP=i13b206.p.ssafy.io
       - OPENVIDU_PUBLICURL=https://i13b206.p.ssafy.io/openvidu    
