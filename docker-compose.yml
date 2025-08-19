@@ -79,7 +79,6 @@ services:
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase-service-account.json
       FCM_ENABLED: "true"
       FCM_CREDENTIALS_LOCATION: file:/run/secrets/firebase.json
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
     volumes:
       - ./secrets/prod:/run/secrets:ro
     networks:
@@ -119,23 +118,17 @@ services:
     image: openvidu/openvidu-server-kms:2.22.0
     container_name: openvidu-server-kms
     restart: always
-    # ports:
-    #   - "4443:4443"
-    env_file:
-      - .env  
-    volumes:
-      - .env:/opt/openvidu/.env
-      - .env:/.env
+    ports:
+      - "4443:4443"
+      - "41000-41100:41000-41100/udp"
     environment:
-      - DOMAIN_OR_PUBLIC_IP=i13b206.p.ssafy.io
-      - OPENVIDU_PUBLICURL=https://i13b206.p.ssafy.io/openvidu    
+      - DOMAIN_OR_PUBLIC_IP=localhost
+      - OPENVIDU_PUBLICURL=${OPENVIDU_PUBLICURL}
       - OPENVIDU_SECRET=${OPENVIDU_SECRET}
-      - OPENVIDU_URL=${OPENVIDU_URL}
       - OPENVIDU_RECORDING=false
-      - OPENVIDU_USE_LEGACY_TOKEN=false                       
+      - OPENVIDU_USE_LEGACY_TOKEN=false
     networks:
       - app-network
-
 
   coturn:
     image: instrumentisto/coturn
