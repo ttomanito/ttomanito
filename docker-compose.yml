@@ -128,6 +128,7 @@ services:
       - OPENVIDU_SECRET=${OPENVIDU_SECRET}
       - OPENVIDU_RECORDING=false
       - OPENVIDU_USE_LEGACY_TOKEN=false
+      - OPENVIDU_WEBRTC_ICE_SERVERS=${OPENVIDU_WEBRTC_ICE_SERVERS}
     networks:
       - app-network
 
