@@ -119,8 +119,8 @@ services:
     image: openvidu/openvidu-server-kms:2.22.0
     container_name: openvidu-server-kms
     restart: always
-    ports:
-      - "4443:4443"
+    # ports:
+    #   - "4443:4443"
     env_file:
       - .env  
     volumes:
