@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Entity
 @Getter
@@ -43,7 +44,7 @@ public class ManitoGuess {
         return ManitoGuess.builder()
                 .guessUserId(guessUserId)
                 .guessedUserId(guessedUserId)
-                .guessedDate(LocalDate.now())
+                .guessedDate(LocalDate.now(ZoneId.of("Asia/Seoul")))
                 .isCorrect(isCorrect)
                 .build();
     }

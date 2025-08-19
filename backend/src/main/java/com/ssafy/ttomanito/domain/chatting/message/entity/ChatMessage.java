@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Document(collection = "chat_message")
 @Getter
@@ -19,7 +20,7 @@ public class ChatMessage {
     private String chatId;
     private Long chattingRoomId;
     private Long senderRoomUserId;
-    private Long senderUserId;       // ★ 추가: 실제 회원 ID
+    private Long senderUserId;
     private String content;
     private LocalDateTime sentAt;
 
@@ -31,10 +32,10 @@ public class ChatMessage {
         return ChatMessage.builder()
                 .chattingRoomId(roomId)
                 .senderRoomUserId(senderRoomUserId)
-                .senderUserId(senderUserId)      // ★ 세팅
+                .senderUserId(senderUserId)
                 .content(content)
                 .type(MessageType.TEXT)
-                .sentAt(LocalDateTime.now())
+                .sentAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
     }
 
@@ -43,9 +44,9 @@ public class ChatMessage {
         return ChatMessage.builder()
                 .chattingRoomId(roomId)
                 .senderRoomUserId(senderRoomUserId)
-                .senderUserId(senderUserId)      // ★ 세팅
+                .senderUserId(senderUserId)
                 .type(type)
-                .sentAt(LocalDateTime.now())
+                .sentAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
     }
 }

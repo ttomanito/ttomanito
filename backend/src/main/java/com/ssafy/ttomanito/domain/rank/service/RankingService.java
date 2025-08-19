@@ -2,6 +2,7 @@ package com.ssafy.ttomanito.domain.rank.service;
 
 import com.ssafy.ttomanito.domain.manito.repository.ManitoActivityRepository;
 import com.ssafy.ttomanito.domain.mission.repository.DailyMissionRepository;
+import com.ssafy.ttomanito.domain.mission.repository.MissionStatusRepository;
 import com.ssafy.ttomanito.domain.rank.dto.RankingDto;
 import com.ssafy.ttomanito.domain.rank.entity.RankingGenre;
 import com.ssafy.ttomanito.domain.room.entity.RoomStatus;
@@ -22,8 +23,7 @@ import java.util.stream.IntStream;
 public class RankingService {
     private final RoomUserRepository roomUserRepo;
     private final ManitoActivityRepository activityRepo;
-    private final DailyMissionRepository dailyMissionRepo;
-    // …
+    private final MissionStatusRepository missionStatusRepository;
 
     @Transactional(readOnly = true)
     public List<RankingDto> getRoomRanking(int genreCode, Long userId) {
@@ -43,12 +43,12 @@ public class RankingService {
         List<Map.Entry<Long, Long>> stats = participants.stream()
                 .map(ru -> {
                     Long uid = ru.getUser().getUserId();
+                    Long ruId = ru.getRoomUserId();
                     long metric;
                     switch (genre) {
                         case MISSION_COUNT:
                             // (기존) 미션 개수
-                            metric = activityRepo
-                                    .sumMissionSuccessCountByRoomAndUser(roomId, uid);
+                            metric = missionStatusRepository.countMissionsIDid(roomId, ruId);
                             break;
                         case VOICE_CALL:
                             // 새로 추가: sumCallTimeByRoomAndUser 쿼리 호출
