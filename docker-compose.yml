@@ -61,7 +61,6 @@ services:
     expose:
       - "8080"
     depends_on:
-      - openvidu-server-kms
       - mysql
       - redis
       - mongo
@@ -106,6 +105,7 @@ services:
       - "443:443"
     depends_on:
       - backend
+      - openvidu-server-kms
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - /etc/letsencrypt:/etc/letsencrypt:ro
