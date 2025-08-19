@@ -121,7 +121,7 @@ services:
     container_name: openvidu-server-kms
     restart: always
     ports:
-      - "4443:4443"
+      # - "4443:4443"
       - "41000-41100:41000-41100/udp"
     environment:
       - DOMAIN_OR_PUBLIC_IP=${DOMAIN_OR_PUBLIC_IP} 
