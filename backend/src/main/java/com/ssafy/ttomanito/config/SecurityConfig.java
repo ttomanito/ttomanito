@@ -64,7 +64,9 @@ public class SecurityConfig {
                                 "/auth/**",
                                 "/login",
                                 "/oauth2/authorization/**",
-                                "/login/oauth2/code/**"
+                                "/login/oauth2/code/**",
+                                "/openvidu/**",
+                                "/dashboard/**"
                         ).permitAll()
                         .requestMatchers("/ws/**", "/ws/signal/**", "/topic/**", "/app/**").permitAll()
                         .requestMatchers("/chat/**").authenticated()
