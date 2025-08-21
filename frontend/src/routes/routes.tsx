@@ -20,7 +20,7 @@ const WaitingRoomPage = lazyImport(() => import('@/pages/Room/WaitingRoomPage'))
 const HomePage = lazyImport(() => import('@/pages/Home/HomePage'));
 const ChatListPage = lazyImport(() => import('@/pages/Chat/ChatListPage'));
 const ChatRoomPage = lazyImport(() => import('@/pages/Chat/ChatRoomPage'));
-const CallPage = lazyImport(() => import('@/pages/Chat/CallPage'));
+const CallPage = lazyImport(() => import('@/pages/Chat/CallRoomPage'));
 const GuessPage = lazyImport(() => import('@/pages/Guess/GuessPage'));
 const RankingPage = lazyImport(() => import('@/pages/Rank/RankingPage'));
 const EditProfile = lazyImport(() => import('@/pages/User/EditProfilePage'));
