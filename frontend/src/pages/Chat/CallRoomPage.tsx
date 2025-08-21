@@ -41,7 +41,7 @@ export default function CallRoomPage() {
         // @ts-ignore
         el.srcObject = sub.stream.getMediaStream();
         el.autoplay = true;
-        el.playsInline = true;
+       
         el.play().catch(() => setPlayBlocked(true));
       }
     });
@@ -104,7 +104,7 @@ export default function CallRoomPage() {
         {/* 하단 컨트롤 */}
         <Box pt={2} pb={1}>
           {phase === 'ringingIn' ? (
-            <HStack justify="center" spacing={10}>
+            <HStack justify="center">
               <Button
                 borderRadius="full"
                 size="lg"
@@ -123,7 +123,7 @@ export default function CallRoomPage() {
               </Button>
             </HStack>
           ) : phase === 'inCall' ? (
-            <HStack justify="center" spacing={10}>
+            <HStack justify="center">
               <Button
                 borderRadius="full"
                 size="lg"
@@ -153,7 +153,7 @@ export default function CallRoomPage() {
                 </Button>
               ) : (
                 <Button
-                  leftIcon={<span>📞</span>}
+                
                   onClick={() => requestCall({ id: 1, nickname: '나' })}
                   colorScheme="teal"
                   size="lg"
