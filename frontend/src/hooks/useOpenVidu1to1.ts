@@ -330,20 +330,14 @@ session.on('streamCreated', (e) => {
   const processedTrack = await createProcessedAudioTrackWithTone(deviceId);
   console.debug('[OV][FX] processedTrack', processedTrack?.id, processedTrack?.label);
 
-    const pub = await ovRef.current.initPublisherAsync(undefined, {
+const container = document.createElement('div');
+const pub = await ovRef.current.initPublisherAsync(container, {
       audioSource: processedTrack as any, // ← MediaStreamTrack 직접 전달
       videoSource: false,
       publishAudio: true,
       publishVideo: false,
       mirror: false,
-      // 음성 품질 옵션
-      audioTrackConstraints: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: false, // <- 먼저 false로 테스트 (깨짐 줄이기)
-    channelCount: 1,        // 모노: 음성에 유리, 대역폭↓
-    sampleRate: 48000,      // WebRTC 기본/권장
-      } as any,
+    
     });
 
  // 힌트(무해)
