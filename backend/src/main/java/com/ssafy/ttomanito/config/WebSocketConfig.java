@@ -39,8 +39,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .addInterceptors(jwtHandshakeInterceptor)
                 .setAllowedOriginPatterns(
                         "http://localhost:5173",
-                        "http://localhost:8080",
-                        "https://i13b206.p.ssafy.io"
+                        "http://localhost:8080"
                 )
                 .withSockJS()
                 .setSessionCookieNeeded(true);
@@ -48,8 +47,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .addInterceptors(jwtHandshakeInterceptor)
                 .setAllowedOriginPatterns(
                         "http://localhost:5173",
-                        "http://localhost:8080",
-                        "https://i13b206.p.ssafy.io"
+                        "http://localhost:8080"
                 )
                 .withSockJS()
                 .setSessionCookieNeeded(true);
@@ -57,8 +55,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .addInterceptors(jwtHandshakeInterceptor)
                 .setAllowedOriginPatterns(
                         "http://localhost:5173",
-                        "http://localhost:8080",
-                        "https://i13b206.p.ssafy.io"
+                        "http://localhost:8080"
                 )
                 .withSockJS()
                 .setSessionCookieNeeded(true);
