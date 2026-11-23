@@ -7,7 +7,7 @@
 | 항목 | 내용 |
 | --- | --- |
 | 서비스 형태 | 모바일 웹 (PWA 설치 지원) |
-| 기간 | 2025.07.14 ~ 2025.08.21 (Git 커밋 기준) |
+| 기간 | 2025.07.14 ~ 2025.08.15 (5주) |
 | 소속 | SSAFY 13기 공통 프로젝트 (6인 팀 — 프론트엔드 3 · 백엔드 2 · 인프라 1) |
 | 저장소 구성 | `backend/` Spring Boot · `frontend/` React · `nginx/` 리버스 프록시 · `exec/` ERD·화면 캡처·DDL · 루트 `docker-compose.yml` |
 | 저장소 | MySQL(도메인 메타) · MongoDB(채팅 메시지·AI 분석) · Redis(토큰) |
@@ -27,7 +27,7 @@
 5. [기술 스택](#5-기술-스택)
 6. [데이터 설계 (3-DB 분리)](#6-데이터-설계-3-db-분리)
 7. [실시간 통신 설계 (WebSocket / STOMP)](#7-실시간-통신-설계-websocket--stomp)
-8. [음성변조 통화 구현 현황](#8-음성변조-통화-구현-현황)
+8. [음성변조 통화](#8-음성변조-통화)
 9. [AI 성향 분석](#9-ai-성향-분석)
 10. [푸시 알림과 PWA](#10-푸시-알림과-pwa)
 11. [인증과 인가](#11-인증과-인가)
@@ -59,7 +59,7 @@
 | 1:1 채팅 | STOMP 개인 큐로 상대에게만 전달, MongoDB에 append 저장, 50건 단위 역순 페이징 | `ChatWebSocketController`, `ChattingService` |
 | 콕 찌르기 | 찌르기 로그 저장 + 채팅 이벤트(랜덤 문구) + 마니또에게 알림·푸시 | `PokeService`, `ChattingService.sendPoke`, `NoticeService` |
 | 마니또 추측 | 팀원 중 1명을 선택해 제출, 정답 여부 저장, 추측 이력 조회, 마니또에게 알림 | `ManitoService`, `ManitoGuess` |
-| 음성 통화 | OpenVidu 세션/토큰 발급 후 오디오 전용 1:1 통화, Tone.js 피치 변조, 통화 시간 기록 | `SessionController`, `useOpenVidu1to1`, `VoiceChat` — [8절](#8-음성변조-통화-구현-현황) 참고 |
+| 음성 통화 | OpenVidu 세션/토큰 발급 후 오디오 전용 1:1 통화, Tone.js 피치 변조, 통화 시간 기록 | `SessionController`, `useOpenVidu1to1`, `VoiceChat` — [8절](#8-음성변조-통화) 참고 |
 | AI 성향 분석 | 상대와의 채팅 로그로 말투·행동 팁 3개·주의점을 요약. 요청자당 1회 분석 후 캐시 | `ChatAnalysisService` |
 | 중간 랭킹 | 통화 시간 · 채팅 수 · 미션 수행 수 3개 지표로 방 내 순위 | `RankingService` |
 | 관찰 리포트 | 종료된 방에서 받은 도움/준 도움, 찌르기·채팅·통화·추측 횟수와 미션 목록 | `ReportService` |
@@ -293,53 +293,47 @@ public class JwtUserDetails implements UserDetails, Principal {
 
 ---
 
-## 8. 음성변조 통화 구현 현황
+## 8. 음성변조 통화
 
-> 결론부터: **파이프라인은 구현되어 있으나, 브랜치 병합 과정에서 사용자 진입 경로와 미디어 세션 연결이 끊긴 상태**입니다. 통화 화면(`/chat/:chatRoomId/call`)은 URL로 직접 접근해야 열리고, 채팅방에서 통화를 시작하는 버튼은 없습니다. 아래에 남아 있는 구현과 끊긴 지점을 코드 기준으로 정리합니다.
+익명이 유지되는 1:1 통화에서 목소리까지 바뀌면 상대를 추측하는 재미가 커집니다. **OpenVidu(WebRTC)로 오디오 1:1 통화를 열고, 송신 트랙에 Tone.js `PitchShift`를 걸어 목소리를 변조**하는 구조로 만들었습니다. 프로젝트 중간 시연에서는 변조된 음성이 상대에게 전달되는 것까지 확인했고, 이후 여러 브랜치를 병합하며 리팩토링하는 과정에서 진입 경로와 세션 연결부가 하나의 흐름으로 재통합되지 않은 채 `master`에 남아 있습니다.
 
-### 8.1 구현되어 있는 것
+### 8.1 구현
 
 | 계층 | 내용 | 근거 |
 | --- | --- | --- |
 | 인프라 | OpenVidu KMS 2.22.0 컨테이너, coturn TURN 서버, Nginx의 `/openvidu/`·`:4443` 프록시, Let's Encrypt 인증서 | `docker-compose.yml`, `nginx/default.conf` |
 | 백엔드 | `POST /openvidu/token` — 커스텀 세션 ID로 세션 생성(409면 기존 세션 재사용) 후 커넥션 토큰 발급 | `SessionController`, `OpenViduService` |
-| 백엔드 | 통화 상태 기록 — `voice_chat`(채팅방·참가자 복합키, `started_at`/`ended_at`/`duration_sec`/`is_active`), 시작·수락·거절·종료 API 및 STOMP 이벤트 | `VoiceChatService`, `ChattingController`, `ChatWebSocketController` |
+| 백엔드 | 통화 상태 기록 — `voice_chat`(채팅방·참가자 복합키, `started_at`/`ended_at`/`duration_sec`/`is_active`), 시작·수락·거절·종료 API와 STOMP 이벤트 | `VoiceChatService`, `ChattingController`, `ChatWebSocketController` |
 | 프론트 | 오디오 전용 통화 훅 — 발신/수락/거절/종료 시그널, 통화 타이머, 음소거, 상대 스트림 구독 | `hooks/useOpenVidu1to1.ts` |
-| 프론트 | **음성 변조** — Tone.js `PitchShift`(기본 `semitones: 8`, `windowSize: 0.09`, `wet: 1.0`)로 마이크 트랙을 변조한 뒤 `audioSource`로 publish, 실제 송신 트랙을 `replaceTrack`으로 재확인 | `useOpenVidu1to1.ts` |
-| 프론트 | 통화 화면 UI — 수락/거절, 음소거, 종료, 타이머, 자동재생 차단 시 "오디오 재생 허용" 버튼 | `pages/Chat/CallRoomPage.tsx` |
+| 프론트 | **음성 변조** — Tone.js `PitchShift`(기본 `semitones: 8`, `windowSize: 0.09`, `wet: 1.0`)를 거친 트랙을 `audioSource`로 publish하고, 실제 송신 트랙을 `replaceTrack`으로 재확인 | `useOpenVidu1to1.ts` |
+| 프론트 | 통화 화면 — 수락/거절, 음소거, 종료, 타이머, 자동재생 차단 시 "오디오 재생 허용" 버튼 | `pages/Chat/CallRoomPage.tsx` |
 
-음성 변조는 마이크 원본을 그대로 보내지 않고 **Web Audio 그래프를 거친 트랙을 송신**하는 방식입니다.
+변조는 마이크 원본을 그대로 보내지 않고, Web Audio 그래프를 거친 트랙을 송신하는 방식입니다.
 
 ```ts
-// backend가 아니라 브라우저에서 수행: 마이크 → PitchShift → MediaStreamDestination
-const pitch = new Tone.PitchShift({ pitch: 8, windowSize: 0.09, delayTime: 0, feedback: 0 });
+// 마이크 → PitchShift → MediaStreamDestination → OpenVidu Publisher
+const pitch = new Tone.PitchShift({ pitch: 8, windowSize: 0.09 });
 pitch.wet.value = 1.0;
 const dest = audioCtx.createMediaStreamDestination();
-um.connect(pitch);
+source.connect(pitch);
 pitch.connect(dest);
-// 이후 OpenVidu Publisher의 audioSource로 dest.stream.getAudioTracks()[0] 전달
+// publisher: audioSource = dest.stream.getAudioTracks()[0], videoSource = null
 ```
 
-### 8.2 끊긴 지점 (현재 master 기준)
+### 8.2 현재 상태
 
-| 지점 | 현재 상태 | 확인 방법 |
-| --- | --- | --- |
-| 채팅방 → 통화 진입 | `useChatSocket`의 `startCall`이 정의만 되어 있고 어떤 페이지에서도 호출되지 않음. 채팅방 헤더에 통화 버튼 없음 | `utils/useChatSocket.ts`, `pages/Chat/ChatRoomPage.tsx` |
-| 통화 수락 후 미디어 연결 | 말풍선의 수락/거절 버튼은 STOMP 이벤트만 발행하고, 통화 화면으로 이동하거나 OpenVidu 세션에 접속하지 않음 | `ChatRoomPage` → `acceptCall`/`rejectCall` |
-| 통화 화면 접근 | `/chat/:chatRoomId/call` 라우트는 존재하지만 앱 내 링크가 없어 직접 URL 입력으로만 도달 | `routes/routes.tsx`, `CallRoomPage` |
-| 발신자 정보 | 통화 화면이 `requestCall({ id: 1, nickname: '나' })`로 고정값을 사용 | `CallRoomPage.tsx` |
-| 서버 상태 ↔ 미디어 세션 | `voice_chat` 상태 전이(REST/STOMP)와 OpenVidu 접속이 하나의 흐름으로 묶여 있지 않아, 통화 시간 집계가 실제 미디어 연결 시점과 어긋날 수 있음 | `VoiceChatService.startCall` vs `useOpenVidu1to1.connectSession` |
-| 변조 파라미터 | 세미톤·윈도우·wet 값이 코드 상수로 고정(UI 없음) | `pitchParamsRef` |
-| 미사용 파일 | `pages/Chat/CallPage.tsx`는 스텁(`createStubPage`)이고 라우트는 `CallRoomPage`를 사용 | `routes/routes.tsx` |
+변조 파이프라인과 통화 API, 통화 화면은 각각 구현된 상태로 남아 있습니다. 다만 브랜치를 병합하며 리팩토링하는 과정에서 채팅방의 통화 진입점과 수락 후 세션 접속이 정리되지 않아, `master`에서는 통화 흐름이 한 경로로 이어지지 않습니다(`/chat/:chatRoomId/call` 라우트도 스텁 페이지를 가리킵니다). 통화 시간은 REST/STOMP 상태 전이 기준으로 기록되고, 변조 파라미터는 코드 상수로 고정되어 있습니다.
 
 ### 8.3 추후 개선 방향
 
-1. **진입 경로 복구** — 채팅방 헤더에 통화 버튼을 두고 `startCall` → 통화 화면 이동 → 상대 수락 시 양쪽이 같은 세션에 접속하도록 연결.
-2. **세션 발급 주체를 서버로 일원화** — 통화 시작 요청 시 백엔드가 OpenVidu 세션을 만들고 두 참가자의 토큰을 함께 발급. `voice_chat` 레코드의 `started_at`을 미디어 연결 성공 시점에, `duration_sec`을 종료 시점에 기록해 집계와 실제 통화를 일치시킴.
-3. **참가자 정보 주입** — 발신자/수신자 ID와 닉네임을 인증 컨텍스트에서 가져오도록 하드코딩 제거.
-4. **변조 프리셋** — 음높이/톤 프리셋(예: 낮게/높게/로봇) 선택 UI와 세션 내 파라미터 저장, 상대에게 현재 프리셋 안내.
-5. **품질·예외 처리** — 에코/노이즈 억제 옵션 튜닝, 마이크 권한 거부·자동재생 차단·네트워크 끊김에 대한 상태별 안내.
-6. **환경 설정 분리** — ICE(TURN) 서버와 소켓 주소를 배포 환경값으로 주입해 로컬/운영 전환을 코드 수정 없이 처리.
+리팩토링과 함께 흩어진 통화 경로를 하나로 다시 묶는 것을 목표로 합니다.
+
+1. **진입점 복구** — 채팅방 헤더의 통화 버튼 → `startCall` → 통화 화면 이동.
+2. **수락 후 세션 접속 일원화** — 상대 수락 시 양쪽이 같은 OpenVidu 세션에 접속하도록, 통화 시작 시 백엔드가 두 참가자의 토큰을 함께 발급.
+3. **기록 시점 정합성** — `voice_chat.started_at`을 미디어 연결 성공 시점에, 누적 시간을 종료 시점에 기록.
+4. **참가자 정보 주입** — 발신자/수신자 정보를 인증 컨텍스트에서 받아 화면 하드코딩 제거.
+5. **변조 프리셋** — 음높이/톤 프리셋(낮게·높게·로봇) 선택 UI와 상대에게 현재 프리셋 안내.
+6. **품질·예외 처리와 환경 설정** — 에코/노이즈 억제, 권한 거부·자동재생 차단·네트워크 끊김 상태 안내, ICE(TURN)·소켓 주소의 환경값 주입.
 
 ---
 
@@ -417,50 +411,41 @@ sequenceDiagram
 
 ## 12. 트러블슈팅
 
+백엔드와 공통 영역에서 실제로 겪고 해결한 문제를 정리합니다.
+
 ### 12.1 WebSocket 1:1 라우팅이 되지 않던 문제
 
-- **증상**: `convertAndSendToUser`로 보낸 메시지가 상대에게 도착하지 않거나, Principal이 비어 라우팅 키를 만들 수 없음.
-- **원인**: HTTP 요청의 인증 정보는 `ThreadLocal` 기반 `SecurityContext`에 있고, 비동기 WebSocket 채널로 전파되지 않음.
-- **해결**: `JwtUserDetails`가 `UserDetails`와 `Principal`을 동시에 구현하도록 하고, 핸드셰이크에서 토큰을 세션 속성에 저장 → STOMP `CONNECT`에서 `StompHeaderAccessor.setUser()`로 Principal 주입. 이때 `getName()`이 `userId`를 반환하도록 통일.
-- **근거**: `JwtUserDetails`, `JwtHandshakeInterceptor`, `WebSocketAuthChannelInterceptor`
+- **증상**: `convertAndSendToUser`로 보낸 메시지가 상대에게 도착하지 않거나, `Principal`이 비어 라우팅 키를 만들 수 없음.
+- **원인**: HTTP 요청의 인증 정보는 `ThreadLocal` 기반 `SecurityContext`에 있어 비동기 WebSocket 채널로 전파되지 않았고, STOMP 프레임의 `Principal`이 비어 있었음.
+- **해결**: `JwtUserDetails`가 `UserDetails`와 `Principal`을 동시에 구현하도록 통일하고, 2단계로 주입했습니다. 핸드셰이크(`JwtHandshakeInterceptor`)에서 JWT를 검증해 세션 속성에 넣고, STOMP `CONNECT`(`WebSocketAuthChannelInterceptor`)에서 `StompHeaderAccessor.setUser()`로 `Principal`을 세웁니다. `getName()`이 `userId`를 반환해 HTTP 컨트롤러와 `@MessageMapping`이 같은 식별자를 씁니다.
+- **결과**: 개인 큐(`/user/queue/chat.{chatRoomId}`)로 해당 사용자에게만 전달되고, 방 단위 토픽과 역할이 분리됨.
+- **근거**: `JwtUserDetails`, `JwtHandshakeInterceptor`, `WebSocketAuthChannelInterceptor`, `WebSocketConfig`
 
-### 12.2 같은 메시지가 두 번 보이던 문제
-
-- **원인**: 개인 큐(`/user/queue/chat.*`)와 방 토픽(`/topic/chat.*`)에 동시에 전송되어 클라이언트가 양쪽을 구독.
-- **해결**: 구독은 개인 큐 기준으로 처리하고, `senderRoomUserId + sentAt` 조합을 메시지 ID로 사용해 중복을 무시(최근 200건 유지).
-- **근거**: `ChatWebSocketController.pushToParticipants`, `utils/useChatSocket.ts`
-
-### 12.3 내 목소리가 내 스피커로 재생되던 문제
-
-- **원인**: OpenVidu 세션에서 자기 스트림까지 구독, 재연결 시 같은 상대를 중복 구독.
-- **해결**: `connectionId` 비교로 자기 스트림을 건너뛰고, 구독한 상대 `connectionId`를 `Set`으로 관리해 중복 구독 차단. 상대 오디오는 화면 밖 컨테이너(`#ov-remote-sounds`)에 붙여 재생.
-- **근거**: `hooks/useOpenVidu1to1.ts` (`skip self stream`, `duplicate stream ignored`)
-
-### 12.4 통화 음성이 재생되지 않던 문제 (브라우저 자동재생 정책)
-
-- **원인**: 사용자 제스처 없이 생성된 오디오 요소는 브라우저가 재생을 막음.
-- **해결**: 구독 엘리먼트 생성 시 `autoplay`·`playsInline`을 지정하고 `play()`를 직접 호출, 실패하면 버튼 클릭 시점(제스처)에 재생을 재시도. 실패가 감지되면 화면 우측 하단에 "오디오 재생 허용" 버튼 노출.
-- **근거**: `useOpenVidu1to1.ts` (`resumeRemoteAudio`), `CallRoomPage.tsx` (`playBlocked`)
-
-### 12.5 활동 집계가 두 번 반영되던 문제
+### 12.2 활동 집계가 두 번 반영되던 문제
 
 - **원인**: 매일 00:00:01 스케줄러(전날 집계)와 방 종료 시 즉시 집계가 같은 날짜를 중복 처리할 수 있음.
-- **해결**: 종료된 방이면서 종료일이 집계 대상일과 같으면 스킵하도록 필터링. 스케줄러·집계 모두 `Asia/Seoul` 고정.
-- **근거**: `ActivityAggregationService.aggregateForDate`, `ManitoService.finishRoom`
+- **해결**: 종료된 방이면서 종료일이 집계 대상일과 같으면 스킵하도록 필터링(`aggregateForDate`). 스케줄러·집계 모두 `Asia/Seoul` 고정.
+- **근거**: `ActivityAggregationService`, `ManitoService.finishRoom`
 
-### 12.6 랭킹 지표의 갱신 시점이 다른 문제
+### 12.3 랭킹 지표의 갱신 시점이 다른 문제
 
-- **현상**: 채팅 수·통화 시간은 전날까지의 집계값을 사용하고, 미션 수행 수는 `mission_status`를 실시간으로 세어 순위를 만듦.
-- **결과**: 화면에도 "채팅 순위는 매일 자정에, 미션 순위는 실시간으로 업데이트됩니다"로 안내하고, 집계 지연을 설계로 수용.
+- **현상**: 채팅 수·통화 시간은 전날까지 집계된 `manito_activity` 값을 쓰고, 미션 수행 수는 `mission_status`를 실시간으로 세어 순위를 만듦.
+- **정리**: 일 단위 집계 배치는 유지하고, 화면에 "채팅 순위는 매일 자정에, 미션 순위는 실시간으로 업데이트됩니다"로 갱신 시점을 안내.
 - **근거**: `RankingService`, `pages/Rank/RankingPage.tsx`
 
-### 12.7 운영 환경에서 WebSocket·미디어가 붙지 않던 문제
+### 12.4 프록시·배포 도메인 환경에서 인증 쿠키가 전달되지 않던 문제
+
+- **원인**: 토큰을 HttpOnly 쿠키로 내려주므로, Nginx 뒤 HTTPS 환경과 PWA 도메인에서는 `Secure`·`SameSite`·`Domain`이 맞지 않으면 브라우저가 쿠키를 싣지 않습니다. 도메인·경로가 다른 이전 쿠키가 남아 있으면 삭제 후에도 인증이 꼬이기도 합니다.
+- **해결**: `CookieUtils`가 `X-Forwarded-Proto`로 `secure`·`SameSite`(HTTPS면 `None`, 로컬이면 `Lax`)를, `X-Forwarded-Host`로 `Domain`을 결정해 쿠키를 발급하고, 삭제 시 host-only·`/api` 경로 변형까지 함께 지웁니다. 서버는 `server.forward-headers-strategy=native`로 프록시 헤더를 신뢰하고, CORS는 `allowCredentials=true`로 쿠키 전송을 허용합니다.
+- **근거**: `CookieUtils`, `SecurityConfig`, `WebMvcConfig`, `application.properties`
+
+### 12.5 운영 환경에서 WebSocket·미디어가 붙지 않던 문제
 
 - **원인**: HTTPS 종료 지점(Nginx)과 백엔드 포트가 다르고, WebRTC는 별도 시그널링·TURN이 필요.
-- **해결**: 80 → 443 리다이렉트, `/ws/`는 `Upgrade`/`Connection` 헤더를 유지해 프록시, `/openvidu/`·`/dashboard/`는 4443으로 프록시하며 `proxy_read_timeout`을 3600s로 늘림. TURN(coturn)을 별도 컨테이너로 두고 `localhost`가 아닌 공인 도메인을 ICE 서버로 지정. 백엔드는 `server.forward-headers-strategy=native`로 프록시 헤더를 신뢰.
-- **근거**: `nginx/default.conf`, `application.properties`
+- **해결**: 80 → 443 리다이렉트, `/ws/`는 `Upgrade`/`Connection` 헤더를 유지해 프록시, `/openvidu/`·`/dashboard/`는 4443으로 프록시하며 `proxy_read_timeout`을 3600s로 늘림. TURN(coturn)을 별도 컨테이너로 두고 `localhost`가 아닌 공인 도메인을 ICE 서버로 지정.
+- **근거**: `nginx/default.conf`
 
-### 12.8 시간대가 하루씩 어긋나던 문제
+### 12.6 시간대가 하루씩 어긋나던 문제
 
 - **해결**: 서버는 모든 도메인 코드에서 `ZoneId.of("Asia/Seoul")`을 명시하고, JPA·Jackson 타임존을 `Asia/Seoul`로 고정. 프론트도 `dayjs.tz.setDefault('Asia/Seoul')`로 맞춤. 스케줄러는 `@Scheduled(zone = "Asia/Seoul")` 사용.
 - **근거**: `application.properties`, `DailyActivityScheduler`, `HomePage.tsx`
